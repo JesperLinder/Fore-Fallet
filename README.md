@@ -20,6 +20,27 @@ npm run dev -- --host
 
 Rensa sparade framsteg: kör `localStorage.removeItem('forefallet.framsteg.v1')` i webbläsarens konsol.
 
+## Publicering på GitHub Pages
+
+Varje push till `main` bygger spelet (`npm run build`) och publicerar det automatiskt
+(`.github/workflows/pages.yml`). Spelet hamnar på:
+
+**https://jesperlinder.github.io/fore-fallet/**
+
+Det tar ett par minuter från push tills sidan är uppdaterad. Hur det gick syns under fliken **Actions** i repot.
+Arbetsflödet kan också köras för hand där: välj "Publicera på GitHub Pages", sedan **Run workflow**.
+
+**Första gången måste GitHub Pages slås på** (annars misslyckas steget "publicera"):
+
+1. Gå till repot på GitHub och sedan **Settings**, **Pages** (i vänstermenyn under "Code and automation").
+2. Under **Build and deployment** och **Source**, välj **GitHub Actions**.
+3. Klart. Kör arbetsflödet igen under **Actions** eller gör en ny push till `main`.
+
+Är repot privat kräver GitHub Pages ett betalt GitHub-konto (Pro, Team eller Enterprise). Med ett gratiskonto måste repot vara publikt.
+
+**Base-sökväg:** lokalt och i Capacitor används relativ base (`./` i `vite.config.ts`).
+Pages-bygget sätter base till `/<repo-namn>/` med `--base`, så det fungerar även om repot byter namn.
+
 ## Struktur
 
 ```
