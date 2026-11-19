@@ -91,7 +91,7 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | `stjarnkrav` | krav på misstag och tid kvar för 1, 2 och 3 stjärnor (invaders) |
 | `tema` | `"mork"` för mörk bakgrund (ljusa rubriker) |
 | `bana.lager` | bakgrundens färglager uppifrån och ner |
-| `slangbella` | antal skott, kraft, friktion, vind/slice, spelplan, rubriker i resultatraden |
+| `slangbella` | antal skott, kraft, friktion, vind/slice (valfritt `vind.variation` = slumpad per skott), `siktlinje` (andel av banan som visas, 0–1), spelplan, rubriker i resultatraden |
 | `invaders` | spelare, skott, brickor, fångstobjekt, skydd, tid, mätare, vinst- och förlustvillkor (se nedan) |
 | `forlust` | rubrik (och valfria orsakstexter) på förlustskärmen |
 | `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` |
@@ -145,6 +145,6 @@ medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stä
 - **Nivå 3–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
-- **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) är mina gissningar och behöver provspelas.
+- **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.
 - **Domslutstexterna** `domslut.text` och `utfall` för nivå 1 har jag skrivit själv. De bör granskas.
 - **Capacitor** är installerat och konfigurerat (`capacitor.config.ts`), men det finns ingen iOS-plattform. När det är dags: `npm run build && npx cap add ios`.

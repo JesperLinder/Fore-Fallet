@@ -38,24 +38,37 @@ export function byggHud(scene: Phaser.Scene, inst: SlangbellaInstallningar): Sla
   };
 }
 
-/** Liten indikator som visar vind/slice: etikett plus pilar som glider i vindens riktning. */
-export function byggVindindikator(scene: Phaser.Scene, inst: SlangbellaInstallningar): void {
+/**
+ * Liten indikator som visar vind/slice: etikett plus pilar i vindens riktning.
+ * Antalet pilar (1–3) visar styrkan. Returnerar en funktion som visar en ny vind.
+ */
+export function byggVindindikator(scene: Phaser.Scene, inst: SlangbellaInstallningar): (vind: { x: number; y: number }) => void {
   const x = avstand.l;
   const y = 166;
   const etikett = skapaText(scene, 12, 13, inst.vind.etikett, 'etikett', 'ljusbeige', { origo: [0, 0.5], storlek: 11 });
-  const b = etikett.width + 58;
+  const b = etikett.width + 62;
   const g = scene.add.graphics().fillStyle(farg.morkgron, 1).fillRoundedRect(0, 0, b, 26, 13);
   const pilar = scene.add.graphics();
-  const vinkel = Math.atan2(inst.vind.y, inst.vind.x);
-  pilar.lineStyle(1.5, farg.guld, 1);
-  for (const dx of [0, 9]) {
-    pilar.beginPath();
-    pilar.moveTo(dx - 3, -4);
-    pilar.lineTo(dx + 1, 0);
-    pilar.lineTo(dx - 3, 4);
-    pilar.strokePath();
-  }
-  pilar.setPosition(etikett.width + 26, 13).setRotation(vinkel);
-  scene.tweens.add({ targets: pilar, x: pilar.x + 6, alpha: 0.3, duration: 800, repeat: -1 });
-  scene.add.container(x, y, [g, etikett, pilar]).setDepth(30);
+  const mitt = etikett.width + 34;
+  pilar.setPosition(mitt, 13);
+  scene.tweens.add({ targets: pilar, alpha: 0.35, duration: 800, yoyo: true, repeat: -1 });
+  const behallare = scene.add.container(x, y, [g, etikett, pilar]).setDepth(30);
+
+  const max = inst.vind.variation?.max ?? Math.hypot(inst.vind.x, inst.vind.y);
+  return (vind) => {
+    const styrka = Math.hypot(vind.x, vind.y);
+    const antal = Phaser.Math.Clamp(Math.ceil((styrka / (max || 1)) * 3), 1, 3);
+    pilar.clear().lineStyle(1.5, farg.guld, 1);
+    for (let i = 0; i < antal; i++) {
+      const dx = (i - (antal - 1) / 2) * 7;
+      pilar.beginPath();
+      pilar.moveTo(dx - 3, -4);
+      pilar.lineTo(dx + 1, 0);
+      pilar.lineTo(dx - 3, 4);
+      pilar.strokePath();
+    }
+    pilar.setRotation(Math.atan2(vind.y, vind.x));
+    // Liten puls så att spelaren ser att vinden har ändrats.
+    scene.tweens.add({ targets: behallare, scale: 1.08, duration: 120, yoyo: true });
+  };
 }

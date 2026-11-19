@@ -23,16 +23,17 @@
     "kraft": 0.11,
     "friktion": { "luft": 0.012, "mark": 0.09 },
     "flygtid": { "min": 22, "max": 50 },
-    "vind": { "x": 0.045, "y": 0, "etikett": "Slice" },
+    "vind": { "x": 0.045, "y": 0, "etikett": "Slice", "variation": { "min": 0.03, "max": 0.075, "motsattChans": 0.25 } },
+    "siktlinje": 0.4,
     "spelplan": { "x": 0, "y": 160, "b": 390, "h": 684 },
     "hud": { "matare": "Aktsamhetsmätaren", "projektiler": "Bollar", "kostnad": "Skadestånd" }
   },
   "objekt": [
-    { "typ": "zon", "x": 250, "y": 186, "b": 140, "h": 132, "farg": "beige", "etikett": "Parkering ·\nutanför banan", "etikettFarg": "vinrod" },
-    { "typ": "linje", "x": 250, "y": 186, "x2": 250, "y2": 330, "farg": "vinrod", "streckad": true },
-    { "typ": "dekor", "utseende": "parkeringsruta", "x": 288, "y": 262 },
+    { "typ": "zon", "x": 250, "y": 252, "b": 140, "h": 128, "farg": "beige", "etikett": "Parkering ·\nutanför banan", "etikettFarg": "vinrod" },
+    { "typ": "linje", "x": 250, "y": 252, "x2": 250, "y2": 392, "farg": "vinrod", "streckad": true },
+    { "typ": "dekor", "utseende": "parkeringsruta", "x": 288, "y": 340 },
     {
-      "typ": "hinder", "utseende": "bil", "x": 342, "y": 262, "b": 46, "h": 30,
+      "typ": "hinder", "utseende": "bil", "x": 342, "y": 340, "b": 46, "h": 30,
       "poang": 0, "skadestand": 25000, "matare": -50, "nollstallerStjarnor": true,
       "traffText": "Skadestånd!"
     },
@@ -41,7 +42,7 @@
       "poang": 100, "etikett": "Green", "flagga": true, "friktion": 0.2,
       "traffText": "På green!"
     },
-    { "typ": "etikett", "x": 222, "y": 340, "text": "Slicezon!", "farg": "vinrod" },
+    { "typ": "etikett", "x": 196, "y": 300, "text": "Slicezon!", "farg": "vinrod" },
     { "typ": "utslag", "x": 78, "y": 628 }
   ],
   "domslut": {

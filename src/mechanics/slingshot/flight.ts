@@ -24,9 +24,10 @@ export function nastaHastighet(
   inst: SlangbellaInstallningar,
   markfriktion: number,
   medVind = true,
+  aktuellVind: { x: number; y: number } = inst.vind,
 ): Hastighet {
   const f = iLuften ? inst.friktion.luft : markfriktion;
-  const vind = iLuften && medVind ? inst.vind : { x: 0, y: 0 };
+  const vind = iLuften && medVind ? aktuellVind : { x: 0, y: 0 };
   return { vx: v.vx * (1 - f) + vind.x, vy: v.vy * (1 - f) + vind.y };
 }
 

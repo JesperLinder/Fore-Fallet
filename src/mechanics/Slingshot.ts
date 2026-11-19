@@ -56,6 +56,9 @@ export class Slingshot implements Mekanik {
   private sikte: Phaser.GameObjects.Graphics;
   private landade: Phaser.GameObjects.Graphics;
   private spar: Phaser.GameObjects.Graphics;
+  private visaVind: (vind: { x: number; y: number }) => void;
+  /** Vinden för det skott som laddas/flyger just nu (slumpas per skott om nivån har vind.variation). */
+  private vind = { x: 0, y: 0 };
 
   constructor(private kontext: MekanikKontext) {
     this.scene = kontext.scene;
@@ -66,7 +69,7 @@ export class Slingshot implements Mekanik {
 
     this.bana = byggBana(this.scene, this.niva);
     this.hud = byggHud(this.scene, this.inst);
-    byggVindindikator(this.scene, this.inst);
+    this.visaVind = byggVindindikator(this.scene, this.inst);
 
     this.landade = this.scene.add.graphics().setDepth(DJUP.landad);
     this.spar = this.scene.add.graphics().setDepth(DJUP.landad);
@@ -138,9 +141,12 @@ export class Slingshot implements Mekanik {
     if (this.drag.length() < MIN_DRAG) return;
     const styrka = this.drag.length() / this.inst.maxDrag;
     const v0 = { vx: -this.drag.x * this.inst.kraft, vy: -this.drag.y * this.inst.kraft };
-    const punkter = forhandsvisning(x, y, v0, this.inst, styrka);
+    const hela = forhandsvisning(x, y, v0, this.inst, styrka);
+    // Nivån kan korta siktlinjen så att man inte ser var bollen landar.
+    const andel = Phaser.Math.Clamp(this.inst.siktlinje ?? 1, 0.05, 1);
+    const punkter = hela.slice(0, Math.max(1, Math.ceil(hela.length * andel)));
     punkter.forEach((p, i) => {
-      const sist = i === punkter.length - 1;
+      const sist = andel >= 1 && i === punkter.length - 1;
       this.sikte.fillStyle(this.kontrastFarg(p.y), 1);
       if (sist) this.sikte.lineStyle(1.5, this.kontrastFarg(p.y), 1).strokeCircle(p.x, p.y, 6);
       else this.sikte.fillCircle(p.x, p.y, 1.8);
@@ -186,7 +192,7 @@ export class Slingshot implements Mekanik {
       const { x, y } = s.kropp.position;
       const mal = this.bana.mal.find((m) => iMal(m, x, y));
       const markfriktion = mal?.friktion ?? this.inst.friktion.mark;
-      const v = nastaHastighet({ vx: s.kropp.velocity.x, vy: s.kropp.velocity.y }, iLuften, this.inst, markfriktion);
+      const v = nastaHastighet({ vx: s.kropp.velocity.x, vy: s.kropp.velocity.y }, iLuften, this.inst, markfriktion, true, this.vind);
       this.scene.matter.body.setVelocity(s.kropp, { x: v.vx, y: v.vy });
     });
 
@@ -262,10 +268,21 @@ export class Slingshot implements Mekanik {
   }
 
   private laddaNasta(): void {
+    this.vind = this.slumpaVind();
+    this.visaVind(this.vind);
     const { x, y } = this.bana.utslag;
     this.projektil.setPosition(x, y).setScale(0).setVisible(true);
     this.scene.tweens.add({ targets: this.projektil, scale: 1, duration: 220, ease: 'Back.easeOut' });
     this.ritaBand(x, y);
+  }
+
+  /** Vinden inför nästa skott: fast, eller slumpad inom nivåns vind.variation. */
+  private slumpaVind(): { x: number; y: number } {
+    const v = this.inst.vind;
+    if (!v.variation) return { x: v.x, y: v.y };
+    const styrka = Phaser.Math.FloatBetween(v.variation.min, v.variation.max);
+    const motsatt = Math.random() < (v.variation.motsattChans ?? 0);
+    return { x: Math.sign(v.x || 1) * styrka * (motsatt ? -1 : 1), y: v.y };
   }
 
   private avslutaNiva(): void {

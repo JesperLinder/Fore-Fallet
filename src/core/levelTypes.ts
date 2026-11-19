@@ -179,7 +179,18 @@ export interface SlangbellaInstallningar {
   /** Hur länge projektilen flyger (i fysiksteg) vid svagaste och starkaste skott. */
   flygtid: { min: number; max: number };
   /** Sidvind/slice som verkar medan projektilen är i luften. */
-  vind: { x: number; y: number; etikett: string };
+  vind: {
+    x: number;
+    y: number;
+    etikett: string;
+    /**
+     * Valfritt: slumpa sidvinden (x) inför varje skott, mellan min och max.
+     * motsattChans (0–1) = sannolikheten att den blåser åt andra hållet.
+     */
+    variation?: { min: number; max: number; motsattChans?: number };
+  };
+  /** Hur stor del (0–1) av flygbanan den prickade siktlinjen visar. 1 = hela vägen till landning (standard). */
+  siktlinje?: number;
   /** Den del av skärmen där projektilen är i spel. Utanför = ute. */
   spelplan: { x: number; y: number; b: number; h: number };
   /** Rubriker i resultatraden. */
