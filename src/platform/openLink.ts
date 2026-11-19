@@ -1,22 +1,20 @@
 /**
- * Öppnar en extern länk (t.ex. "Läs hela fallet").
- * I iOS-appen visas sidan i en inbyggd webbläsarvy via Capacitors Browser-plugin.
- * På webben öppnas en ny flik DIREKT i tryckhändelsen: Safari (och Firefox) blockerar fönster
- * som öppnas senare, och pluginets webbversion laddas först vid anrop och hinner därför bli för sen.
+ * Externa länkar (t.ex. "Läs hela fallet").
+ * På webben används en riktig <a>-länk som webbläsaren själv öppnar: Safari blockerar nya flikar
+ * som öppnas från kod (window.open), men aldrig ett tryck på en riktig länk.
+ * I iOS-appen fångas trycket och sidan visas i Capacitors Browser-plugin.
  */
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 
-export function oppnaLank(url: string): void {
+export function kopplaLank(a: HTMLAnchorElement, url: string): void {
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
   if (Capacitor.isNativePlatform()) {
-    void Browser.open({ url });
-    return;
-  }
-  const flik = window.open(url, '_blank');
-  if (flik) {
-    flik.opener = null; // den nya fliken ska inte kunna styra spelet
-  } else {
-    // Blockerad trots allt (strikt popup-spärr): öppna länken i samma flik i stället.
-    window.location.href = url;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      void Browser.open({ url });
+    });
   }
 }

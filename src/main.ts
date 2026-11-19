@@ -20,6 +20,8 @@ const spel = new Phaser.Game({
   },
   render: { antialias: true, roundPixels: false },
   input: { activePointers: 1 },
+  // DOM-lager ovanpå canvasen, för riktiga länkar (Safari öppnar bara nya flikar från riktiga länktryck).
+  dom: { createContainer: true },
   physics: { default: 'matter' },
   scene: [BootScene, TitleScene, MapScene, LevelScene, VerdictScene],
 });

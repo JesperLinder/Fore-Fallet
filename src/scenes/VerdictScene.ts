@@ -15,7 +15,7 @@ import { stjarnRad } from '../ui/Stars';
 import { marke } from '../ui/Badge';
 import { Knapp } from '../ui/Button';
 import { DragScroll } from '../ui/DragScroll';
-import { oppnaLank } from '../platform/openLink';
+import { lankKnapp } from '../ui/LinkButton';
 import type { DomslutData } from './LevelScene';
 
 const X0 = avstand.sida;
@@ -118,9 +118,7 @@ export class VerdictScene extends BasScen {
     const b = (INNER_B - avstand.m) / 2;
     const h = 52;
     const tryck = () => !this.scroll?.arDrag();
-    new Knapp(this, X0 + b / 2, y + h / 2, text.domslut.lasFallet, { bredd: b, hojd: h, variant: 'konturLjus', kanTryckas: tryck }, () =>
-      oppnaLank(niva.domslut.lankTillFallet),
-    );
+    lankKnapp(this, X0 + b / 2, y + h / 2, text.domslut.lasFallet, { bredd: b, hojd: h, variant: 'konturLjus' }, niva.domslut.lankTillFallet);
     new Knapp(this, X0 + b * 1.5 + avstand.m, y + h / 2, text.domslut.spelaIgen, { bredd: b, hojd: h, variant: 'konturLjus', kanTryckas: tryck }, () =>
       this.bytTill('Level', { id: niva.id }),
     );
