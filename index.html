@@ -19,7 +19,12 @@
     <style>
       html, body { margin: 0; height: 100%; background: #0F2827; overflow: hidden; }
       body { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-      #spel { width: 100vw; height: 100vh; height: 100dvh; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); box-sizing: border-box; }
+      /* Marginalen för klocka/notch och hemindikator ligger på #ram. Phaser mäter #spel inklusive padding,
+         så #spel får ingen egen padding – annars blir spelet för högt och nederkanten klipps av. */
+      #ram { position: fixed; inset: 0; height: 100vh; height: 100dvh; display: flex;
+             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+             box-sizing: border-box; }
+      #spel { flex: 1; min-width: 0; min-height: 0; position: relative; }
       /* Osynliga element som tvingar webbläsaren att ladda typsnitten innan spelet ritar text. */
       .fontladdning { position: absolute; left: -9999px; visibility: hidden; }
     </style>
@@ -28,7 +33,7 @@
     <div class="fontladdning" style="font-family: 'Newsreader'">Aa</div>
     <div class="fontladdning" style="font-family: 'Newsreader'; font-style: italic">Aa</div>
     <div class="fontladdning" style="font-family: 'Instrument Sans'">Aa</div>
-    <div id="spel"></div>
+    <div id="ram"><div id="spel"></div></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
