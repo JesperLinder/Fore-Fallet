@@ -25,7 +25,7 @@ Rensa sparade framsteg: kör `localStorage.removeItem('forefallet.framsteg.v1')`
 Varje push till `main` bygger spelet (`npm run build`) och publicerar det automatiskt
 (`.github/workflows/pages.yml`). Spelet hamnar på:
 
-**https://jesperlinder.github.io/fore-fallet/**
+**https://jesperlinder.github.io/Fore-Fallet/** (stora F, adressen är skiftlägeskänslig)
 
 Det tar ett par minuter från push tills sidan är uppdaterad. Hur det gick syns under fliken **Actions** i repot.
 Arbetsflödet kan också köras för hand där: välj "Publicera på GitHub Pages", sedan **Run workflow**.
