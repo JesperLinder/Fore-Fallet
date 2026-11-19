@@ -213,6 +213,7 @@ export class Invaders implements Mekanik {
     if (!bricka) return false;
     if (bricka.data.typ === 'fel') {
       this.rutnat.taBort(bricka);
+      this.rutnat.ersatt(bricka);
       spela('traff');
     } else {
       this.skakaBricka(bricka);

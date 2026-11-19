@@ -125,6 +125,22 @@ export class Rutnat {
     this.scene.tweens.add({ targets: b.obj, scale: 1.25, alpha: 0, duration: 180, onComplete: () => b.obj.destroy() });
   }
 
+  /**
+   * Byter en bortskjuten fel-bricka mot en rätt-bricka med etiketten i "ersattning", på samma plats.
+   * Den nya brickan får fel-brickans "plats" i slutraden och räknas som rätt (får inte skjutas).
+   */
+  ersatt(gammal: Bricka): Bricka | undefined {
+    const etikett = gammal.data.ersattning;
+    if (!etikett) return undefined;
+    const data: BrickData = { etikett, typ: 'ratt', plats: gammal.data.plats };
+    const obj = this.ritaBricka(data, gammal.lx, gammal.ly).setScale(0.4).setAlpha(0);
+    this.behallare.add(obj);
+    this.scene.tweens.add({ targets: obj, scale: 1, alpha: 1, duration: 220, ease: 'Back.easeOut' });
+    const ny: Bricka = { data, obj, lx: gammal.lx, ly: gammal.ly, levande: true };
+    this.brickor.push(ny);
+    return ny;
+  }
+
   /** Lyfter ut en bricka ur rutnätet till scenen (för slutraden). */
   lyftUt(b: Bricka): Phaser.GameObjects.Container {
     const mitt = this.varldsMitt(b);

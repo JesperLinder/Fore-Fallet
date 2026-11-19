@@ -103,32 +103,31 @@ men det finns inget stöd för bildfiler i nivåformatet än.
 
 ### Invaders-nivåer
 
-Mekaniken styrs helt av blocket `invaders` i nivåfilen. Mallen `src/levels/_mall-invaders.json` och förklaringen
+Mekaniken styrs helt av blocket `invaders` i nivåfilen. I Löpsedeln byts varje bortskjuten fel-bokstav direkt mot rätt bokstav (`ersattning`), så raden blir KROG KUNG. Fallande fångstobjekt (`fangst`) finns kvar som valfri byggsten för andra nivåer. Mallen `src/levels/_mall-invaders.json` och förklaringen
 `src/levels/_mall-invaders.md` beskriver varje fält. Så här ser nivå 2 (Löpsedeln) ut i förkortad form:
 
 ```json
 "tema": "mork",
-"stjarnkrav": { "tre": { "maxMisstag": 0, "tidKvarOver": 20 }, "tva": { "maxMisstag": 1 }, "en": {} },
+"stjarnkrav": { "tre": { "maxMisstag": 0, "tidKvarOver": 10 }, "tva": { "maxMisstag": 1 }, "en": {} },
 "invaders": {
   "spelare": { "utseende": "textmarkor", "y": 716, "b": 30, "h": 48 },
   "skott": { "lage": "slapp", "intervall": 220, "fart": 1000 },
   "brickor": {
     "rader": [
-      [{ "etikett": "K", "typ": "ratt", "plats": 0 }, { "etikett": "N", "typ": "fel" }, …],
+      [{ "etikett": "K", "typ": "ratt", "plats": 0 }, { "etikett": "N", "typ": "fel", "plats": 1, "ersattning": "R" }, …],
       [{ "etikett": "K", "typ": "ratt", "plats": 4 }, …]
     ],
     "b": 60, "h": 48, "mellanrum": 10, "forskjutning": [0, 35], "startY": 160,
     "steg": { "x": 3, "ned": 14, "intervall": 280 },
     "kant": { "vanster": 16, "hoger": 374 }
   },
-  "fangst": [{ "etikett": "O", "x": 150, "y": 300, "fart": 16, "plats": 2 }, …],
   "skydd": [{ "etikett": "RÄTTELSE", "x": 82, "y": 540, "b": 84, "h": 30, "talighet": 4 }, …],
-  "tid": { "sekunder": 60, "etikett": "Pressläggning om" },
+  "tid": { "sekunder": 20, "etikett": "Pressläggning om" },
   "matare": { "namn": "Förtalsrisk", "steg": 4, "status": "Ensamansvar: på" },
   "misstag": { "rattTraffad": 1, "fangstMissad": 1 },
   "info": [{ "etikett": "Rätt rubrik:", "varde": "KROGKUNG", "serif": true }, { "etikett": "Utgivare:", "varde": "DU" }],
-  "instruktion": { "text": "Fånga rätt bokstäver – skjut bort fel", "y": 402 },
-  "vinst": ["fel-borta", "alla-fangade"],
+  "instruktion": { "text": "Skjut bort fel bokstav – rätt dyker upp", "y": 402 },
+  "vinst": ["fel-borta"],
   "forlust": ["matare-full", "tid-slut", "botten"],
   "slutrad": { "y": 420 }
 },

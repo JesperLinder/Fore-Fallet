@@ -254,8 +254,10 @@ export interface BrickData {
   etikett: string;
   /** "fel" ska skjutas bort, "ratt" får inte skjutas. */
   typ: 'fel' | 'ratt';
-  /** Plats i slutraden (0 = först). */
+  /** Plats i slutraden (0 = först). För en fel-bricka med ersattning: ersättningens plats. */
   plats?: number;
+  /** Bara för fel-brickor: rätt bokstav/text som dyker upp på samma ställe när brickan skjutits bort. */
+  ersattning?: string;
 }
 
 export interface FangstData {

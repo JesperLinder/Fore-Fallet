@@ -6,13 +6,13 @@
   "mekanik": "invaders",
   "fylgiaMal": false,
   "tema": "mork",
-  "uppdragstext": "Löpsedeln går i tryck om en minut. Rätta rubriken innan någon blir utpekad som brottsling.",
+  "uppdragstext": "Löpsedeln går i tryck om 20 sekunder. Rätta rubriken innan någon blir utpekad som brottsling.",
   "fylgiaTips": "Ett stavfel kan vara förtal. Och på en tidning är det utgivaren som får stå för det – ingen annan.",
   "resultat": "vinst",
   "stjarnkrav": {
     "tre": {
       "maxMisstag": 0,
-      "tidKvarOver": 20
+      "tidKvarOver": 10
     },
     "tva": {
       "maxMisstag": 1
@@ -50,16 +50,21 @@
           },
           {
             "etikett": "N",
-            "typ": "fel"
+            "typ": "fel",
+            "plats": 1,
+            "ersattning": "R"
           },
           {
             "etikett": "A",
-            "typ": "fel"
+            "typ": "fel",
+            "plats": 2,
+            "ersattning": "O"
           },
           {
             "etikett": "R",
-            "typ": "ratt",
-            "plats": 1
+            "typ": "fel",
+            "plats": 3,
+            "ersattning": "G"
           },
           {
             "etikett": "K",
@@ -108,23 +113,6 @@
         35
       ]
     },
-    "fangst": [
-      {
-        "etikett": "O",
-        "x": 150,
-        "y": 300,
-        "fart": 16,
-        "plats": 2
-      },
-      {
-        "etikett": "G",
-        "x": 240,
-        "y": 336,
-        "fart": 16,
-        "fordrojning": 1500,
-        "plats": 3
-      }
-    ],
     "skydd": [
       {
         "etikett": "RÄTTELSE",
@@ -144,7 +132,7 @@
       }
     ],
     "tid": {
-      "sekunder": 60,
+      "sekunder": 20,
       "etikett": "Pressläggning om"
     },
     "matare": {
@@ -168,12 +156,11 @@
       }
     ],
     "instruktion": {
-      "text": "Fånga rätt bokstäver – skjut bort fel",
+      "text": "Skjut bort fel bokstav – rätt dyker upp",
       "y": 402
     },
     "vinst": [
-      "fel-borta",
-      "alla-fangade"
+      "fel-borta"
     ],
     "forlust": [
       "matare-full",

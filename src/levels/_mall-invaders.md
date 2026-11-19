@@ -47,7 +47,8 @@ Nästa nivå låses upp när den här har minst en stjärna.
 |---|---|
 | `rader` | Rader uppifrån och ner. Varje bricka är `{ "etikett", "typ", "plats" }`, eller `null` för en tom plats. |
 | `typ` | `"fel"` ska skjutas bort. `"ratt"` får inte träffas: en träff är ett misstag och brickan blir kvar. |
-| `plats` | Valfritt. Brickans plats i slutraden vid vinst (0 = först). |
+| `plats` | Valfritt. Brickans plats i slutraden vid vinst (0 = först). På en fel-bricka med `ersattning` gäller den ersättningen. |
+| `ersattning` | Valfritt, bara på fel-brickor. Rätt bokstav eller text som dyker upp på samma ställe när fel-brickan skjutits bort. Den nya brickan är en rätt-bricka. |
 | `b`, `h`, `mellanrum` | Brickstorlek och mellanrum. |
 | `forskjutning` | Valfritt. Sidförskjutning per rad, t.ex. `[0, 35]` för att skjuta rad 2 en halv bricka. Det ger luckor att skjuta igenom. |
 | `startY` | Översta radens överkant vid start. Rutnätet centreras i sidled mellan kanterna. |

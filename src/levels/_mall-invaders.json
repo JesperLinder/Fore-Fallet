@@ -50,7 +50,9 @@
           },
           {
             "etikett": "X",
-            "typ": "fel"
+            "typ": "fel",
+            "plats": 1,
+            "ersattning": "Y"
           },
           {
             "etikett": "B",
