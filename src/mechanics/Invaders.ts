@@ -9,7 +9,6 @@
 import Phaser from 'phaser';
 import { avstand, farg, radie } from '../config/theme';
 import { BREDD, HOJD, MITT_X } from '../config/display';
-import { text } from '../config/strings';
 import type { ForlustOrsak, InvadersInstallningar, Niva, SkyddData } from '../core/levelTypes';
 import { spela } from '../core/sound';
 import type { Mekanik, MekanikKontext } from './Mechanic';
@@ -19,7 +18,7 @@ import { aterstall, fallSteg, skapaFangst, type Fangst } from './invaders/fallin
 import { byggHud, INFO_Y, INFO_H, type InvadersHud } from './invaders/hud';
 import { skapaText } from '../ui/text';
 import { streckadLinje } from '../ui/shapes';
-import { Knapp } from '../ui/Button';
+import { visaStart } from './common/startPanel';
 
 const SKOTT_B = 5;
 const SKOTT_H = 14;
@@ -83,7 +82,7 @@ export class Invaders implements Mekanik {
 
     this.hud.visaTid(this.tidKvar);
     this.hud.visaMatare(0);
-    this.visaStart();
+    visaStart(this.scene, this.kontext.tips, () => (this.startad = true));
 
     this.scene.input.on('pointerdown', this.ner, this);
     this.scene.input.on('pointermove', this.flytta, this);
@@ -92,22 +91,6 @@ export class Invaders implements Mekanik {
   }
 
   // ---------- Start ----------
-
-  /** Uppdrag och tips visas i mitten med en "Starta"-knapp. Klockan går först när man tryckt. */
-  private visaStart(): void {
-    const tips = this.kontext.tips;
-    const tacke = this.scene.add.rectangle(MITT_X, HOJD / 2, BREDD, HOJD, farg.morkgron, 0.6).setDepth(45).setInteractive();
-    // Panelens höjd = underkanten på dess lägsta text + marginal (grafik har ingen egen storlek).
-    const texter = tips.list.filter((o): o is Phaser.GameObjects.Text => o instanceof Phaser.GameObjects.Text);
-    const tipsH = Math.max(...texter.map((t) => t.y + t.height)) + 16;
-    tips.setY(HOJD / 2 - tipsH / 2 - 40);
-    const knapp = new Knapp(this.scene, MITT_X, tips.y + tipsH + 48, text.niva.starta, { bredd: 200, variant: 'guld' }, () => {
-      tacke.destroy();
-      knapp.destroy();
-      this.scene.tweens.add({ targets: tips, alpha: 0, duration: 200, onComplete: () => tips.setVisible(false) });
-      this.startad = true;
-    }).setDepth(51);
-  }
 
   private ritaInstruktion(): void {
     const ins = this.inst.instruktion;

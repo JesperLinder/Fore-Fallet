@@ -18,7 +18,9 @@ function helaPoang(niva: Niva, poang: number): number {
 function helaKrav(krav: NonNullable<Niva['stjarnkrav']>, r: MekanikResultat): number {
   const uppfyllt = (k: StjarnKrav) =>
     (k.maxMisstag === undefined || (r.misstag ?? 0) <= k.maxMisstag) &&
-    (k.tidKvarOver === undefined || (r.tidKvar ?? 0) > k.tidKvarOver);
+    (k.tidKvarOver === undefined || (r.tidKvar ?? 0) > k.tidKvarOver) &&
+    (k.maxForsok === undefined || (r.forsok ?? 0) <= k.maxForsok) &&
+    (k.maxFallor === undefined || (r.fallor ?? 0) <= k.maxFallor);
   return uppfyllt(krav.tre) ? 3 : uppfyllt(krav.tva) ? 2 : uppfyllt(krav.en) ? 1 : 0;
 }
 

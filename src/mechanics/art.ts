@@ -4,6 +4,7 @@
  */
 import Phaser from 'phaser';
 import { farg } from '../config/theme';
+import { streckadLinje } from '../ui/shapes';
 
 type Rita = (g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number) => void;
 
@@ -51,6 +52,52 @@ const figurer: Record<string, Rita> = {
     g.lineBetween(x, y - halv + h * 0.26, x, y + halv - h * 0.26);
     bage(y - halv, 1);
     bage(y + halv, -1);
+  },
+
+  /** Hästsko i guld (öppningen nedåt). Hästen i Travstallet. */
+  hastsko(g, x, y) {
+    g.lineStyle(5, farg.guld, 1);
+    g.beginPath();
+    g.arc(x, y - 1, 8, Math.PI, 0);
+    g.strokePath();
+    g.lineBetween(x - 8, y - 1, x - 8, y + 9);
+    g.lineBetween(x + 8, y - 1, x + 8, y + 9);
+    g.fillStyle(farg.morkockra, 1);
+    for (const [dx, dy] of [[-8, 4], [8, 4], [-6, -6], [6, -6]]) g.fillCircle(x + dx, y + dy, 0.9);
+  },
+
+  /** Ett avtal: papper med textrader. */
+  avtal(g, x, y) {
+    g.fillStyle(farg.ljusbeige, 1).fillRect(x - 9, y - 11, 18, 22);
+    g.lineStyle(1.2, farg.morkgron, 1).strokeRect(x - 9, y - 11, 18, 22);
+    g.lineStyle(1, farg.morkgron, 1);
+    for (const dy of [-5, -1, 3]) g.lineBetween(x - 5, y + dy, x + 5, y + dy);
+    g.lineBetween(x - 5, y + 7, x + 1, y + 7);
+  },
+
+  /** Portfölj (borgenär). */
+  portfolj(g, x, y, b = 36, h = 26) {
+    g.lineStyle(2.5, farg.vinrod, 1).strokeRoundedRect(x - b * 0.2, y - h / 2 - 6, b * 0.4, 9, 3);
+    g.fillStyle(farg.vinrod, 1).fillRoundedRect(x - b / 2, y - h / 2, b, h, 5);
+    g.fillStyle(farg.ljusbeige, 1).fillRect(x - 3, y - h / 2 + 7, 6, 4);
+  },
+
+  /** Stall, fyllt (säljarens). (x, y) = mitten av grunden. */
+  stall(g, x, y, b = 160, h = 125) {
+    const vagg = h * 0.62;
+    g.fillStyle(farg.morkgron, 1);
+    g.fillRect(x - b / 2 + 8, y - vagg, b - 16, vagg);
+    g.fillTriangle(x - b / 2, y - vagg, x, y - h, x + b / 2, y - vagg);
+    g.fillStyle(farg.gron, 1).fillRect(x - b * 0.17, y - vagg * 0.78, b * 0.34, vagg * 0.78);
+  },
+
+  /** Stall, streckad kontur (köparens, tomt). */
+  'stall-streckat'(g, x, y, b = 160, h = 125) {
+    const vagg = h * 0.62;
+    const v = (px: number, py: number) => new Phaser.Math.Vector2(px, py);
+    g.lineStyle(2, farg.morkgron, 1);
+    streckadLinje(g, [v(x - b / 2 + 8, y), v(x - b / 2 + 8, y - vagg), v(x - b / 2, y - vagg), v(x, y - h), v(x + b / 2, y - vagg), v(x + b / 2 - 8, y - vagg), v(x + b / 2 - 8, y)], 6, 5);
+    g.lineStyle(2, farg.morkgron, 1).strokeRect(x - b * 0.17, y - vagg * 0.78, b * 0.34, vagg * 0.78);
   },
 
   flagga(g, x, y) {

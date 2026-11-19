@@ -55,9 +55,11 @@ src/
   core/sound.ts           ljudeffekter med Web Audio (inga ljudfiler)
   core/scoring.ts         poäng → stjärnor
   scenes/                 Boot, Title, Map, Level, Verdict (+ BaseScene)
-  mechanics/              Slingshot.ts, Invaders.ts, registry.ts, art.ts (figurer)
-  mechanics/slingshot/    flygmodell, bana, resultatrad
+  mechanics/              Slingshot.ts, Invaders.ts, Hybrid.ts, registry.ts, art.ts (figurer)
+  mechanics/slingshot/    kastaren (launcher.ts: slangbella, sikte, flygning), flygmodell, bana, resultatrad
   mechanics/invaders/     brickornas rutnät, fallande objekt, HUD (tid, inforuta, mätare)
+  mechanics/hybrid/       hybridens HUD: borgenärsrutan, valknappar, hur fiender ritas
+  mechanics/common/       delat: formation.ts (marscherande rutnät), startPanel.ts (Starta-rutan)
   levels/                 en JSON-fil per nivå
   ui/                     knappar, text, stjärnor, paneler, märken, scroll
   platform/openLink.ts    öppnar externa länkar (Capacitor Browser i appen, ny flik på webben)
@@ -82,19 +84,20 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | Fält | Betydelse |
 |---|---|
 | `id`, `nummer`, `titel`, `referens` | identitet och visning på kartan |
-| `mekanik` | `"slingshot"` eller `"invaders"` |
+| `mekanik` | `"slingshot"`, `"invaders"` eller `"hybrid"` |
 | `fylgiaMal` | visar märket "Fylgia-mål" |
 | `etikett` | valfri text på kartan i stället för mekaniknamnet ("Boss", "Final") |
 | `uppdragstext`, `fylgiaTips` | visas i rutan "Din fylgia viskar" |
 | `resultat` | `"vinst"` eller `"halvvagsvinst"` (max 1,5 stjärnor) |
 | `stjarngranser` | poäng för 1, 2 och 3 stjärnor (slangbella) |
-| `stjarnkrav` | krav på misstag och tid kvar för 1, 2 och 3 stjärnor (invaders) |
+| `stjarnkrav` | krav för 1, 2 och 3 stjärnor: `maxMisstag`, `tidKvarOver` (invaders), `maxForsok`, `maxFallor` (hybrid) |
 | `tema` | `"mork"` för mörk bakgrund (ljusa rubriker) |
 | `bana.lager` | bakgrundens färglager uppifrån och ner |
 | `slangbella` | antal skott, kraft, friktion, vind/slice (valfritt `vind.variation` = slumpad per skott), `siktlinje` (andel av banan som visas, 0–1), spelplan, rubriker i resultatraden |
 | `invaders` | spelare, skott, brickor, fångstobjekt, skydd, tid, mätare, vinst- och förlustvillkor (se nedan) |
+| `hybrid` | kastfysik, projektiler, mål, studsyta, fiender och faragräns (se nedan) |
 | `forlust` | rubrik (och valfria orsakstexter) på förlustskärmen |
-| `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` |
+| `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` (valfritt `b`/`h`), `text` |
 | `domslut` | `rubrik`, `text` (valfri), `domskal` (3 st), `lankTillFallet`, `utfall` per antal stjärnor, och `vunnet`/`inteVunnet` för halvvägsvinst |
 
 Objekt med `utseende` (t.ex. `"bil"`, `"golfboll"`) hämtar figuren från `src/mechanics/art.ts`.
@@ -140,9 +143,60 @@ medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stä
 
 **Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio. Ljudet slås av och på med högtalarknappen på kartan.
 
+### Hybridnivåer
+
+En hybridnivå kombinerar slangbellan med en formation som marscherar nedåt, som i invaders. Formationen går inte att
+skjuta på: spelaren ska hinna före. Koden återanvänder delarna från de andra mekanikerna:
+`slingshot/launcher.ts` (kastet), `common/formation.ts` (rörelsen), `slingshot/course.ts` (banans objekt) och
+`common/startPanel.ts` (Starta-rutan). Mall: `src/levels/_mall-hybrid.json`. Nivå 3 (Travstallet) ser ut så här i förkortad form:
+
+```json
+"mekanik": "hybrid",
+"stjarnkrav": { "tre": { "maxForsok": 1, "maxFallor": 0 }, "tva": { "maxFallor": 0 }, "en": {} },
+"objekt": [
+  { "typ": "dekor", "utseende": "stall", "x": 97, "y": 520, "b": 166, "h": 125 },
+  { "typ": "dekor", "utseende": "stall-streckat", "x": 300, "y": 520, "b": 150, "h": 122 },
+  { "typ": "text", "x": 97, "y": 540, "text": "Tränarens stall", "farg": "morkgron" },
+  { "typ": "utslag", "x": 96, "y": 686 }
+],
+"hybrid": {
+  "kast": { "maxDrag": 105, "kraft": 0.11, "friktion": { "luft": 0.012, "mark": 0.09 }, "flygtid": { "min": 22, "max": 50 },
+            "siktlinje": 0.5, "spelplan": { "x": 0, "y": 90, "b": 390, "h": 680 } },
+  "projektiler": [
+    { "id": "avtal", "knapp": "Kasta avtal", "utseende": "avtal", "roll": "falla", "forstaText": "Avtalet räcker inte mot borgenärer" },
+    { "id": "hast", "knapp": "Kasta hästen", "utseende": "hastsko", "namn": "Kelly Sig", "roll": "vinnare",
+      "aterkomst": { "vantaMs": 2000, "till": { "x": 97, "y": 505 } } }
+  ],
+  "startval": "hast",
+  "mal": { "x": 255, "y": 452, "b": 90, "h": 70 },
+  "studsyta": { "x": 225, "y": 398, "b": 150, "h": 124 },
+  "vinstText": "Tradition!",
+  "fiender": { "utseende": "portfolj", "rader": [[{ "etikett": "Kronofogden" }, …], …], "b": 120, "h": 56,
+               "mellanrum": 8, "forskjutning": [0, 60], "startY": 96, "steg": { "x": 5, "ned": 15, "intervall": 275 },
+               "kant": { "vanster": 16, "hoger": 374 } },
+  "faraY": 395,
+  "hud": { "rubrik": "Borgenärer", "varde": "{antal} i kö" }
+},
+"forlust": { "rubrik": "Utmätt.", "orsaker": { "botten": "Hästen stod kvar hos säljaren. Ditt avtal hjälpte inte." } }
+```
+
+| Fält i `hybrid` | Vad det gör |
+|---|---|
+| `kast` | Kastfysiken, samma fält som i `slangbella` (utom antal, projektil och HUD). `vind` är valfri. |
+| `projektiler` | En knapp per projektil längst ner. `roll: "vinnare"` vinner om den stannar i `mal`. Missar den ligger den kvar `aterkomst.vantaMs` ms, galopperar till `aterkomst.till` och laddas igen. `roll: "falla"` studsar alltid bort från `studsyta`, räknas i `maxFallor` och visar `forstaText` första gången. `namn` står under slangbellan. |
+| `startval` | `id` på den projektil som är vald från början. |
+| `mal` | Rektangel (`x`, `y` = övre vänstra hörnet). En vinnare som stannar här vinner. |
+| `studsyta` | Rektangel som fällor studsar mot. Utelämnas den används `mal`. |
+| `vinstText` | Text som tonar in och blinkar en gång ovanför studsytan vid vinst. |
+| `fiender` | Formationen: samma fält som invaders-brickor (`rader`, `b`, `h`, `mellanrum`, `forskjutning`, `startY`, `steg`, `kant`) plus `utseende` (figur i art.ts). Fiender har bara `etikett`. |
+| `faraY` | Når formationens underkant hit innan man vunnit är nivån förlorad (orsak `botten`). Pågår ett kast får det landa först. |
+| `hud` | Rutan uppe till höger. `{antal}` byts mot antalet fiender. |
+
+Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar det cirka 35 sekunder.
+
 ## Platshållare
 
-- **Nivå 3–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Nivå 4–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

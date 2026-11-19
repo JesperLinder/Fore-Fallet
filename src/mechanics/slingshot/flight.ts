@@ -5,7 +5,9 @@
  * Modellen: projektilen är först i luften (påverkas av vind/slice och lite luftmotstånd),
  * landar efter ett antal steg och rullar sedan med markfriktion tills den stannar.
  */
-import type { SlangbellaInstallningar } from '../../core/levelTypes';
+import type { KastInstallningar } from '../../core/levelTypes';
+
+const INGEN_VIND = { x: 0, y: 0 };
 
 export interface Hastighet {
   vx: number;
@@ -13,7 +15,7 @@ export interface Hastighet {
 }
 
 /** Hur många steg projektilen är i luften, beroende på skottets styrka (0–1). */
-export function antalFlygsteg(inst: SlangbellaInstallningar, styrka: number): number {
+export function antalFlygsteg(inst: KastInstallningar, styrka: number): number {
   return Math.round(inst.flygtid.min + (inst.flygtid.max - inst.flygtid.min) * styrka);
 }
 
@@ -21,10 +23,10 @@ export function antalFlygsteg(inst: SlangbellaInstallningar, styrka: number): nu
 export function nastaHastighet(
   v: Hastighet,
   iLuften: boolean,
-  inst: SlangbellaInstallningar,
+  inst: KastInstallningar,
   markfriktion: number,
   medVind = true,
-  aktuellVind: { x: number; y: number } = inst.vind,
+  aktuellVind: { x: number; y: number } = inst.vind ?? INGEN_VIND,
 ): Hastighet {
   const f = iLuften ? inst.friktion.luft : markfriktion;
   const vind = iLuften && medVind ? aktuellVind : { x: 0, y: 0 };
@@ -45,7 +47,7 @@ export function forhandsvisning(
   startX: number,
   startY: number,
   v0: Hastighet,
-  inst: SlangbellaInstallningar,
+  inst: KastInstallningar,
   styrka: number,
   varN = 3,
 ): { x: number; y: number }[] {

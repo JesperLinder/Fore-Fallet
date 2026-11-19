@@ -1,0 +1,185 @@
+{
+  "id": "unikt-id",
+  "nummer": 99,
+  "titel": "Nivåns namn",
+  "referens": "NJA ÅÅÅÅ s. NN",
+  "mekanik": "hybrid",
+  "fylgiaMal": false,
+  "uppdragstext": "Vad spelaren ska göra.",
+  "fylgiaTips": "Fylgias tips om principen.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxForsok": 1,
+      "maxFallor": 0
+    },
+    "tva": {
+      "maxFallor": 0
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "beige",
+        "topp": 0
+      },
+      {
+        "farg": "ljusbeige",
+        "topp": 520
+      }
+    ]
+  },
+  "objekt": [
+    {
+      "typ": "dekor",
+      "utseende": "stall",
+      "x": 97,
+      "y": 520,
+      "b": 166,
+      "h": 125
+    },
+    {
+      "typ": "dekor",
+      "utseende": "stall-streckat",
+      "x": 300,
+      "y": 520,
+      "b": 150,
+      "h": 122
+    },
+    {
+      "typ": "text",
+      "x": 97,
+      "y": 540,
+      "text": "Vänster byggnad",
+      "farg": "morkgron"
+    },
+    {
+      "typ": "text",
+      "x": 300,
+      "y": 540,
+      "text": "Höger byggnad",
+      "farg": "morkgron"
+    },
+    {
+      "typ": "utslag",
+      "x": 96,
+      "y": 686
+    }
+  ],
+  "hybrid": {
+    "kast": {
+      "maxDrag": 105,
+      "kraft": 0.11,
+      "friktion": {
+        "luft": 0.012,
+        "mark": 0.09
+      },
+      "flygtid": {
+        "min": 22,
+        "max": 50
+      },
+      "siktlinje": 0.5,
+      "spelplan": {
+        "x": 0,
+        "y": 90,
+        "b": 390,
+        "h": 680
+      }
+    },
+    "projektiler": [
+      {
+        "id": "falla",
+        "knapp": "Kasta fällan",
+        "utseende": "avtal",
+        "roll": "falla",
+        "forstaText": "Text första gången fällan studsar"
+      },
+      {
+        "id": "ratt",
+        "knapp": "Kasta rätt sak",
+        "utseende": "hastsko",
+        "namn": "Valfritt namn",
+        "roll": "vinnare",
+        "aterkomst": {
+          "vantaMs": 2000,
+          "till": {
+            "x": 97,
+            "y": 505
+          }
+        }
+      }
+    ],
+    "startval": "ratt",
+    "mal": {
+      "x": 255,
+      "y": 452,
+      "b": 90,
+      "h": 70
+    },
+    "studsyta": {
+      "x": 225,
+      "y": 398,
+      "b": 150,
+      "h": 124
+    },
+    "vinstText": "Kort text vid vinst",
+    "fiender": {
+      "utseende": "portfolj",
+      "rader": [
+        [
+          {
+            "etikett": "Fiende 1"
+          },
+          {
+            "etikett": "Fiende 2"
+          }
+        ],
+        [
+          {
+            "etikett": "Fiende 3"
+          },
+          null
+        ]
+      ],
+      "b": 120,
+      "h": 56,
+      "mellanrum": 8,
+      "forskjutning": [
+        0,
+        60
+      ],
+      "startY": 96,
+      "steg": {
+        "x": 5,
+        "ned": 15,
+        "intervall": 275
+      },
+      "kant": {
+        "vanster": 16,
+        "hoger": 374
+      }
+    },
+    "faraY": 395,
+    "hud": {
+      "rubrik": "Rubrik",
+      "varde": "{antal} i kö"
+    }
+  },
+  "forlust": {
+    "rubrik": "Rubrik på förlustskärmen",
+    "orsaker": {
+      "botten": "Text när fienderna hann fram."
+    }
+  },
+  "domslut": {
+    "rubrik": "Rubrik på domslutet",
+    "text": "Valfri kort sammanfattning.",
+    "domskal": [
+      "Domskäl 1.",
+      "Domskäl 2.",
+      "Domskäl 3."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/AAAAsNN"
+  }
+}

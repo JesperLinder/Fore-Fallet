@@ -23,6 +23,7 @@ export const text = {
   mekanikNamn: {
     slingshot: 'Slangbella',
     invaders: 'Invaders',
+    hybrid: 'Hybrid',
   } as Record<string, string>,
 
   niva: {

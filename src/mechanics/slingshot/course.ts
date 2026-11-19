@@ -48,7 +48,12 @@ export function byggBana(scene: Phaser.Scene, niva: Niva): Bana {
         break;
 
       case 'dekor':
-        ritaFigur(g, o.utseende, o.x, o.y);
+        ritaFigur(g, o.utseende, o.x, o.y, o.b, o.h);
+        break;
+
+      case 'text':
+        skapaText(scene, o.x, o.y, o.text, o.stil ?? 'overrubrik', o.farg, { origo: [0.5, 0.5], storlek: o.stil ? undefined : 11 })
+          .setDepth(DJUP_BANA);
         break;
 
       case 'etikett':

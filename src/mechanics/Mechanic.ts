@@ -11,6 +11,9 @@ export interface MekanikResultat {
   /** Antal misstag och sekunder kvar, för nivåer med stjarnkrav. */
   misstag?: number;
   tidKvar?: number;
+  /** Antal försök och fällor, för nivåer med stjarnkrav (hybrid). */
+  forsok?: number;
+  fallor?: number;
   /** Satt om nivån är förlorad. Då visas förlustskärmen i stället för domslutet. */
   forlust?: ForlustOrsak;
 }

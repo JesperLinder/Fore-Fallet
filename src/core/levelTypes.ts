@@ -4,7 +4,7 @@
  */
 import type { FargNamn } from '../config/theme';
 
-export type MekanikTyp = 'slingshot' | 'invaders';
+export type MekanikTyp = 'slingshot' | 'invaders' | 'hybrid';
 export type Resultat = 'vinst' | 'halvvagsvinst';
 
 /** Minsta möjliga nivåfil: räcker för att synas (låst) på kartan. */
@@ -39,6 +39,8 @@ export interface Niva extends NivaPlatshallare {
   slangbella?: SlangbellaInstallningar;
   /** Inställningar för invaders – krävs när mekanik är "invaders". */
   invaders?: InvadersInstallningar;
+  /** Inställningar för hybrid (slangbella + borgenärer) – krävs när mekanik är "hybrid". */
+  hybrid?: HybridInstallningar;
   /** Förlustskärmen, för mekaniker där man kan förlora. */
   forlust?: Forlust;
   domslut: Domslut;
@@ -49,6 +51,10 @@ export interface StjarnKrav {
   maxMisstag?: number;
   /** Mer än så här många sekunder kvar på klockan. */
   tidKvarOver?: number;
+  /** Vann på högst så här många försök (hybrid: kast med vinnarprojektilen). */
+  maxForsok?: number;
+  /** Gick i högst så här många fällor (hybrid: kast med en fälla, t.ex. avtalet). */
+  maxFallor?: number;
 }
 
 export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten';
@@ -152,6 +158,18 @@ export interface EtikettObjekt extends BasObjekt {
 export interface DekorObjekt extends BasObjekt {
   typ: 'dekor';
   utseende: string;
+  /** Valfri storlek för figurer som kan skalas (t.ex. "stall"). */
+  b?: number;
+  h?: number;
+}
+
+/** Fristående text, t.ex. "TRÄNARENS STALL". Centrerad på (x, y). */
+export interface TextObjekt extends BasObjekt {
+  typ: 'text';
+  text: string;
+  farg: FargNamn;
+  /** Textstil: "overrubrik" (standard), "liten" eller "rubrik". */
+  stil?: 'overrubrik' | 'liten' | 'rubrik';
 }
 
 export type NivaObjekt =
@@ -161,15 +179,13 @@ export type NivaObjekt =
   | ZonObjekt
   | LinjeObjekt
   | EtikettObjekt
-  | DekorObjekt;
+  | DekorObjekt
+  | TextObjekt;
 
 // ---------- Mekanikinställningar ----------
 
-export interface SlangbellaInstallningar {
-  /** Antal skott. */
-  antal: number;
-  /** Utseende på projektilen (figur i art.ts). */
-  projektil: string;
+/** Kastfysiken: delas av slangbella och hybrid. */
+export interface KastInstallningar {
   /** Hur långt man kan dra bakåt, i punkter. */
   maxDrag: number;
   /** Utgångsfart per punkt dragning. */
@@ -178,8 +194,8 @@ export interface SlangbellaInstallningar {
   friktion: { luft: number; mark: number };
   /** Hur länge projektilen flyger (i fysiksteg) vid svagaste och starkaste skott. */
   flygtid: { min: number; max: number };
-  /** Sidvind/slice som verkar medan projektilen är i luften. */
-  vind: {
+  /** Sidvind/slice som verkar medan projektilen är i luften. Utelämnas = ingen vind. */
+  vind?: {
     x: number;
     y: number;
     etikett: string;
@@ -193,6 +209,15 @@ export interface SlangbellaInstallningar {
   siktlinje?: number;
   /** Den del av skärmen där projektilen är i spel. Utanför = ute. */
   spelplan: { x: number; y: number; b: number; h: number };
+}
+
+export interface SlangbellaInstallningar extends KastInstallningar {
+  /** Antal skott. */
+  antal: number;
+  /** Utseende på projektilen (figur i art.ts). */
+  projektil: string;
+  /** Sidvind/slice (krävs för slangbellan, eftersom vindindikatorn visas). */
+  vind: NonNullable<KastInstallningar['vind']>;
   /** Rubriker i resultatraden. */
   hud: { matare: string; projektiler: string; kostnad: string };
 }
@@ -217,23 +242,7 @@ export interface InvadersInstallningar {
     /** Skottets fart uppåt (punkter per sekund). */
     fart: number;
   };
-  brickor: {
-    /** Rader uppifrån och ner. null = tom plats. */
-    rader: (BrickData | null)[][];
-    b: number;
-    h: number;
-    mellanrum: number;
-    /** Valfri sidförskjutning (punkter) per rad, t.ex. [0, 35] för en halv bricka på rad 2. */
-    forskjutning?: number[];
-    /** Översta radens överkant vid start. Rutnätet centreras i sidled. */
-    startY: number;
-    /** Rörelse: steg i sidled (punkter), steg nedåt vid kanten, tid mellan stegen (ms). */
-    steg: { x: number; ned: number; intervall: number };
-    /** Hur långt ut rutnätet får gå (x för vänster och höger kant). */
-    kant: { vanster: number; hoger: number };
-    /** Rita tomma platser (null) som streckade rutor. */
-    visaTomma?: boolean;
-  };
+  brickor: RutnatInstallningar<BrickData>;
   /** Saker som faller och ska fångas (valfritt). */
   fangst?: FangstData[];
   /** Block som stoppar spelarens skott (valfritt). */
@@ -259,6 +268,25 @@ export interface InvadersInstallningar {
   forlust: ForlustOrsak[];
   /** Vid vinst: brickor och fångstobjekt med "plats" flyttas till en rad på denna höjd. */
   slutrad?: { y: number };
+}
+
+/** Ett marscherande rutnät (invaders-brickor, hybridens borgenärer). */
+export interface RutnatInstallningar<T> {
+  /** Rader uppifrån och ner. null = tom plats. */
+  rader: (T | null)[][];
+  b: number;
+  h: number;
+  mellanrum: number;
+  /** Valfri sidförskjutning (punkter) per rad, t.ex. [0, 35] för en halv bricka på rad 2. */
+  forskjutning?: number[];
+  /** Översta radens överkant vid start. Rutnätet centreras i sidled mellan kanterna. */
+  startY: number;
+  /** Rörelse: steg i sidled (punkter), steg nedåt vid kanten, tid mellan stegen (ms). */
+  steg: { x: number; ned: number; intervall: number };
+  /** Hur långt ut rutnätet får gå (x för vänster och höger kant). */
+  kant: { vanster: number; hoger: number };
+  /** Rita tomma platser (null) som streckade rutor. */
+  visaTomma?: boolean;
 }
 
 export interface BrickData {
@@ -294,4 +322,50 @@ export interface SkyddData {
   h: number;
   /** Antal skott blocket tål. */
   talighet: number;
+}
+
+// ---------- Hybrid ----------
+
+/**
+ * Hybrid: slangbella mot ett mål medan en formation (t.ex. borgenärer) marscherar nedåt.
+ * Banan (stall, texter, slangbellans plats via "utslag") ritas från nivåns "objekt", som i slangbellan.
+ */
+export interface HybridInstallningar {
+  /** Kastfysiken, samma fält som slangbellan. */
+  kast: KastInstallningar;
+  /** Det spelaren kan kasta. En knapp per projektil längst ner. */
+  projektiler: HybridProjektil[];
+  /** id på den projektil som är vald från början. */
+  startval: string;
+  /** Målet: en vinnarprojektil som stannar här vinner nivån. Fällor studsar bort härifrån. */
+  mal: { x: number; y: number; b: number; h: number };
+  /** Ytan som fällor studsar mot (t.ex. hela köparens stall). Utelämnas = målet. */
+  studsyta?: { x: number; y: number; b: number; h: number };
+  /** Texten som blinkar till vid målet när man vinner (t.ex. "Tradition!"). */
+  vinstText?: string;
+  /** Formationen som marscherar nedåt. Kan inte skjutas. */
+  fiender: RutnatInstallningar<{ etikett: string }> & { utseende: string };
+  /** Når formationens underkant hit (y) innan man vunnit är nivån förlorad (orsak "botten"). */
+  faraY: number;
+  /** Rutan uppe till höger, t.ex. "Borgenärer / 4 i kö". {antal} byts mot antalet fiender. */
+  hud?: { rubrik: string; varde: string };
+}
+
+export interface HybridProjektil {
+  id: string;
+  /** Text på knappen, t.ex. "Kasta hästen". */
+  knapp: string;
+  /** Figur i art.ts. */
+  utseende: string;
+  /** Valfritt namn under slangbellan när projektilen är laddad, t.ex. "Kelly Sig". */
+  namn?: string;
+  /**
+   * "vinnare": vinner om den stannar i målet; annars springer den tillbaka och man får försöka igen.
+   * "falla": studsar alltid bort från studsytan. Räknas som en fälla i stjärnkraven.
+   */
+  roll: 'vinnare' | 'falla';
+  /** Pratbubbla första gången projektilen studsar/landar (fällor). */
+  forstaText?: string;
+  /** Vinnare som missar: vänta så här länge (ms), galoppera sedan hit och kom tillbaka. */
+  aterkomst?: { vantaMs: number; till: { x: number; y: number } };
 }

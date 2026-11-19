@@ -3,7 +3,184 @@
   "nummer": 3,
   "titel": "Travstallet",
   "referens": "NJA 1987 s. 3",
-  "mekanik": "slingshot",
+  "mekanik": "hybrid",
   "fylgiaMal": false,
-  "etikett": "Hybrid"
+  "uppdragstext": "Du har köpt en andel i travhästen. Grattis – men tränarens borgenärer är på väg. Få ut hästen ur säljarens besittning innan de når stallet.",
+  "fylgiaTips": "Ett avtal binder er två. Men mot säljarens borgenärer skyddas du först när hästen lämnat hans besittning.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxForsok": 1,
+      "maxFallor": 0
+    },
+    "tva": {
+      "maxFallor": 0
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "beige",
+        "topp": 0
+      },
+      {
+        "farg": "ljusbeige",
+        "topp": 520
+      }
+    ]
+  },
+  "objekt": [
+    {
+      "typ": "dekor",
+      "utseende": "stall",
+      "x": 97,
+      "y": 520,
+      "b": 166,
+      "h": 125
+    },
+    {
+      "typ": "dekor",
+      "utseende": "stall-streckat",
+      "x": 300,
+      "y": 520,
+      "b": 150,
+      "h": 122
+    },
+    {
+      "typ": "text",
+      "x": 97,
+      "y": 540,
+      "text": "Tränarens stall",
+      "farg": "morkgron"
+    },
+    {
+      "typ": "text",
+      "x": 300,
+      "y": 540,
+      "text": "Köparens stall",
+      "farg": "morkgron"
+    },
+    {
+      "typ": "utslag",
+      "x": 96,
+      "y": 686
+    }
+  ],
+  "hybrid": {
+    "kast": {
+      "maxDrag": 105,
+      "kraft": 0.11,
+      "friktion": {
+        "luft": 0.012,
+        "mark": 0.09
+      },
+      "flygtid": {
+        "min": 22,
+        "max": 50
+      },
+      "siktlinje": 0.5,
+      "spelplan": {
+        "x": 0,
+        "y": 90,
+        "b": 390,
+        "h": 680
+      }
+    },
+    "projektiler": [
+      {
+        "id": "avtal",
+        "knapp": "Kasta avtal",
+        "utseende": "avtal",
+        "roll": "falla",
+        "forstaText": "Avtalet räcker inte mot borgenärer"
+      },
+      {
+        "id": "hast",
+        "knapp": "Kasta hästen",
+        "utseende": "hastsko",
+        "namn": "Kelly Sig",
+        "roll": "vinnare",
+        "aterkomst": {
+          "vantaMs": 2000,
+          "till": {
+            "x": 97,
+            "y": 505
+          }
+        }
+      }
+    ],
+    "startval": "hast",
+    "mal": {
+      "x": 255,
+      "y": 452,
+      "b": 90,
+      "h": 70
+    },
+    "studsyta": {
+      "x": 225,
+      "y": 398,
+      "b": 150,
+      "h": 124
+    },
+    "vinstText": "Tradition!",
+    "fiender": {
+      "utseende": "portfolj",
+      "rader": [
+        [
+          {
+            "etikett": "Kronofogden"
+          },
+          {
+            "etikett": "Foderleverantören"
+          }
+        ],
+        [
+          {
+            "etikett": "Banken"
+          },
+          {
+            "etikett": "Hyresvärden"
+          }
+        ]
+      ],
+      "b": 120,
+      "h": 56,
+      "mellanrum": 8,
+      "forskjutning": [
+        0,
+        60
+      ],
+      "startY": 96,
+      "steg": {
+        "x": 5,
+        "ned": 15,
+        "intervall": 275
+      },
+      "kant": {
+        "vanster": 16,
+        "hoger": 374
+      }
+    },
+    "faraY": 395,
+    "hud": {
+      "rubrik": "Borgenärer",
+      "varde": "{antal} i kö"
+    }
+  },
+  "forlust": {
+    "rubrik": "Utmätt.",
+    "orsaker": {
+      "botten": "Hästen stod kvar hos säljaren. Ditt avtal hjälpte inte."
+    }
+  },
+  "domslut": {
+    "rubrik": "Hästen i säkerhet",
+    "domskal": [
+      "En travtränare sålde en andel i en häst som stod kvar i hans eget stall.",
+      "Köparen fick inget skydd mot tränarens borgenärer bara genom avtalet om överlåtelsen.",
+      "Traditionsprincipen gäller alltså även när man köper en andel i lösöre: säljaren får inte sitta kvar med saken."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1987s3"
+  }
 }

@@ -3,10 +3,12 @@ import type { MekanikTyp } from '../core/levelTypes';
 import type { Mekanik, MekanikFabrik, MekanikKontext } from './Mechanic';
 import { Slingshot } from './Slingshot';
 import { Invaders } from './Invaders';
+import { Hybrid } from './Hybrid';
 
 const mekaniker: Partial<Record<MekanikTyp, MekanikFabrik>> = {
   slingshot: (k) => new Slingshot(k),
   invaders: (k) => new Invaders(k),
+  hybrid: (k) => new Hybrid(k),
 };
 
 export function harMekanik(typ: MekanikTyp): boolean {
