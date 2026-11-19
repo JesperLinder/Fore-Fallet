@@ -14,6 +14,8 @@ export interface MekanikResultat {
   /** Antal försök och fällor, för nivåer med stjarnkrav (hybrid). */
   forsok?: number;
   fallor?: number;
+  /** Procent kvar på mätaren (invaders), för stjarnkrav.minMatare. */
+  matareKvar?: number;
   /** Satt om nivån är förlorad. Då visas förlustskärmen i stället för domslutet. */
   forlust?: ForlustOrsak;
 }

@@ -6,7 +6,8 @@ import Phaser from 'phaser';
 import { farg } from '../config/theme';
 import { streckadLinje } from '../ui/shapes';
 
-type Rita = (g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number) => void;
+/** f = valfri färg för figurer som kan färgas (t.ex. bilsiluett). */
+type Rita = (g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, f?: number) => void;
 
 const figurer: Record<string, Rita> = {
   golfboll(g, x, y) {
@@ -52,6 +53,26 @@ const figurer: Record<string, Rita> = {
     g.lineBetween(x, y - halv + h * 0.26, x, y + halv - h * 0.26);
     bage(y - halv, 1);
     bage(y + halv, -1);
+  },
+
+  /** Platt bilsiluett (ingen riktig modell), i valfri färg. */
+  bilsiluett(g, x, y, b = 44, h = 22, f: number = farg.ljusbeige) {
+    g.fillStyle(f, 1);
+    g.fillRoundedRect(x - b / 2, y - h * 0.05, b, h * 0.45, 4);
+    g.fillRoundedRect(x - b * 0.3, y - h * 0.45, b * 0.56, h * 0.5, { tl: 7, tr: 7, bl: 0, br: 0 });
+    g.fillStyle(farg.morkgron, 1);
+    g.fillCircle(x - b * 0.28, y + h * 0.42, h * 0.16);
+    g.fillCircle(x + b * 0.28, y + h * 0.42, h * 0.16);
+  },
+
+  /** Rund stämpel (spelaren i Begagnade bilen). */
+  stampel(g, x, y, b = 60) {
+    g.fillStyle(farg.beige, 1).fillCircle(x, y, b / 2);
+  },
+
+  /** Litet stämpelavtryck (skott). */
+  stampelavtryck(g, x, y) {
+    g.lineStyle(2, farg.guld, 1).strokeRoundedRect(x - 8, y - 6, 16, 12, 3);
   },
 
   /** Hästsko i guld (öppningen nedåt). Hästen i Travstallet. */
@@ -108,10 +129,10 @@ const figurer: Record<string, Rita> = {
 };
 
 /** Ritar en figur. Okända namn ritas som en tydlig platshållare så att felet syns. */
-export function ritaFigur(g: Phaser.GameObjects.Graphics, namn: string, x: number, y: number, b = 0, h = 0): void {
+export function ritaFigur(g: Phaser.GameObjects.Graphics, namn: string, x: number, y: number, b = 0, h = 0, f?: number): void {
   const rita = figurer[namn];
   if (rita) {
-    rita(g, x, y, b, h);
+    rita(g, x, y, b, h, f);
     return;
   }
   console.warn(`Okänt utseende "${namn}" – lägg till det i src/mechanics/art.ts`);

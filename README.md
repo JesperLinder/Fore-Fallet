@@ -137,6 +137,34 @@ Mekaniken styrs helt av blocket `invaders` i nivåfilen. I Löpsedeln byts varje
 "forlust": { "rubrik": "Tryckt. Förtal." }
 ```
 
+**Reveal (nivå 4, Begagnade bilen):** en bricka med `"dold": { "etikett": "Ej kontrollerad" }` visas som okänd tills den
+träffas första gången. Då avslöjas typen och etiketten med en stämpelanimation och ett klick, och brickan ligger kvar.
+`botten` avgör vad som händer när en bricka når spelaren, per typ. I förkortad form:
+
+```json
+"stjarnkrav": { "tre": { "minMatare": 100 }, "tva": { "minMatare": 75 }, "en": {} },
+"invaders": {
+  "spelare": { "utseende": "stampel", "y": 686, "b": 72, "h": 72, "etikett": "BIL-\nREGISTRET" },
+  "skott": { "lage": "slapp", "intervall": 200, "fart": 1000, "utseende": "stampelavtryck" },
+  "brickor": {
+    "rader": [[{ "etikett": "Säljare = ägare", "typ": "ratt", "dold": { "etikett": "Ej kontrollerad" } }, …], …],
+    "blanda": true, "fastBredd": true, "ikon": "bilsiluett",
+    "b": 104, "h": 72, "mellanrum": 12, "startY": 196, "steg": { "x": 4, "ned": 22, "intervall": 230 },
+    "kant": { "vanster": 16, "hoger": 374 }
+  },
+  "botten": {
+    "dold": { "matare": 25, "text": "Du kollade inte registret" },
+    "fel": { "matare": 50, "text": "Bilen var inte säljarens" },
+    "ratt": { "poang": 1, "text": "Köpt!" }
+  },
+  "matare": { "namn": "God tro", "steg": 100, "visning": "procent" },
+  "misstag": { "rattTraffad": 10, "fangstMissad": 0 },
+  "misstagText": { "rattTraffad": "Du tackade nej till en bra bil" },
+  "vinst": ["alla-klara"],
+  "forlust": ["matare-full"]
+}
+```
+
 **Styrning:** spelaren drar var som helst på skärmen för att flytta markören i sidled, och släpper för att skjuta.
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
@@ -196,7 +224,7 @@ Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar
 
 ## Platshållare
 
-- **Nivå 4–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Nivå 5–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

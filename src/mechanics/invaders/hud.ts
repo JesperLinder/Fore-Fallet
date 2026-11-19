@@ -3,7 +3,7 @@
  * och mätarraden längst ner (t.ex. "Förtalsrisk" i fyra steg).
  */
 import Phaser from 'phaser';
-import { avstand, css, farg } from '../../config/theme';
+import { avstand, css, farg, radie } from '../../config/theme';
 import { BREDD, HOJD } from '../../config/display';
 import type { InvadersInstallningar } from '../../core/levelTypes';
 import { skapaText } from '../../ui/text';
@@ -16,6 +16,8 @@ export const MATARRAD_Y = HOJD - avstand.l - MATARRAD_H;
 const TID_HOGER = BREDD - avstand.l - 56; // lämnar plats åt pausknappen
 
 export interface InvadersHud {
+  /** Skott ovanför den här linjen försvinner (under inforutan). */
+  tak: number;
   visaTid: (sekunder: number) => void;
   visaMatare: (steg: number) => void;
   /** Kort markering av mätaren vid ett misstag. */
@@ -27,8 +29,10 @@ export interface InvadersHud {
 export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar): InvadersHud {
   const visaTid = inst.tid ? byggTid(scene, inst.tid) : () => {};
   if (inst.info?.length) byggInfo(scene, inst.info);
-  const matare = byggMatare(scene, inst.matare);
+  const tak = inst.infotext ? byggInfotext(scene, inst.infotext) : INFO_Y + INFO_H;
+  const matare = inst.matare.visning === 'procent' ? byggProcent(scene, inst.matare) : byggMatare(scene, inst.matare);
   return {
+    tak,
     visaTid,
     ...matare,
     fangstPlats: (i) => new Phaser.Math.Vector2(BREDD - avstand.l - 14 - i * 30, MATARRAD_Y - 22),
@@ -68,6 +72,33 @@ function byggInfo(scene: Phaser.Scene, info: NonNullable<InvadersInstallningar['
     etikett.setX(x).setDepth(6);
     varde.setX(x + etikett.width + 4).setDepth(6);
   });
+}
+
+/** Längre text i en grön ruta under rubriken. Returnerar rutans underkant. */
+function byggInfotext(scene: Phaser.Scene, innehall: string): number {
+  const x0 = avstand.l;
+  const b = BREDD - x0 * 2;
+  const t = skapaText(scene, x0 + 18, INFO_Y + 14, innehall, 'brod', 'ljusbeige', { bredd: b - 36, storlek: 14 }).setDepth(6);
+  const h = t.height + 28;
+  scene.add.graphics().fillStyle(farg.gron, 1).fillRoundedRect(x0, INFO_Y, b, h, radie.m).setDepth(5);
+  return INFO_Y + h;
+}
+
+/** Mätare som procent kvar uppe till höger, t.ex. "God tro 100 %". Tar klockans plats. */
+function byggProcent(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
+  skapaText(scene, TID_HOGER, 40, m.namn, 'overrubrik', 'ljusbeige', { origo: [1, 0], storlek: 10 }).setDepth(30);
+  const varde = skapaText(scene, TID_HOGER, 52, '', 'titel', 'guld', { origo: [1, 0], storlek: 28 }).setDepth(30);
+  return {
+    visaMatare: (steg: number) => {
+      const kvar = Math.max(0, Math.round(((m.steg - steg) / m.steg) * 100));
+      varde.setText(`${kvar} %`);
+    },
+    markeraMatare: () => {
+      // En enda markering per misstag: lila en kort stund, sedan tillbaka till guld.
+      varde.setColor(css('lila'));
+      scene.time.delayedCall(450, () => varde.setColor(css('guld')));
+    },
+  };
 }
 
 function byggMatare(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {

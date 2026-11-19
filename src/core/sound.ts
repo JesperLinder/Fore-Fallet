@@ -4,7 +4,7 @@
  */
 import { framsteg } from './progress';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel';
 
 interface Ton {
   /** Frekvens i Hz vid start och slut (glidning). */
@@ -23,6 +23,11 @@ const LJUD: Record<Ljud, Ton[]> = {
   fanga: [
     { fran: 660, till: 660, start: 0, langd: 0.08, form: 'sine', volym: 0.14 },
     { fran: 990, till: 990, start: 0.07, langd: 0.12, form: 'sine', volym: 0.12 },
+  ],
+  // Torrt klick + dovt tryck, som en stämpel i papper.
+  stampel: [
+    { fran: 1400, till: 500, start: 0, langd: 0.025, form: 'square', volym: 0.06 },
+    { fran: 140, till: 70, start: 0.01, langd: 0.07, form: 'sine', volym: 0.2 },
   ],
   misstag: [{ fran: 180, till: 90, start: 0, langd: 0.28, form: 'sawtooth', volym: 0.07 }],
   vinst: [

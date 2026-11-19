@@ -33,12 +33,14 @@
       "utseende": "textmarkor",
       "y": 716,
       "b": 30,
-      "h": 48
+      "h": 48,
+      "etikett": "Valfri text"
     },
     "skott": {
       "lage": "slapp",
       "intervall": 220,
-      "fart": 1000
+      "fart": 1000,
+      "utseende": "stampelavtryck"
     },
     "brickor": {
       "rader": [
@@ -68,9 +70,11 @@
           },
           null,
           {
-            "etikett": "D",
-            "typ": "ratt",
-            "plats": 3
+            "etikett": "Avslöjad text",
+            "typ": "fel",
+            "dold": {
+              "etikett": "Okänd"
+            }
           }
         ]
       ],
@@ -91,7 +95,9 @@
         "vanster": 16,
         "hoger": 374
       },
-      "visaTomma": true
+      "visaTomma": true,
+      "blanda": false,
+      "fastBredd": false
     },
     "fangst": [
       {
@@ -122,7 +128,8 @@
     "matare": {
       "namn": "Mätarens namn",
       "steg": 4,
-      "status": "Valfri statustext"
+      "status": "Valfri statustext",
+      "visning": "steg"
     },
     "misstag": {
       "rattTraffad": 1,
@@ -154,6 +161,23 @@
     ],
     "slutrad": {
       "y": 420
+    },
+    "botten": {
+      "dold": {
+        "matare": 1,
+        "text": "Text när en okänd bricka släpps igenom"
+      },
+      "fel": {
+        "matare": 2,
+        "text": "Text när en fel-bricka släpps igenom"
+      },
+      "ratt": {
+        "poang": 1,
+        "text": "Text när en rätt-bricka släpps igenom"
+      }
+    },
+    "misstagText": {
+      "rattTraffad": "Valfri text när en rätt-bricka träffas"
     }
   },
   "forlust": {

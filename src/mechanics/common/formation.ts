@@ -37,9 +37,10 @@ export class Formation<T> {
       ...inst.rader.map((rad, r) => forskj(r) + rad.length * inst.b + (rad.length - 1) * inst.mellanrum),
     );
     const x0 = (inst.kant.vanster + inst.kant.hoger) / 2 - totalB / 2;
+    const rader = inst.blanda ? blandade(inst.rader) : inst.rader;
     this.behallare = scene.add.container(x0, inst.startY).setDepth(djup);
 
-    inst.rader.forEach((rad, r) =>
+    rader.forEach((rad, r) =>
       rad.forEach((data, k) => {
         const lx = forskj(r) + k * (inst.b + inst.mellanrum);
         const ly = r * (inst.h + inst.mellanrum);
@@ -65,6 +66,17 @@ export class Formation<T> {
     return o;
   }
 
+  /** Ritar om ett objekt på samma plats, t.ex. när dess data ändrats. */
+  ritaOm(o: FormationsObjekt<T>): void {
+    const ny = this.rita(this.scene, o.data, this.inst.b, this.inst.h);
+    o.obj.removeAll(true);
+    for (const barn of [...ny.list]) {
+      ny.remove(barn);
+      o.obj.add(barn);
+    }
+    ny.destroy();
+  }
+
   /** Flyttar formationen ett steg när det är dags. dt i ms. */
   uppdatera(dt: number): void {
     this.tid += dt;
@@ -80,9 +92,9 @@ export class Formation<T> {
     }
   }
 
-  /** Levande objekts yttre kanter i världskoordinater. */
+  /** Yttre kanter i världskoordinater: levande objekt, eller alla med fastBredd. */
   private kanter(): { vanster: number; hoger: number } {
-    const levande = this.objekt.filter((b) => b.levande);
+    const levande = this.objekt.filter((b) => b.levande || this.inst.fastBredd);
     if (levande.length === 0) return { vanster: this.behallare.x, hoger: this.behallare.x };
     const xs = levande.map((b) => this.behallare.x + b.lx);
     return { vanster: Math.min(...xs), hoger: Math.max(...xs) + this.inst.b };
@@ -131,4 +143,11 @@ export class Formation<T> {
       if (o instanceof Phaser.GameObjects.Graphics) this.scene.tweens.add({ targets: o, alpha: 0, duration: 200 });
     });
   }
+}
+
+/** Blandar objekten mellan de platser som inte är tomma. Nivåfilens data ändras inte. */
+function blandade<T>(rader: (T | null)[][]): (T | null)[][] {
+  const objekt = Phaser.Utils.Array.Shuffle(rader.flat().filter((d): d is T => d !== null));
+  let i = 0;
+  return rader.map((rad) => rad.map((d) => (d === null ? null : objekt[i++])));
 }

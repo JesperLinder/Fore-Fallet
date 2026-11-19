@@ -4,5 +4,179 @@
   "titel": "Begagnade bilen",
   "referens": "NJA 1993 s. 429",
   "mekanik": "invaders",
-  "fylgiaMal": false
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Annonssäljarna rullar in. Stämpla varje bil i bilregistret innan du köper. Ägaren i registret ska vara den som säljer.",
+  "fylgiaTips": "Billigt pris och en trevlig säljare räcker inte. Den som struntar i registret köper inte i god tro.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "minMatare": 100
+    },
+    "tva": {
+      "minMatare": 75
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "stampel",
+      "y": 686,
+      "b": 72,
+      "h": 72,
+      "etikett": "BIL-\nREGISTRET"
+    },
+    "skott": {
+      "lage": "slapp",
+      "intervall": 200,
+      "fart": 1000,
+      "utseende": "stampelavtryck"
+    },
+    "brickor": {
+      "rader": [
+        [
+          {
+            "etikett": "Säljare = ägare",
+            "typ": "ratt",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          },
+          {
+            "etikett": "Ägare: annan",
+            "typ": "fel",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          },
+          {
+            "etikett": "Säljare = ägare",
+            "typ": "ratt",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          }
+        ],
+        [
+          {
+            "etikett": "Säljare = ägare",
+            "typ": "ratt",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          },
+          {
+            "etikett": "Säljare = ägare",
+            "typ": "ratt",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          },
+          {
+            "etikett": "Ägare: annan",
+            "typ": "fel",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          }
+        ],
+        [
+          {
+            "etikett": "Ägare: annan",
+            "typ": "fel",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          },
+          {
+            "etikett": "Säljare = ägare",
+            "typ": "ratt",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          },
+          {
+            "etikett": "Säljare = ägare",
+            "typ": "ratt",
+            "dold": {
+              "etikett": "Ej kontrollerad"
+            }
+          }
+        ]
+      ],
+      "blanda": true,
+      "ikon": "bilsiluett",
+      "b": 104,
+      "h": 72,
+      "mellanrum": 12,
+      "startY": 196,
+      "steg": {
+        "x": 4,
+        "ned": 22,
+        "intervall": 230
+      },
+      "kant": {
+        "vanster": 16,
+        "hoger": 374
+      },
+      "fastBredd": true
+    },
+    "botten": {
+      "dold": {
+        "matare": 25,
+        "text": "Du kollade inte registret"
+      },
+      "fel": {
+        "matare": 50,
+        "text": "Bilen var inte säljarens"
+      },
+      "ratt": {
+        "poang": 1,
+        "text": "Köpt!"
+      }
+    },
+    "matare": {
+      "namn": "God tro",
+      "steg": 100,
+      "visning": "procent"
+    },
+    "misstag": {
+      "rattTraffad": 10,
+      "fangstMissad": 0
+    },
+    "misstagText": {
+      "rattTraffad": "Du tackade nej till en bra bil"
+    },
+    "infotext": "Annonssäljarna rullar in. Stämpla varje bil i bilregistret innan du köper. Ägaren i registret ska vara den som säljer.",
+    "vinst": [
+      "alla-klara"
+    ],
+    "forlust": [
+      "matare-full"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Ingen god tro.",
+    "orsaker": {
+      "matare-full": "Den riktiga ägaren vill ha tillbaka bilen."
+    }
+  },
+  "domslut": {
+    "rubrik": "Kollat och klart",
+    "domskal": [
+      "Köparen köpte en begagnad bil av en privatperson utan att kontrollera vem som ägde den.",
+      "Den som inte kollar bilregistret, eller gör en lika bra kontroll, kan inte påstå sig ha köpt i god tro.",
+      "Utan god tro inget godtrosförvärv – och då kan den riktiga ägaren få tillbaka bilen."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1993s429"
+  }
 }

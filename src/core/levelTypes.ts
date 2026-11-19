@@ -55,6 +55,8 @@ export interface StjarnKrav {
   maxForsok?: number;
   /** Gick i högst så här många fällor (hybrid: kast med en fälla, t.ex. avtalet). */
   maxFallor?: number;
+  /** Minst så här många procent kvar på mätaren (invaders, t.ex. "God tro" 75). */
+  minMatare?: number;
 }
 
 export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten';
@@ -233,16 +235,32 @@ export interface InvadersInstallningar {
     y: number;
     b: number;
     h: number;
+    /** Valfri text på spelaren, t.ex. "BIL-\nREGISTRET". */
+    etikett?: string;
   };
   skott: {
     /** "slapp" = skjuter när fingret släpps, "auto" = skjuter hela tiden medan fingret är nere. */
     lage: 'slapp' | 'auto';
     /** Minsta tid mellan två skott (ms). */
     intervall: number;
+    /** Valfri figur (art.ts) för skottet, t.ex. "stampelavtryck". Standard: en smal guldstav. */
+    utseende?: string;
     /** Skottets fart uppåt (punkter per sekund). */
     fart: number;
   };
-  brickor: RutnatInstallningar<BrickData>;
+  brickor: RutnatInstallningar<BrickData> & {
+    /** Valfri figur (art.ts) på varje bricka, med etiketten i liten text under, t.ex. "bilsiluett". */
+    ikon?: string;
+  };
+  /**
+   * Vad som händer när en bricka når spelaren ("släpps igenom"), per typ. Anges detta försvinner brickan
+   * med regelns effekt i stället för att ge förlust; "dold" gäller brickor som inte avslöjats.
+   */
+  botten?: { dold?: BottenRegel; fel?: BottenRegel; ratt?: BottenRegel };
+  /** Valfria texter (pratbubbla) vid misstag. */
+  misstagText?: { rattTraffad?: string; fangstMissad?: string };
+  /** Valfri ruta under rubriken med en längre text, t.ex. uppdraget. */
+  infotext?: string;
   /** Saker som faller och ska fångas (valfritt). */
   fangst?: FangstData[];
   /** Block som stoppar spelarens skott (valfritt). */
@@ -255,6 +273,11 @@ export interface InvadersInstallningar {
     steg: number;
     /** Valfri text till höger i mätarraden. */
     status?: string;
+    /**
+     * "steg" (standard): stapel i rutor längst ner som fylls vid misstag.
+     * "procent": procent kvar uppe till höger (t.ex. "God tro 100 %"), sjunker vid misstag. Tar klockans plats.
+     */
+    visning?: 'steg' | 'procent';
   };
   /** Hur många steg mätaren stiger per misstag av varje slag. */
   misstag: { rattTraffad: number; fangstMissad: number };
@@ -262,8 +285,8 @@ export interface InvadersInstallningar {
   info?: { etikett: string; varde: string; serif?: boolean }[];
   /** Kort instruktion mitt på planen som tonas bort efter några sekunder. */
   instruktion?: { text: string; y: number };
-  /** Alla villkor måste vara uppfyllda för vinst. */
-  vinst: ('fel-borta' | 'alla-fangade')[];
+  /** Alla villkor måste vara uppfyllda för vinst. "alla-klara" = varje bricka bortskjuten eller släppt igenom. */
+  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara')[];
   /** Något av villkoren ger förlust. */
   forlust: ForlustOrsak[];
   /** Vid vinst: brickor och fångstobjekt med "plats" flyttas till en rad på denna höjd. */
@@ -287,6 +310,13 @@ export interface RutnatInstallningar<T> {
   kant: { vanster: number; hoger: number };
   /** Rita tomma platser (null) som streckade rutor. */
   visaTomma?: boolean;
+  /** Blanda objektens platser slumpmässigt varje gång nivån startar (tomma platser står kvar). */
+  blanda?: boolean;
+  /**
+   * Vänd vid kanten räknat på hela den ursprungliga formationen, även när objekt försvunnit.
+   * Utan detta (standard, som klassisk invaders) får färre objekt längre väg i sidled och kommer ner långsammare.
+   */
+  fastBredd?: boolean;
 }
 
 export interface BrickData {
@@ -297,6 +327,20 @@ export interface BrickData {
   plats?: number;
   /** Bara för fel-brickor: rätt bokstav/text som dyker upp på samma ställe när brickan skjutits bort. */
   ersattning?: string;
+  /**
+   * Reveal: brickan är dold tills den träffas första gången och visar då bara den här etiketten
+   * (streckad kontur). Första träffen avslöjar "typ" och "etikett"; brickan förstörs inte.
+   */
+  dold?: { etikett: string };
+}
+
+/** Vad som händer när en bricka släpps igenom (når spelaren). */
+export interface BottenRegel {
+  /** Steg på mätaren (räknas som ett misstag om större än 0). */
+  matare?: number;
+  poang?: number;
+  /** Pratbubbla, t.ex. "Du kollade inte registret". */
+  text?: string;
 }
 
 export interface FangstData {

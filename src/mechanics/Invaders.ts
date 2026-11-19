@@ -9,21 +9,21 @@
 import Phaser from 'phaser';
 import { avstand, farg, radie } from '../config/theme';
 import { BREDD, HOJD, MITT_X } from '../config/display';
-import type { ForlustOrsak, InvadersInstallningar, Niva, SkyddData } from '../core/levelTypes';
+import type { BottenRegel, ForlustOrsak, InvadersInstallningar, Niva, SkyddData } from '../core/levelTypes';
+import type { FargNamn } from '../config/theme';
+import { pratbubbla } from '../ui/Badge';
 import { spela } from '../core/sound';
 import type { Mekanik, MekanikKontext } from './Mechanic';
 import { ritaFigur } from './art';
 import { Rutnat, type Bricka } from './invaders/grid';
 import { aterstall, fallSteg, skapaFangst, type Fangst } from './invaders/falling';
-import { byggHud, INFO_Y, INFO_H, type InvadersHud } from './invaders/hud';
+import { byggHud, INFO_Y, type InvadersHud } from './invaders/hud';
 import { skapaText } from '../ui/text';
 import { streckadLinje } from '../ui/shapes';
 import { visaStart } from './common/startPanel';
 
 const SKOTT_B = 5;
 const SKOTT_H = 14;
-/** Skott ovanför den här linjen försvinner (under inforutan). */
-const SKOTT_TAK = INFO_Y + INFO_H;
 /** Minsta tid mellan två färgblinkar – håller blinkandet under tre gånger per sekund. */
 const MIN_BLINK_MS = 400;
 
@@ -41,10 +41,11 @@ export class Invaders implements Mekanik {
   private rutnat: Rutnat;
   private fangst: Fangst[];
   private skydd: Skydd[];
-  private spelare: Phaser.GameObjects.Graphics;
+  /** Spelaren: figuren (och ev. etikett) i en behållare som flyttas i sidled. */
+  private spelare: Phaser.GameObjects.Container;
   private sikte: Phaser.GameObjects.Graphics;
   private blink: Phaser.GameObjects.Rectangle;
-  private skott: Phaser.GameObjects.Rectangle[] = [];
+  private skott: (Phaser.GameObjects.Rectangle | Phaser.GameObjects.Graphics)[] = [];
   private instruktion?: Phaser.GameObjects.Text;
 
   private startad = false;
@@ -53,6 +54,7 @@ export class Invaders implements Mekanik {
   private tidKvar: number;
   private matarSteg = 0;
   private misstag = 0;
+  private poang = 0;
   private fangade = 0;
   private sistaSkott = -Infinity;
   private sistaBlink = -Infinity;
@@ -76,8 +78,16 @@ export class Invaders implements Mekanik {
     this.ritaInstruktion();
 
     this.sikte = this.scene.add.graphics().setDepth(8);
-    this.spelare = this.scene.add.graphics({ x: MITT_X, y: this.inst.spelare.y }).setDepth(20);
-    ritaFigur(this.spelare, this.inst.spelare.utseende, 0, 0, this.inst.spelare.b, this.inst.spelare.h);
+    const sp = this.inst.spelare;
+    const figur = this.scene.add.graphics();
+    ritaFigur(figur, sp.utseende, 0, 0, sp.b, sp.h);
+    this.spelare = this.scene.add.container(MITT_X, sp.y, [figur]).setDepth(20);
+    if (sp.etikett) {
+      const t = skapaText(this.scene, 0, 0, sp.etikett, 'etikett', 'morkgron', { origo: [0.5, 0.5], storlek: 10, justering: 'center' });
+      // Krymp texten så att den ryms i figuren.
+      if (t.width > sp.b * 0.82) t.setScale((sp.b * 0.82) / t.width);
+      this.spelare.add(t);
+    }
     this.blink = this.scene.add.rectangle(MITT_X, HOJD / 2, BREDD, HOJD, farg.vinrod, 1).setDepth(60).setAlpha(0);
 
     this.hud.visaTid(this.tidKvar);
@@ -144,7 +154,14 @@ export class Invaders implements Mekanik {
     if (this.klocka - this.sistaSkott < this.inst.skott.intervall) return;
     this.sistaSkott = this.klocka;
     const y = this.spelare.y - this.inst.spelare.h / 2 - SKOTT_H / 2;
-    this.skott.push(this.scene.add.rectangle(this.spelare.x, y, SKOTT_B, SKOTT_H, farg.guld).setDepth(15));
+    const figur = this.inst.skott.utseende;
+    if (figur) {
+      const g = this.scene.add.graphics({ x: this.spelare.x, y }).setDepth(15);
+      ritaFigur(g, figur, 0, 0);
+      this.skott.push(g);
+    } else {
+      this.skott.push(this.scene.add.rectangle(this.spelare.x, y, SKOTT_B, SKOTT_H, farg.guld).setDepth(15));
+    }
     spela('skott');
   }
 
@@ -162,6 +179,7 @@ export class Invaders implements Mekanik {
     if (this.fingerNere && this.inst.skott.lage === 'auto') this.skjut();
 
     this.rutnat.uppdatera(dt);
+    this.slappIgenom();
     this.flyttaSkott(dt);
     this.flyttaFangst(dt);
     this.ritaSikte();
@@ -173,7 +191,7 @@ export class Invaders implements Mekanik {
     this.skott = this.skott.filter((s) => {
       s.y -= dy;
       const traff = this.skottTraffar(s.x, s.y - SKOTT_H / 2);
-      if (traff || s.y < SKOTT_TAK) {
+      if (traff || s.y < this.hud.tak) {
         s.destroy();
         return false;
       }
@@ -194,13 +212,18 @@ export class Invaders implements Mekanik {
     }
     const bricka = this.rutnat.traff(x, y);
     if (!bricka) return false;
-    if (bricka.data.typ === 'fel') {
+    if (bricka.data.dold) {
+      // Reveal: första träffen avslöjar brickan, den ligger kvar.
+      this.rutnat.avsloja(bricka);
+      spela('stampel');
+    } else if (bricka.data.typ === 'fel') {
       this.rutnat.taBort(bricka);
       this.rutnat.ersatt(bricka);
       spela('traff');
     } else {
       this.skakaBricka(bricka);
-      this.registreraMisstag(this.inst.misstag.rattTraffad);
+      const mitt = this.rutnat.varldsMitt(bricka);
+      this.registreraMisstag(this.inst.misstag.rattTraffad, this.inst.misstagText?.rattTraffad, mitt.x, mitt.y + this.inst.brickor.h / 2 + 22);
     }
     return true;
   }
@@ -218,7 +241,7 @@ export class Invaders implements Mekanik {
       const nara = Math.abs(f.obj.x - this.spelare.x) < sp.b / 2 + f.r && Math.abs(f.obj.y - this.spelare.y) < sp.h / 2 + f.r;
       if (nara) this.fanga(f);
       else if (f.obj.y - f.r > sp.y + sp.h / 2 + 8) {
-        this.registreraMisstag(this.inst.misstag.fangstMissad);
+        this.registreraMisstag(this.inst.misstag.fangstMissad, this.inst.misstagText?.fangstMissad, f.obj.x, this.inst.spelare.y - 60);
         aterstall(this.scene, f);
       }
     }
@@ -235,7 +258,7 @@ export class Invaders implements Mekanik {
   private ritaSikte(): void {
     this.sikte.clear();
     if (!this.fingerNere) return;
-    const topp = Math.max(this.rutnat.nedersta() + 8, SKOTT_TAK);
+    const topp = Math.max(this.rutnat.nedersta() + 8, this.hud.tak);
     const botten = this.spelare.y - this.inst.spelare.h / 2 - 10;
     if (botten <= topp) return;
     this.sikte.lineStyle(2, farg.guld, 0.9);
@@ -245,7 +268,44 @@ export class Invaders implements Mekanik {
 
   // ---------- Misstag, vinst och förlust ----------
 
-  private registreraMisstag(steg: number): void {
+  /**
+   * Brickor som nått spelaren släpps igenom enligt nivåns "botten"-regler (om sådana finns).
+   * Passerar flera samtidigt visas varje text en gång, staplade under spelaren.
+   */
+  private slappIgenom(): void {
+    const regler = this.inst.botten;
+    if (!regler) return;
+    const sp = this.inst.spelare;
+    const linje = sp.y - sp.h / 2;
+    const texter = new Map<string, boolean>(); // text -> är misstag
+    for (const b of this.rutnat.brickor) {
+      if (!b.levande) continue;
+      if (this.rutnat.varldsMitt(b).y + this.inst.brickor.h / 2 < linje) continue;
+      const regel: BottenRegel | undefined = b.data.dold ? regler.dold : regler[b.data.typ];
+      this.rutnat.slappIgenom(b);
+      if (!regel) continue;
+      this.poang += regel.poang ?? 0;
+      if (regel.matare) this.registreraMisstag(regel.matare);
+      if (regel.text) texter.set(regel.text, (texter.get(regel.text) ?? false) || !!regel.matare);
+    }
+    let y = sp.y + sp.h / 2 + 26;
+    for (const [text, arMisstag] of texter) {
+      this.popup(MITT_X, y, text, arMisstag ? 'vinrod' : 'guld', arMisstag ? 'ljusbeige' : 'morkgron');
+      y += 34;
+    }
+  }
+
+  private popup(x: number, y: number, innehall: string, bakgrund: FargNamn, textFarg: FargNamn): void {
+    const p = pratbubbla(this.scene, 0, 0, innehall, bakgrund, textFarg).setDepth(40);
+    // Håll bubblan inom skärmen.
+    const halv = p.getBounds().width / 2 + 8;
+    p.setPosition(Phaser.Math.Clamp(x, halv, BREDD - halv), y).setScale(0.6);
+    this.scene.tweens.add({ targets: p, scale: 1, duration: 200, ease: 'Back.easeOut' });
+    this.scene.tweens.add({ targets: p, y: y - 18, alpha: 0, delay: 1300, duration: 400, onComplete: () => p.destroy() });
+  }
+
+  private registreraMisstag(steg: number, text?: string, x = MITT_X, y = HOJD / 2): void {
+    if (text) this.popup(x, y, text, 'vinrod', 'ljusbeige');
     this.misstag += 1;
     this.matarSteg = Math.min(this.inst.matare.steg, this.matarSteg + steg);
     this.hud.visaMatare(this.matarSteg);
@@ -269,7 +329,8 @@ export class Invaders implements Mekanik {
     const v = this.inst.vinst;
     const felBorta = !v.includes('fel-borta') || this.rutnat.felKvar() === 0;
     const allaFangade = !v.includes('alla-fangade') || this.fangst.every((x) => x.fangad);
-    if (felBorta && allaFangade) this.vinna();
+    const allaKlara = !v.includes('alla-klara') || this.rutnat.allaKlara();
+    if (felBorta && allaFangade && allaKlara) this.vinna();
   }
 
   private forlora(orsak: ForlustOrsak): void {
@@ -277,7 +338,7 @@ export class Invaders implements Mekanik {
     this.avslutaStyrning();
     spela('misstag');
     this.scene.cameras.main.shake(260, 0.006);
-    this.kontext.avsluta({ poang: 0, skadestand: 0, nollstallt: true, misstag: this.misstag, tidKvar: this.tidKvar, forlust: orsak });
+    this.kontext.avsluta({ poang: this.poang, skadestand: 0, nollstallt: true, misstag: this.misstag, tidKvar: this.tidKvar, matareKvar: this.matareKvar(), forlust: orsak });
   }
 
   private vinna(): void {
@@ -286,11 +347,12 @@ export class Invaders implements Mekanik {
     const tid = this.bildaSlutrad();
     this.scene.time.delayedCall(tid, () =>
       this.kontext.avsluta({
-        poang: 0,
+        poang: this.poang,
         skadestand: 0,
         nollstallt: false,
         misstag: this.misstag,
         tidKvar: Math.max(0, this.tidKvar),
+        matareKvar: this.matareKvar(),
       }),
     );
   }
@@ -324,6 +386,11 @@ export class Invaders implements Mekanik {
       });
     });
     return 420 + delar.length * 60 + 1200;
+  }
+
+  /** Procent kvar på mätaren. */
+  private matareKvar(): number {
+    return Math.max(0, ((this.inst.matare.steg - this.matarSteg) / this.inst.matare.steg) * 100);
   }
 
   private avslutaStyrning(): void {
