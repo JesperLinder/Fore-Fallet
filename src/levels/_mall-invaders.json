@@ -1,0 +1,178 @@
+{
+  "id": "unikt-id",
+  "nummer": 99,
+  "titel": "Nivåns namn",
+  "referens": "NJA ÅÅÅÅ s. NN",
+  "mekanik": "invaders",
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Vad spelaren ska göra, en eller två meningar.",
+  "fylgiaTips": "Fylgias tips: vad fallet handlar om.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxMisstag": 0,
+      "tidKvarOver": 20
+    },
+    "tva": {
+      "maxMisstag": 1
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "textmarkor",
+      "y": 716,
+      "b": 30,
+      "h": 48
+    },
+    "skott": {
+      "lage": "slapp",
+      "intervall": 220,
+      "fart": 1000
+    },
+    "brickor": {
+      "rader": [
+        [
+          {
+            "etikett": "A",
+            "typ": "ratt",
+            "plats": 0
+          },
+          {
+            "etikett": "X",
+            "typ": "fel"
+          },
+          {
+            "etikett": "B",
+            "typ": "ratt",
+            "plats": 1
+          }
+        ],
+        [
+          {
+            "etikett": "C",
+            "typ": "ratt",
+            "plats": 2
+          },
+          null,
+          {
+            "etikett": "D",
+            "typ": "ratt",
+            "plats": 3
+          }
+        ]
+      ],
+      "b": 60,
+      "h": 48,
+      "mellanrum": 10,
+      "forskjutning": [
+        0,
+        0
+      ],
+      "startY": 160,
+      "steg": {
+        "x": 3,
+        "ned": 14,
+        "intervall": 280
+      },
+      "kant": {
+        "vanster": 16,
+        "hoger": 374
+      },
+      "visaTomma": true
+    },
+    "fangst": [
+      {
+        "etikett": "E",
+        "x": 195,
+        "y": 300,
+        "fart": 16,
+        "fordrojning": 0,
+        "radie": 20,
+        "aterkommer": true,
+        "plats": 4
+      }
+    ],
+    "skydd": [
+      {
+        "etikett": "SKYDD",
+        "x": 82,
+        "y": 540,
+        "b": 84,
+        "h": 30,
+        "talighet": 4
+      }
+    ],
+    "tid": {
+      "sekunder": 60,
+      "etikett": "Tid kvar"
+    },
+    "matare": {
+      "namn": "Mätarens namn",
+      "steg": 4,
+      "status": "Valfri statustext"
+    },
+    "misstag": {
+      "rattTraffad": 1,
+      "fangstMissad": 1
+    },
+    "info": [
+      {
+        "etikett": "Mål:",
+        "varde": "ABCDE",
+        "serif": true
+      },
+      {
+        "etikett": "Roll:",
+        "varde": "DU"
+      }
+    ],
+    "instruktion": {
+      "text": "Kort instruktion på planen",
+      "y": 402
+    },
+    "vinst": [
+      "fel-borta",
+      "alla-fangade"
+    ],
+    "forlust": [
+      "matare-full",
+      "tid-slut",
+      "botten"
+    ],
+    "slutrad": {
+      "y": 420
+    }
+  },
+  "forlust": {
+    "rubrik": "Rubrik på förlustskärmen",
+    "orsaker": {
+      "tid-slut": "Valfri egen text när tiden tar slut."
+    }
+  },
+  "domslut": {
+    "rubrik": "Rubrik på domslutet",
+    "text": "Valfri kort sammanfattning.",
+    "domskal": [
+      "Domskäl 1.",
+      "Domskäl 2.",
+      "Domskäl 3."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/AAAAsNN",
+    "utfall": {
+      "1": "Valfri rad vid 1 stjärna.",
+      "2": "… vid 2.",
+      "3": "… vid 3."
+    }
+  }
+}

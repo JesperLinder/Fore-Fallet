@@ -1,0 +1,63 @@
+{
+  "id": "golfbollen",
+  "nummer": 1,
+  "titel": "Golfbollen",
+  "referens": "NJA 1993 s. 149",
+  "mekanik": "slingshot",
+  "fylgiaMal": false,
+  "resultat": "vinst",
+  "uppdragstext": "Sikta mot green och följ banans riktning.",
+  "fylgiaTips": "Den som spelar enligt reglerna blir sällan vårdslös – men en dåligt planerad bana är en annan historia.",
+  "stjarngranser": { "en": 100, "tva": 200, "tre": 300 },
+  "bana": {
+    "lager": [
+      { "farg": "ljusbeige", "topp": 0 },
+      { "farg": "gron", "topp": 335, "vag": 10 },
+      { "farg": "morkgron", "topp": 400, "vag": 12 }
+    ]
+  },
+  "slangbella": {
+    "antal": 3,
+    "projektil": "golfboll",
+    "maxDrag": 105,
+    "kraft": 0.11,
+    "friktion": { "luft": 0.012, "mark": 0.09 },
+    "flygtid": { "min": 22, "max": 50 },
+    "vind": { "x": 0.045, "y": 0, "etikett": "Slice" },
+    "spelplan": { "x": 0, "y": 160, "b": 390, "h": 684 },
+    "hud": { "matare": "Aktsamhetsmätaren", "projektiler": "Bollar", "kostnad": "Skadestånd" }
+  },
+  "objekt": [
+    { "typ": "zon", "x": 250, "y": 186, "b": 140, "h": 132, "farg": "beige", "etikett": "Parkering ·\nutanför banan", "etikettFarg": "vinrod" },
+    { "typ": "linje", "x": 250, "y": 186, "x2": 250, "y2": 330, "farg": "vinrod", "streckad": true },
+    { "typ": "dekor", "utseende": "parkeringsruta", "x": 288, "y": 262 },
+    {
+      "typ": "hinder", "utseende": "bil", "x": 342, "y": 262, "b": 46, "h": 30,
+      "poang": 0, "skadestand": 25000, "matare": -50, "nollstallerStjarnor": true,
+      "traffText": "Skadestånd!"
+    },
+    {
+      "typ": "mal", "x": 300, "y": 432, "rx": 72, "ry": 20, "farg": "gron",
+      "poang": 100, "etikett": "Green", "flagga": true, "friktion": 0.2,
+      "traffText": "På green!"
+    },
+    { "typ": "etikett", "x": 222, "y": 340, "text": "Slicezon!", "farg": "vinrod" },
+    { "typ": "utslag", "x": 78, "y": 628 }
+  ],
+  "domslut": {
+    "rubrik": "Domslut",
+    "text": "HD: golfaren var inte vårdslös. Bilägaren fick stå för sin egen buckla.",
+    "domskal": [
+      "En slagen golfboll är en farlig projektil – men det gör inte varje felslag till vårdslöshet.",
+      "Den som spelar enligt reglerna och slår mot green ska knappast behöva räkna med skadeståndsansvar.",
+      "Ansvaret för säkerheten ligger tungt på den som planerar banan. Klubben var dock inte part – så det fick vi aldrig veta."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1993s149",
+    "utfall": {
+      "3": "Tre bollar på green. Bilen klarade sig. Ingen stämning i sikte.",
+      "2": "Två på green. Den tredje försvann i ruffen – och det är inte olagligt.",
+      "1": "En boll på green. Handicapet behöver jobb, men ansvarsfrågan är ren.",
+      "0": "Du träffade bilen. Tekniskt sett inte vårdslöst – men ägaren ringer redan sin advokat."
+    }
+  }
+}
