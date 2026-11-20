@@ -38,6 +38,25 @@ function ritaPerson(g: Phaser.GameObjects.Graphics, x: number, y: number, b: num
   g.strokePath();
 }
 
+/** Domstolsbyggnad: trekantigt tak, fyra pelare och trappa. kropp = byggnadens färg, pelare = pelarnas. */
+function ritaDomstol(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, kropp: number, pelare: number): void {
+  const tak = h * 0.28;
+  const topp = y - h / 2;
+  g.fillStyle(kropp, 1);
+  g.fillTriangle(x - b / 2, topp + tak, x, topp, x + b / 2, topp + tak);
+  g.fillRect(x - b / 2, topp + tak, b, h - tak);
+  g.fillStyle(pelare, 1);
+  const pb = b * 0.1;
+  for (let i = 0; i < 4; i++) g.fillRect(x - b * 0.36 + i * b * 0.24 - pb / 2, topp + tak + h * 0.1, pb, h * 0.5);
+  g.fillRect(x - b / 2 + 4, y + h / 2 - h * 0.1, b - 8, h * 0.06);
+}
+
+function ritaLokal(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, tand: boolean): void {
+  g.fillStyle(farg.morkgron, 1).fillRect(x - b / 2, y - h / 2, b, h);
+  g.fillStyle(tand ? farg.ljusbeige : farg.guld, 1);
+  for (const dx of [-0.3, 0, 0.3]) g.fillRect(x + dx * b - b * 0.09, y - h * 0.22, b * 0.18, h * 0.3);
+}
+
 type Min = 'arg' | 'forvanad' | 'nojd';
 
 /**
@@ -273,6 +292,63 @@ const figurer: Record<string, Rita> = {
     g.rotateCanvas(-Math.PI / 4);
     g.fillRoundedRect(-b * 0.3, -h * 0.13, b * 0.6, h * 0.26, 2);
     g.restore();
+  },
+
+  /** Akten: beige papper med mörka textrader (projektil i Fastighetsforum). */
+  akt(g, x, y) {
+    g.fillStyle(farg.beige, 1).fillRect(x - 8, y - 10, 16, 20);
+    g.lineStyle(1.4, farg.morkgron, 1);
+    for (const [dy, l] of [[-5, 9], [-1, 7], [3, 9], [7, 5]] as const) g.lineBetween(x - 5, y + dy, x - 5 + l, y + dy);
+  },
+
+  /** Tingsrätt med pelare (mörkgrön, guldpelare). */
+  tingsratt(g, x, y, b = 80, h = 80) {
+    ritaDomstol(g, x, y, b, h, farg.morkgron, farg.guld);
+  },
+
+  /** Domstol som inte vill ta målet: streckad kontur med ett kryss. */
+  'domstol-streckad'(g, x, y, b = 80, h = 70) {
+    const tak = h * 0.3;
+    const pts = [
+      new Phaser.Math.Vector2(x - b / 2, y - h / 2 + tak),
+      new Phaser.Math.Vector2(x, y - h / 2),
+      new Phaser.Math.Vector2(x + b / 2, y - h / 2 + tak),
+      new Phaser.Math.Vector2(x + b / 2, y + h / 2),
+      new Phaser.Math.Vector2(x - b / 2, y + h / 2),
+      new Phaser.Math.Vector2(x - b / 2, y - h / 2 + tak),
+    ];
+    g.lineStyle(2, farg.morkgron, 1);
+    streckadLinje(g, pts, 6, 4);
+    g.lineStyle(3, farg.vinrod, 1);
+    const k = Math.min(b, h) * 0.22;
+    const ky = y + tak / 2;
+    g.lineBetween(x - k, ky - k, x + k, ky + k);
+    g.lineBetween(x + k, ky - k, x - k, ky + k);
+  },
+
+  /** Högsta domstolen: guldfärgad domstol med mörka pelare. */
+  'hogsta-domstolen'(g, x, y, b = 90, h = 70) {
+    ritaDomstol(g, x, y, b, h, farg.guld, farg.morkgron);
+  },
+
+  /** Lokalen: låg mörkgrön byggnad med guldfönster. */
+  lokal(g, x, y, b = 70, h = 50) {
+    ritaLokal(g, x, y, b, h, false);
+  },
+  /** Samma lokal upplyst: ljusa fönster och ett varmt guldsken runt. */
+  'lokal-tand'(g, x, y, b = 70, h = 50) {
+    g.fillStyle(farg.guld, 0.25).fillRoundedRect(x - b / 2 - 8, y - h / 2 - 8, b + 16, h + 16, 12);
+    ritaLokal(g, x, y, b, h, true);
+  },
+
+  /** Kulle (mörkgrön halvellips) under t.ex. Högsta domstolen. */
+  kulle(g, x, y, b = 140, h = 50) {
+    g.fillStyle(farg.morkgron, 1).fillEllipse(x, y + h / 2, b, h * 2);
+  },
+
+  /** Invändning (fysikblock): vinröd balk. */
+  invandning(g, x, y, b = 110, h = 24) {
+    g.fillStyle(farg.vinrod, 1).fillRoundedRect(x - b / 2, y - h / 2, b, h, 3);
   },
 
   /** Platt ufo i lila (inget känt filmufo). */

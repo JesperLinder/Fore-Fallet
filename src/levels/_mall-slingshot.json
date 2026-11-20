@@ -217,6 +217,56 @@
         "hojd": 3,
         "period": 2600
       }
+    },
+    {
+      "typ": "studsmal",
+      "id": "slutmal",
+      "x": 320,
+      "y": 196,
+      "b": 90,
+      "h": 70,
+      "utseende": "hogsta-domstolen",
+      "etikett": "Slutmålets namn",
+      "slut": {
+        "stampel": "STÄMPELTEXT",
+        "till": "mottagare",
+        "tid": 2000,
+        "topp": -200,
+        "svar": "Mottagarens svar",
+        "lys": {
+          "utseende": "lokal-tand",
+          "x": 350,
+          "y": 665,
+          "b": 60,
+          "h": 50
+        }
+      }
+    },
+    {
+      "typ": "studsmal",
+      "id": "vidare",
+      "x": 278,
+      "y": 372,
+      "b": 76,
+      "h": 64,
+      "utseende": "domstol-streckad",
+      "etikett": "Skickar vidare",
+      "text": "Valfri pratbubbla",
+      "studs": {
+        "mot": "mottagare"
+      }
+    },
+    {
+      "typ": "studsmal",
+      "id": "mottagare",
+      "x": 272,
+      "y": 650,
+      "b": 76,
+      "h": 80,
+      "utseende": "tingsratt",
+      "etikett": "Mottagaren",
+      "text": "Valfri pratbubbla",
+      "studs": "fysik"
     }
   ],
   "forlust": {
@@ -235,5 +285,7 @@
     "lankTillFallet": "https://lagen.nu/dom/nja/AAAAsN"
   },
   "rubrikmarke": "Valfritt guldmärke i rubriken, t.ex. BOSS",
-  "mellanstopp": "Valfri text på svart skärm en sekund innan nivån"
+  "mellanstopp": "Valfri text på svart skärm en sekund innan nivån",
+  "overrubrikTillagg": "Valfritt tillägg i nivåetiketten, t.ex. Final",
+  "_om_studsmal": "Med studsmål: lägg \"slutmal\" i slangbella.vinst. Studsmålen ovan är exempel och kan tas bort."
 }

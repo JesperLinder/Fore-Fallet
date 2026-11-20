@@ -7,6 +7,8 @@
  * när "vinst"-villkoren gäller och förloras om skotten tar slut innan.
  * Bossnivåer: bossmätare och repliker (slingshot/boss.ts) och bogserläget (slingshot/tow.ts), där nivån
  * vinns genom att dra ett block över en gräns.
+ * Studsmål (slingshot/targets.ts): mål som studsar, säger något, skickar projektilen vidare, eller – som slutmål –
+ * startar en scriptad händelse; vinstvillkoret "slutmal" gäller när den är klar.
  */
 import Phaser from 'phaser';
 import type { FargNamn } from '../config/theme';
@@ -21,9 +23,11 @@ import { skapaText } from '../ui/text';
 import { spelTips } from '../ui/TipPanel';
 import { Boss } from './slingshot/boss';
 import { Bogsering } from './slingshot/tow';
+import { Studsmal } from './slingshot/targets';
+import type { StudsmalObjekt } from '../core/levelTypes';
 import { startaMusik, stoppaMusik } from '../core/sound';
 import { BREDD } from '../config/display';
-import { DJUP_KAST, Kastare, type KastSlut } from './slingshot/launcher';
+import { DJUP_KAST, Kastare, type Kast, type KastSlut } from './slingshot/launcher';
 import { slumpaVind } from './slingshot/flight';
 import { ritaFigur } from './art';
 import { pratbubbla } from '../ui/Badge';
@@ -51,6 +55,13 @@ export class Slingshot implements Mekanik {
   /** Vilket skott (index i projektiler) som ligger i slangbellan, och om det redan fått ett svar. */
   private skottIndex = 0;
   private svarat = false;
+  private studsmal?: Studsmal;
+  /** Studsmål som redan sagt något under det här kastet, och vad som ska göras efter nästa fysiksteg. */
+  private sagtIKast = new Set<string>();
+  private efterSteg: { mot: string } | { slut: StudsmalObjekt } | null = null;
+  /** Slutmålets scriptade händelse pågår / är klar. */
+  private scriptPagar = false;
+  private slutKlar = false;
 
   private kvar: number;
   private poang = 0;
@@ -92,6 +103,7 @@ export class Slingshot implements Mekanik {
       });
     }
     if (this.inst.musik) startaMusik('boss');
+    if (sidvy && this.niva.objekt.some((o) => o.typ === 'studsmal')) this.studsmal = new Studsmal(this.scene, this.niva, sidvy.gravitation);
     if (!hud) this.visaSkottko = byggSkottko(this.scene, this.bana.utslag, this.inst.projektil, this.inst.antal);
     if (this.inst.projektilNamn) {
       const { x, y } = this.bana.utslag;
@@ -104,7 +116,10 @@ export class Slingshot implements Mekanik {
       kontext.tips.setVisible(false);
       // Med en knapp längst ner (bogserläget) står tipset ovanför knappen.
       const nedre = this.inst.bogsera?.knapp ? 16 + 52 + 12 : undefined;
-      tips = spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'mork', nedre);
+      // Rutan står på det nedersta banlagret: ljus ruta på mörk mark, mörk ruta på ljus mark.
+      const mark = this.niva.bana.lager[this.niva.bana.lager.length - 1]?.farg;
+      const morkMark = mark === 'morkgron' || mark === 'gron' || mark === 'vinrod';
+      tips = spelTips(this.scene, this.niva.fylgiaTips, morkMark ? 'mork' : 'ljus', nedre);
     }
 
     this.landade = this.scene.add.graphics().setDepth(DJUP_KAST.landad);
@@ -122,6 +137,7 @@ export class Slingshot implements Mekanik {
       vidSkott: () => {
         this.traffatHinder = false;
         this.svarat = false;
+        this.sagtIKast.clear();
         this.kvar -= 1;
         this.uppdateraHud();
       },
@@ -129,9 +145,12 @@ export class Slingshot implements Mekanik {
         if (this.block?.arBlock(annan)) this.traffaBlock(annan);
         const svarar = this.inst.svarFran ? this.block?.hamta(this.inst.svarFran) : undefined;
         if (svarar && svarar.kropp === annan && !this.svarat) this.svara();
+        const mal = this.studsmal?.hamta(annan);
+        if (mal) this.traffaStudsmal(mal);
         const hinder = this.bana.hinder.get(annan.id);
         if (hinder && !this.traffatHinder) this.traffaHinder(hinder);
       },
+      vidSteg: (k) => this.vidSteg(k),
       vidSlut: (_k, x, y, orsak) => this.avslutaSkott(x, y, orsak),
     });
 
@@ -153,6 +172,38 @@ export class Slingshot implements Mekanik {
     this.kastare.forstor();
     this.block?.forstor();
     this.bogsering?.forstor();
+  }
+
+  // ---------- Studsmål ----------
+
+  /** Ett studsmål träffas: säg något (en gång per kast), och skicka vidare eller starta slutet efter fysiksteget. */
+  private traffaStudsmal(m: StudsmalObjekt): void {
+    if (this.efterSteg || this.scriptPagar) return;
+    if (m.text && !this.sagtIKast.has(m.id)) {
+      this.sagtIKast.add(m.id);
+      this.studsmal?.saga(m.id, m.text);
+    }
+    if (m.slut) this.efterSteg = { slut: m };
+    else if (m.studs && m.studs !== 'fysik') this.efterSteg = { mot: m.studs.mot };
+  }
+
+  /** Efter fysiksteget (då studsen är löst): rikta om projektilen, eller avsluta kastet och spela slutet. */
+  private vidSteg(k: Kast): void {
+    const e = this.efterSteg;
+    if (!e) return;
+    this.efterSteg = null;
+    if ('mot' in e) {
+      const v = this.studsmal?.riktaMot(e.mot, k.kropp.position);
+      if (v) this.scene.matter.body.setVelocity(k.kropp, v);
+      return;
+    }
+    this.scriptPagar = true;
+    this.kastare.avsluta(k, 'stannat');
+    spela('traff');
+    this.studsmal?.spelaSlut(e.slut, e.slut.slut!, this.inst.projektil, () => {
+      this.slutKlar = true;
+      this.efterBlockskott();
+    });
   }
 
   // ---------- Boss och bogsering ----------
@@ -227,7 +278,9 @@ export class Slingshot implements Mekanik {
   private vinstUppfylld(): boolean {
     const block = this.block;
     if (!block || !this.inst.vinst) return false;
-    return this.inst.vinst.every((v) => (v === 'alla-block' ? block.malKvar() === 0 : v.startsWith('block:') ? block.arNed(v.slice(6)) : false));
+    return this.inst.vinst.every((v) =>
+      v === 'alla-block' ? block.malKvar() === 0 : v === 'slutmal' ? this.slutKlar : v.startsWith('block:') ? block.arNed(v.slice(6)) : false,
+    );
   }
 
   /**
@@ -277,6 +330,7 @@ export class Slingshot implements Mekanik {
       });
       return;
     }
+    if (this.scriptPagar) return; // slutmålets händelse tar över
     if (this.inst.vinst) {
       this.scene.time.delayedCall(400, () => this.efterBlockskott());
       return;

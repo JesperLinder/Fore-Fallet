@@ -5,5 +5,204 @@
   "referens": "HD 2023",
   "mekanik": "slingshot",
   "fylgiaMal": true,
-  "etikett": "Final"
+  "etikett": "Final",
+  "overrubrikTillagg": "Final",
+  "tema": "ljus",
+  "uppdragstext": "Finalen. Hyresgästen kräver ersättning för den uppsagda lokalen, men ingen domstol vill ta målet. Skjut akten hela vägen upp till Högsta domstolen.",
+  "fylgiaTips": "En ersättningstalan om indirekt besittningsskydd är en hyrestvist. Den hör hemma där fastigheten ligger.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxForsok": 1
+    },
+    "tva": {
+      "maxForsok": 2
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "lila",
+        "topp": 0
+      },
+      {
+        "farg": "morkgron",
+        "topp": 690
+      }
+    ]
+  },
+  "slangbella": {
+    "antal": 4,
+    "projektil": "akt",
+    "maxDrag": 105,
+    "kraft": 0.16,
+    "friktion": {
+      "luft": 0.003,
+      "mark": 0.09
+    },
+    "flygtid": {
+      "min": 22,
+      "max": 50
+    },
+    "siktlinje": 0.35,
+    "spelplan": {
+      "x": 0,
+      "y": 60,
+      "b": 390,
+      "h": 784
+    },
+    "sidvy": {
+      "gravitation": 0.6,
+      "mark": 690,
+      "radie": 8,
+      "vikt": 0.004
+    },
+    "tipsUnderSpel": true,
+    "vinst": [
+      "slutmal"
+    ],
+    "nedLinje": 900
+  },
+  "objekt": [
+    {
+      "typ": "dekor",
+      "utseende": "kulle",
+      "x": 320,
+      "y": 230,
+      "b": 160,
+      "h": 40
+    },
+    {
+      "typ": "studsmal",
+      "id": "hd",
+      "x": 320,
+      "y": 196,
+      "b": 90,
+      "h": 70,
+      "utseende": "hogsta-domstolen",
+      "etikett": "Högsta domstolen",
+      "slut": {
+        "stampel": "FASTIGHETSFORUM",
+        "till": "sodertorn",
+        "tid": 2000,
+        "topp": -200,
+        "svar": "Åh. Då är den vår.",
+        "lys": {
+          "utseende": "lokal-tand",
+          "x": 350,
+          "y": 665,
+          "b": 60,
+          "h": 50
+        }
+      }
+    },
+    {
+      "typ": "studsmal",
+      "id": "svea",
+      "x": 278,
+      "y": 372,
+      "b": 76,
+      "h": 64,
+      "utseende": "domstol-streckad",
+      "etikett": "Svea hovrätt",
+      "text": "Vi håller med tingsrätten. Prova Stockholms tingsrätt.",
+      "studs": {
+        "mot": "stockholm"
+      }
+    },
+    {
+      "typ": "studsmal",
+      "id": "stockholm",
+      "x": 70,
+      "y": 410,
+      "b": 76,
+      "h": 64,
+      "utseende": "domstol-streckad",
+      "etikett": "Stockholms tingsrätt",
+      "text": "Allmänt forum? Ja, om det inte vore för hyresrätten…",
+      "studs": "fysik"
+    },
+    {
+      "typ": "studsmal",
+      "id": "sodertorn",
+      "x": 272,
+      "y": 650,
+      "b": 76,
+      "h": 80,
+      "utseende": "tingsratt",
+      "etikett": "Södertörns tingsrätt",
+      "text": "Avvisas! Inte en hyrestvist.",
+      "studs": "fysik"
+    },
+    {
+      "typ": "dekor",
+      "utseende": "lokal",
+      "x": 350,
+      "y": 665,
+      "b": 60,
+      "h": 50
+    },
+    {
+      "typ": "text",
+      "x": 350,
+      "y": 628,
+      "text": "Lokalen",
+      "farg": "morkgron"
+    },
+    {
+      "typ": "utslag",
+      "x": 60,
+      "y": 630
+    },
+    {
+      "typ": "block",
+      "x": 168,
+      "y": 679,
+      "b": 112,
+      "h": 22,
+      "vikt": 0.0008,
+      "utseende": "invandning",
+      "etikett": "Foruminvändning",
+      "etikettFarg": "ljusbeige"
+    },
+    {
+      "typ": "block",
+      "x": 168,
+      "y": 657,
+      "b": 112,
+      "h": 22,
+      "vikt": 0.0008,
+      "utseende": "invandning",
+      "etikett": "Foruminvändning",
+      "etikettFarg": "ljusbeige"
+    },
+    {
+      "typ": "block",
+      "x": 168,
+      "y": 635,
+      "b": 112,
+      "h": 22,
+      "vikt": 0.0008,
+      "utseende": "invandning",
+      "etikett": "Foruminvändning",
+      "etikettFarg": "ljusbeige"
+    }
+  ],
+  "forlust": {
+    "rubrik": "Avvisad.",
+    "orsaker": {
+      "skott-slut": "Akten hittade aldrig hem."
+    }
+  },
+  "domslut": {
+    "rubrik": "Hemma",
+    "domskal": [
+      "Ersättningen enligt reglerna om indirekt besittningsskydd är visserligen ett penningkrav – men den hänger så nära ihop med hyresförhållandet att det är en hyrestvist.",
+      "Skälet bakom fastighetsforum gäller här också: bevisningen prövas bäst där fastigheten ligger.",
+      "Förarbetena visar att lagstiftaren tänkt sig att sådana tvister ska prövas vid fastighetsforum. Målet gick tillbaka till Södertörns tingsrätt."
+    ],
+    "fylgiaruta": "Fylgia företrädde hyresgästen i Högsta domstolen. Ibland är den viktigaste segern att få komma till rätt domstol.",
+    "lankTillFallet": "https://www.domstol.se/globalassets/filer/domstol/hogstadomstolen/avgoranden/2023/o-2990-22.pdf"
+  }
 }

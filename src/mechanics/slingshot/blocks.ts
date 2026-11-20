@@ -151,7 +151,7 @@ export class Fysikblock {
     ritaFigur(g, d.utseende, 0, 0, d.b, d.h);
     const delar: Phaser.GameObjects.GameObject[] = [g];
     if (d.etikett) {
-      delar.push(skapaText(this.scene, d.b / 2 - 8, d.h / 2 - 8, d.etikett, 'knapp', 'morkgron', { origo: [1, 1], storlek: 11 }));
+      delar.push(skapaText(this.scene, d.b / 2 - 8, d.h / 2 - 8, d.etikett, 'knapp', d.etikettFarg ?? 'morkgron', { origo: [1, 1], storlek: 11 }));
     }
     const obj = this.scene.add.container(d.x, d.y, delar).setDepth(DJUP_BLOCK);
     return { data: d, kropp, obj, ned: false, landat: false, fas: Math.random() * Math.PI * 2, g };

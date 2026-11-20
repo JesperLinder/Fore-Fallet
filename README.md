@@ -394,6 +394,44 @@ allt (`studs`) och guppar på vattnet (`gupp`). Nytt, och återanvändbart:
 
 Med massan 1200 tar en rak och bestämd bogsering cirka 11 sekunder av 30.
 
+### Studsmål och scriptade händelser (nivå 10, Fastighetsforum)
+
+Objekt av typen `studsmal` är fasta mål i sidovy (`mechanics/slingshot/targets.ts`). De stöter bort projektilen, säger
+`text` i en talbubbla (en gång per kast) och kan med `studs: { "mot": "<id>" }` skicka projektilen i en båge mot ett
+annat studsmål i stället för en vanlig studs (`"fysik"`). Ett studsmål med `slut` är ett slutmål: kastet avslutas och
+en scriptad händelse tar över. Projektilen får en guldstämpel (`stampel`) och flyger av sig själv i en båge
+(`tid` ms, `topp` = bågens kontrollpunkt i y; negativt = högt ovanför skärmen) till målet `till`. Där svarar mottagaren
+(`svar`), ett jubelljud spelas och figuren `lys` tonas in. Vinstvillkoret `"slutmal"` gäller när händelsen är klar.
+`overrubrikTillagg` lägger till t.ex. "Final" i nivåetiketten. På lila bakgrund blir Fylgia-märket mörkgrönt.
+
+```json
+"overrubrikTillagg": "Final",
+"stjarnkrav": { "tre": { "maxForsok": 1 }, "tva": { "maxForsok": 2 }, "en": {} },
+"bana": { "lager": [{ "farg": "lila", "topp": 0 }, { "farg": "morkgron", "topp": 690 }] },
+"slangbella": { "antal": 4, "projektil": "akt", "kraft": 0.16, "sidvy": { "gravitation": 0.6, "mark": 690, "radie": 8 },
+                "tipsUnderSpel": true, "vinst": ["slutmal"], "nedLinje": 900, … },
+"objekt": [
+  { "typ": "studsmal", "id": "hd", "x": 320, "y": 196, "b": 90, "h": 70, "utseende": "hogsta-domstolen", "etikett": "Högsta domstolen",
+    "slut": { "stampel": "FASTIGHETSFORUM", "till": "sodertorn", "tid": 2000, "topp": -200, "svar": "Åh. Då är den vår.",
+              "lys": { "utseende": "lokal-tand", "x": 350, "y": 665, "b": 60, "h": 50 } } },
+  { "typ": "studsmal", "id": "svea", "x": 278, "y": 372, "b": 76, "h": 64, "utseende": "domstol-streckad", "etikett": "Svea hovrätt",
+    "text": "Vi håller med tingsrätten. Prova Stockholms tingsrätt.", "studs": { "mot": "stockholm" } },
+  { "typ": "studsmal", "id": "sodertorn", "x": 272, "y": 650, "b": 76, "h": 80, "utseende": "tingsratt", "etikett": "Södertörns tingsrätt",
+    "text": "Avvisas! Inte en hyrestvist.", "studs": "fysik" },
+  { "typ": "block", "x": 168, "y": 679, "b": 112, "h": 22, "vikt": 0.0008, "utseende": "invandning", "etikett": "Foruminvändning", "etikettFarg": "ljusbeige" },
+  …
+]
+```
+
+Hela scenen ryms på en skärm, så kameran står still under bågen.
+
+### Avslutningsskärmen
+
+Efter domslutet i sista nivån leder knappen "Säsongen klar" till `SeasonScene` (nyckel `Sasong`): stor lila stjärna,
+totala stjärnor, alla fall med stjärnor (och guldstjärnor) där upplåsta rader går att spela om, "Dela resultat",
+karriärrutan och "Säsong 2 kommer". Länkarna står i `src/config/links.ts`: `dela` (tom = ingen delningsknapp) och
+`karriar`. Delningen använder telefonens delningsfunktion (Web Share API) och kopierar annars texten till urklipp.
+
 ### Hybridnivåer
 
 En hybridnivå kombinerar slangbellan med en formation som marscherar nedåt, som i invaders. Formationen går inte att
@@ -465,7 +503,7 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 
 ## Platshållare
 
-- **Nivå 10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Alla tio nivåer är spelbara.** En platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`) syns låst på kartan; det går att använda för nästa säsongs nivåer.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

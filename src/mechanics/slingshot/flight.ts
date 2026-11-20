@@ -74,7 +74,7 @@ export function forhandsvisning(
 }
 
 /** Matters accelerationsskala: gravitation g ger g * 0.001 * (1000/60)² punkter per steg² vid 60 steg/s. */
-const MATTER_G = 0.001 * (1000 / 60) ** 2;
+export const MATTER_G = 0.001 * (1000 / 60) ** 2;
 
 /**
  * Sidovy: punkter längs kastbågen med gravitation och luftmotstånd, samma integration som Matter

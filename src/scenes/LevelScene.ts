@@ -87,10 +87,15 @@ export class LevelScene extends BasScen {
   private ritaRubrik(): void {
     const n = this.niva;
     const mork = n.tema === 'mork';
-    const over = skapaText(this, avstand.l, 22, text.niva.overrubrik(n.nummer, n.referens), 'overrubrik', mork ? 'guld' : 'morkockra');
+    const referens = n.overrubrikTillagg ? `${n.referens} · ${n.overrubrikTillagg}` : n.referens;
+    const over = skapaText(this, avstand.l, 22, text.niva.overrubrik(n.nummer, referens), 'overrubrik', mork ? 'guld' : 'morkockra');
+    // På lila bakgrund syns inte det lila märket: då blir det mörkgrönt med lila text.
+    const lilaBakgrund = n.bana.lager[0]?.farg === 'lila';
     let x = over.x + over.width + 8;
     if (n.rubrikmarke) x += marke(this, x, over.y + over.height / 2, n.rubrikmarke, 'guld', 'morkgron').width + 6;
-    if (n.fylgiaMal) marke(this, x, over.y + over.height / 2, text.karta.fylgiaMal);
+    if (n.fylgiaMal) {
+      marke(this, x, over.y + over.height / 2, text.karta.fylgiaMal, lilaBakgrund ? 'morkgron' : 'lila', lilaBakgrund ? 'lila' : 'morkgron');
+    }
     skapaText(this, avstand.l - 1, 38, n.titel, 'titel', mork ? 'ljusbeige' : 'morkgron', { storlek: 30 });
     ikonKnapp(this, BREDD - avstand.l - 24, 44, mork ? 'konturMork' : 'mork', ritaPaus, () => this.pausa(true)).setDepth(40);
   }

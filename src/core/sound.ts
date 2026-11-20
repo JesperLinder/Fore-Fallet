@@ -4,7 +4,7 @@
  */
 import { framsteg } from './progress';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel'>;
 
 interface Ton {
@@ -39,6 +39,14 @@ const LJUD: Record<Tonljud, Ton[]> = {
   klonk: [
     { fran: 330, till: 160, start: 0, langd: 0.06, form: 'square', volym: 0.07 },
     { fran: 110, till: 60, start: 0, langd: 0.12, form: 'triangle', volym: 0.25 },
+  ],
+  // Kort jubel: stigande toner när något landar rätt.
+  jubel: [
+    { fran: 523, till: 523, start: 0, langd: 0.1, form: 'triangle', volym: 0.12 },
+    { fran: 659, till: 659, start: 0.08, langd: 0.1, form: 'triangle', volym: 0.12 },
+    { fran: 784, till: 784, start: 0.16, langd: 0.1, form: 'triangle', volym: 0.12 },
+    { fran: 1047, till: 1047, start: 0.24, langd: 0.12, form: 'triangle', volym: 0.12 },
+    { fran: 1319, till: 1568, start: 0.34, langd: 0.3, form: 'triangle', volym: 0.11 },
   ],
   // Dovt "duns" när något träffar (sköldläge).
   duns: [{ fran: 95, till: 45, start: 0, langd: 0.22, form: 'sine', volym: 0.3 }],

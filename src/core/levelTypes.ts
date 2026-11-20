@@ -53,6 +53,8 @@ export interface Niva extends NivaPlatshallare {
   rubrikmarke?: string;
   /** Svart mellanstopp i en sekund innan nivån visas, t.ex. "BOSS – NJA 1997 s. 660". */
   mellanstopp?: string;
+  /** Läggs till efter referensen i nivåetiketten, t.ex. "Final" ger "NIVÅ 10 · HD 2023 · FINAL". */
+  overrubrikTillagg?: string;
 }
 
 export interface StjarnKrav {
@@ -209,6 +211,8 @@ export interface BlockObjekt extends BasObjekt {
   utseende: string;
   /** Text på blocket, t.ex. "År 1". */
   etikett?: string;
+  /** Färg på etiketten. Standard: mörkgrön. */
+  etikettFarg?: FargNamn;
   /** Räknas i räknaren och i vinstvillkoret "alla-block". */
   mal?: boolean;
   /** Räknas i en namngiven räknare när blocket slagits ned, för stjarnkrav.minAntal/maxAntal. */
@@ -240,7 +244,43 @@ export interface PlattformObjekt extends BasObjekt {
   etikett?: string;
 }
 
+/**
+ * Studsmål (slangbella i sidovy): ett fast objekt (t.ex. en domstol) som stöter bort projektilen och säger något.
+ * x, y = mittpunkt; b, h = träffytan. studs: "fysik" (vanlig studs) eller { mot: id } (projektilen skickas i en båge
+ * mot ett annat studsmål). Ett slutmål startar en scriptad händelse (se Slutmal) och avslutar kastet.
+ */
+export interface StudsmalObjekt extends BasObjekt {
+  typ: 'studsmal';
+  id: string;
+  b: number;
+  h: number;
+  /** Figur i art.ts, t.ex. "tingsratt". Ritas med b × h. */
+  utseende: string;
+  /** Namn ovanför målet, t.ex. "Södertörns tingsrätt". */
+  etikett?: string;
+  etikettFarg?: FargNamn;
+  /** Pratbubbla när projektilen träffar (en gång per kast). */
+  text?: string;
+  studs?: 'fysik' | { mot: string };
+  slut?: Slutmal;
+}
+
+/** Scriptad händelse när ett slutmål träffas: valfri stämpel, sedan en båge till ett annat mål, svar och upplysning. */
+export interface Slutmal {
+  /** Text i en guldstämpel på projektilen, t.ex. "FASTIGHETSFORUM". */
+  stampel?: string;
+  /** id på studsmålet projektilen flyger till, hur lång tid bågen tar (ms) och hur högt den går (y för toppen). */
+  till: string;
+  tid: number;
+  topp: number;
+  /** Pratbubbla från mottagaren, t.ex. "Åh. Då är den vår." */
+  svar?: string;
+  /** En figur som tonas in ovanpå scenen när projektilen landat (t.ex. lokalen som lyser upp). */
+  lys?: { utseende: string; x: number; y: number; b: number; h: number };
+}
+
 export type NivaObjekt =
+  | StudsmalObjekt
   | BlockObjekt
   | PlattformObjekt
   | UtslagObjekt
@@ -313,7 +353,7 @@ export interface SlangbellaInstallningar extends KastInstallningar {
   tipsUnderSpel?: boolean;
   /**
    * Vinstvillkor för fysikblock (alla måste gälla): "alla-block" = alla block med "mal" nedslagna,
-   * "block:<id>" = ett visst block nedslaget. Med vinst är nivån förlorad om skotten tar slut innan (orsak "skott-slut").
+   * "block:<id>" = ett visst block nedslaget, "slutmal" = ett slutmål träffat och dess scriptade händelse klar. Med vinst är nivån förlorad om skotten tar slut innan (orsak "skott-slut").
    * Utelämnas = nivån tar slut efter sista skottet och stjärnorna räknas på poäng (som nivå 1).
    */
   vinst?: string[];

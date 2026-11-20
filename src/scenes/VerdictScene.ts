@@ -19,6 +19,7 @@ import { marke } from '../ui/Badge';
 import { Knapp } from '../ui/Button';
 import { DragScroll } from '../ui/DragScroll';
 import { lankKnapp, lankYta } from '../ui/LinkButton';
+import { lankar } from '../config/links';
 import type { DomslutData } from './LevelScene';
 
 const X0 = avstand.sida;
@@ -193,7 +194,7 @@ export class VerdictScene extends BasScen {
     g.lineBetween(pilX + 2, h / 2 + 5, pilX + 7, h / 2);
     const y = Math.max(minY, HOJD - avstand.l - h);
     this.add.container(X0, y, [g, rubrik, brod]);
-    lankYta(this, X0 + INNER_B / 2, y + h / 2, INNER_B, h, `${k.rubrik} ${k.text}`, k.url);
+    lankYta(this, X0 + INNER_B / 2, y + h / 2, INNER_B, h, `${k.rubrik} ${k.text}`, lankar.karriar);
     return y + h;
   }
 
@@ -209,15 +210,17 @@ export class VerdictScene extends BasScen {
     const nasta = nastaNiva(niva.id);
     // Nästa nivå kräver minst en stjärna här: uppmana till ett nytt försök.
     const behoverStjarna = !!nasta && !arGodkand(niva);
+    // Efter sista nivån leder knappen till avslutningsskärmen för säsongen.
     const etikett = behoverStjarna
       ? text.domslut.kravForNasta
       : nasta
         ? text.domslut.nastaMal(nasta.titel)
-        : text.domslut.tillKartan;
+        : text.domslut.sasongKlar;
     const ny = y + h + avstand.m + 29;
     new Knapp(this, MITT_X, ny, etikett, { bredd: INNER_B, hojd: 58, variant: 'mork', kanTryckas: tryck }, () => {
       if (behoverStjarna) this.bytTill('Level', { id: niva.id });
       else if (nasta && arUpplast(nasta)) this.bytTill('Level', { id: nasta.id });
+      else if (!nasta) this.bytTill('Sasong');
       else this.bytTill('Map');
     });
     return ny + 29;

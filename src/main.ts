@@ -7,6 +7,7 @@ import { TitleScene } from './scenes/TitleScene';
 import { MapScene } from './scenes/MapScene';
 import { LevelScene } from './scenes/LevelScene';
 import { VerdictScene } from './scenes/VerdictScene';
+import { SeasonScene } from './scenes/SeasonScene';
 
 const spel = new Phaser.Game({
   type: Phaser.AUTO,
@@ -23,7 +24,7 @@ const spel = new Phaser.Game({
   // DOM-lager ovanpå canvasen, för riktiga länkar (Safari öppnar bara nya flikar från riktiga länktryck).
   dom: { createContainer: true },
   physics: { default: 'matter' },
-  scene: [BootScene, TitleScene, MapScene, LevelScene, VerdictScene],
+  scene: [BootScene, TitleScene, MapScene, LevelScene, VerdictScene, SeasonScene],
 });
 
 // I utvecklingsläge: gör spelet nåbart från konsolen för felsökning.

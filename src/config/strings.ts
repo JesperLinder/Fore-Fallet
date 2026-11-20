@@ -72,14 +72,27 @@ export const text = {
     guldKrav: (text: string) => `Guldstjärna: ${text}`,
     nastaMal: (titel: string) => `Nästa mål: ${titel}`,
     tillKartan: 'Till rättsfallskartan',
+    /** Knappen efter sista nivån. */
+    sasongKlar: 'Säsongen klar',
     /** Visas när nästa mål är låst för att spelaren fått 0 stjärnor. */
     kravForNasta: 'Minst en stjärna låser upp nästa mål',
     /** Rutan längst ner på domslutet, med länk till Fylgias karriärsida. */
     karriar: {
       rubrik: 'Gillar du tvister?',
       text: 'Fylgia söker juniorassistenter och biträdande jurister',
-      url: 'https://www.fylgia.se/sv/karriar',
     },
+  },
+
+  /** Avslutningsskärmen efter sista nivån. */
+  sasong: {
+    rubrik: 'Säsong 1 klar',
+    delaKnapp: 'Dela resultat',
+    kopierat: 'Kopierat!',
+    delaText: (stjarnor: string, max: number) =>
+      `Jag klarade Före fallet med ${stjarnor} av ${max} stjärnor. Klarar du dig bättre i Högsta domstolen?`,
+    karriarText: 'Gillar du det här mer än tentaplugget? Fylgia söker notarier och biträdande jurister.',
+    karriarKnapp: 'Se lediga jobb',
+    nasta: 'Säsong 2 kommer',
   },
 
   /** Formaterar kronor med svenskt tusentalsavstånd: 25000 -> "25 000 kr". */
