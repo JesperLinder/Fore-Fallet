@@ -11,6 +11,7 @@ import type { Mekanik, MekanikKontext } from './Mechanic';
 import { byggBana, iMal, type Bana } from './slingshot/course';
 import { byggHud, byggVindindikator, type SlangbellaHud } from './slingshot/hud';
 import { DJUP_KAST, Kastare, type KastSlut } from './slingshot/launcher';
+import { slumpaVind } from './slingshot/flight';
 import { ritaFigur } from './art';
 import { pratbubbla } from '../ui/Badge';
 import { spela } from '../core/sound';
@@ -46,7 +47,7 @@ export class Slingshot implements Mekanik {
 
     this.bana = byggBana(this.scene, this.niva);
     this.hud = byggHud(this.scene, this.inst);
-    this.visaVind = byggVindindikator(this.scene, this.inst);
+    this.visaVind = byggVindindikator(this.scene, this.inst.vind);
 
     this.landade = this.scene.add.graphics().setDepth(DJUP_KAST.landad);
     this.kastare = new Kastare({
@@ -117,18 +118,9 @@ export class Slingshot implements Mekanik {
   }
 
   private laddaNasta(): void {
-    this.vind = this.slumpaVind();
+    this.vind = slumpaVind(this.inst.vind);
     this.visaVind(this.vind);
     this.kastare.laddaNasta();
-  }
-
-  /** Vinden inför nästa skott: fast, eller slumpad inom nivåns vind.variation. */
-  private slumpaVind(): { x: number; y: number } {
-    const v = this.inst.vind;
-    if (!v.variation) return { x: v.x, y: v.y };
-    const styrka = Phaser.Math.FloatBetween(v.variation.min, v.variation.max);
-    const motsatt = Math.random() < (v.variation.motsattChans ?? 0);
-    return { x: Math.sign(v.x || 1) * styrka * (motsatt ? -1 : 1), y: v.y };
   }
 
   private avslutaNiva(): void {

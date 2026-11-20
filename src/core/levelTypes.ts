@@ -29,6 +29,11 @@ export interface Niva extends NivaPlatshallare {
   stjarngranser?: { en: number; tva: number; tre: number };
   /** Krav för 1, 2 och 3 stjärnor räknat på misstag och tid kvar (invaders). Nivån måste vara klarad. */
   stjarnkrav?: { en: StjarnKrav; tva: StjarnKrav; tre: StjarnKrav };
+  /**
+   * Valfri extra guldstjärna utöver de tre, för en särskild bedrift (t.ex. rädda alla kor).
+   * Räknas inte i stjärnräknaren och påverkar inte upplåsningen. text: visas på domslutet.
+   */
+  guldstjarna?: { krav: StjarnKrav; text: string };
   /** "ljus" (standard) eller "mork": styr färgerna på nivåns rubrik. */
   tema?: 'ljus' | 'mork';
   /** Bakgrund ritad som horisontella lager uppifrån och ner. */
@@ -57,6 +62,8 @@ export interface StjarnKrav {
   maxFallor?: number;
   /** Minst så här många procent kvar på mätaren (invaders, t.ex. "God tro" 75). */
   minMatare?: number;
+  /** Högst så här många dekorfigurer förlorade (invaders, t.ex. 0 = alla kor kvar i hagen). */
+  maxDekorForlorade?: number;
 }
 
 export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten';
@@ -210,6 +217,8 @@ export interface KastInstallningar {
      * motsattChans (0–1) = sannolikheten att den blåser åt andra hållet.
      */
     variation?: { min: number; max: number; motsattChans?: number };
+    /** Var vindindikatorn står (övre vänstra hörnet). Standard: x 16, y 166. */
+    plats?: { x: number; y: number };
   };
   /** Hur stor del (0–1) av flygbanan den prickade siktlinjen visar. 1 = hela vägen till landning (standard). */
   siktlinje?: number;
@@ -395,6 +404,11 @@ export interface DekorInstallningar {
     vaxla?: string;
     /** Valfritt ljud, t.ex. "muu". */
     ljud?: 'muu';
+    /**
+     * Valfritt: spelaren kan avbryta händelsen genom att skjuta källan (t.ex. ufot) medan den pågår.
+     * Figuren faller då tillbaka till sin plats. text: pratbubbla när det lyckas, t.ex. "Kon räddad!".
+     */
+    raddning?: { text?: string };
   };
   /** Valfri räknare i ett kort bredvid mätaren. {kvar} och {totalt} byts mot siffror. */
   raknare?: { namn: string; text: string };
@@ -459,6 +473,23 @@ export interface HybridInstallningar {
   faraY: number;
   /** Rutan uppe till höger, t.ex. "Borgenärer / 4 i kö". {antal} byts mot antalet fiender. */
   hud?: { rubrik: string; varde: string };
+  /** Skyltar som pendlar i sidled och stoppar det som kastas (t.ex. "Kvarstad"). Valfritt. */
+  hinder?: HybridHinder[];
+}
+
+export interface HybridHinder {
+  /** Text på skylten. */
+  etikett: string;
+  /** Skyltens mittpunkt vid start, och storlek. */
+  x: number;
+  y: number;
+  b: number;
+  h: number;
+  /** Pendlar mellan x och tillX (mittpunkter) med farten fart (punkter per sekund). Utelämnas = står still. */
+  tillX?: number;
+  fart?: number;
+  /** Pratbubbla första gången något fastnar, t.ex. "Kvarstad! Hästen hölls kvar". */
+  text?: string;
 }
 
 export interface HybridProjektil {

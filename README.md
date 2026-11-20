@@ -88,9 +88,10 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | `fylgiaMal` | visar märket "Fylgia-mål" |
 | `etikett` | valfri text på kartan i stället för mekaniknamnet ("Boss", "Final") |
 | `uppdragstext`, `fylgiaTips` | visas i rutan "Din fylgia viskar" |
-| `resultat` | `"vinst"` eller `"halvvagsvinst"` (max 1,5 stjärnor) |
+| `resultat` | `"vinst"` eller `"halvvagsvinst"` (domslutet visar då rutorna Vunnet / Inte vunnet). Båda ger 0–3 stjärnor. |
+| `guldstjarna` | valfritt: `{ "krav": {…}, "text": "Alla kor kvar i hagen." }`. En extra guldstjärna för en särskild bedrift, med samma kravfält som `stjarnkrav`. Visas på domslutet och kartan men räknas inte i stjärnräknaren och påverkar inte upplåsningen. |
 | `stjarngranser` | poäng för 1, 2 och 3 stjärnor (slangbella) |
-| `stjarnkrav` | krav för 1, 2 och 3 stjärnor: `maxMisstag`, `tidKvarOver` (invaders), `maxForsok`, `maxFallor` (hybrid) |
+| `stjarnkrav` | krav för 1, 2 och 3 stjärnor: `maxMisstag`, `tidKvarOver`, `minMatare`, `maxDekorForlorade` (invaders), `maxForsok`, `maxFallor` (hybrid) |
 | `tema` | `"mork"` för mörk bakgrund (ljusa rubriker) |
 | `bana.lager` | bakgrundens färglager uppifrån och ner |
 | `slangbella` | antal skott, kraft, friktion, vind/slice (valfritt `vind.variation` = slumpad per skott), `siktlinje` (andel av banan som visas, 0–1), spelplan, rubriker i resultatraden |
@@ -167,21 +168,26 @@ träffas första gången. Då avslöjas typen och etiketten med en stämpelanima
 
 **Fallande hot och dekorhändelser (nivå 5, De försvunna korna):** `hot` är föremål som faller och ska skjutas ner,
 till exempel uppsägningsbrev från ufona. `dekor` är bakgrundshändelser med en räknare, till exempel kor som lyfts upp
-var 7:e sekund. Ufona är brickor med `figur` och `skottGenom`, så skotten går igenom dem. Nivån vinns med
-`vinst: ["overlev"]`, det vill säga när tiden går ut. Alla fält beskrivs i `src/levels/_mall-invaders.md`. I förkortad form:
+var 7:e sekund. Med `handelse.raddning` kan spelaren skjuta ufot under lyftet, så att kon faller tillbaka. Ufona är
+brickor med `figur` och `skottGenom`, så skotten går annars igenom dem. Nivån vinns med `vinst: ["overlev"]`, det vill
+säga när tiden går ut, och guldstjärnan kräver att alla kor finns kvar (`maxDekorForlorade: 0`). Med
+`matare.visning: "kort"` står klockan i ett eget kort bredvid mätaren och räknaren. Alla fält beskrivs i
+`src/levels/_mall-invaders.md`. I förkortad form:
 
 ```json
 "resultat": "halvvagsvinst",
 "stjarnkrav": { "tre": { "maxMisstag": 0 }, "tva": { "maxMisstag": 2 }, "en": {} },
+"guldstjarna": { "krav": { "maxDekorForlorade": 0 }, "text": "Alla kor kvar i hagen." },
 "invaders": {
   "brickor": { "rader": [[{ "etikett": "Ufo", "typ": "ratt" }, null, null], [null, null, { "etikett": "Ufo", "typ": "ratt" }]],
                "figur": "ufo", "skottGenom": true, "steg": { "x": 3, "ned": 0, "intervall": 40 }, … },
   "hot": { "utseende": "uppsagningsbrev", "b": 26, "h": 32, "etikett": "Uppsägning i förtid", "start": "fran-fiende",
            "fart": 75, "intervall": 2600, "slutIntervall": 1100, "botten": { "matare": 20, "text": "Bolaget sa upp – utan rätt" } },
   "dekor": { "figurer": [{ "utseende": "ko", "x": 55, "y": 600 }, …],
-             "handelse": { "rorelse": "lyft", "intervall": 7000, "langd": 2600, "vaxla": "ko-sprattel", "ljud": "muu" },
+             "handelse": { "rorelse": "lyft", "intervall": 7000, "langd": 2600, "vaxla": "ko-sprattel", "ljud": "muu",
+                           "raddning": { "text": "Kon räddad!" } },
              "raknare": { "namn": "Kor i hagen", "text": "{kvar} av {totalt}" } },
-  "tid": { "sekunder": 45, "etikett": "Kvar", "dold": true },
+  "tid": { "sekunder": 45, "etikett": "Håll ut" },
   "matare": { "namn": "Försäkringen", "steg": 100, "visning": "kort" },
   "vinst": ["overlev"], "forlust": ["matare-full"]
 }
@@ -198,7 +204,8 @@ medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stä
 En hybridnivå kombinerar slangbellan med en formation som marscherar nedåt, som i invaders. Formationen går inte att
 skjuta på: spelaren ska hinna före. Koden återanvänder delarna från de andra mekanikerna:
 `slingshot/launcher.ts` (kastet), `common/formation.ts` (rörelsen), `slingshot/course.ts` (banans objekt) och
-`common/startPanel.ts` (Starta-rutan). Mall: `src/levels/_mall-hybrid.json`. Nivå 3 (Travstallet) ser ut så här i förkortad form:
+`common/startPanel.ts` (Starta-rutan) och `hybrid/obstacles.ts` (skyltar som stoppar kastet). Mall:
+`src/levels/_mall-hybrid.json`. Nivå 3 (Travstallet) ser ut så här i förkortad form:
 
 ```json
 "mekanik": "hybrid",
@@ -211,6 +218,8 @@ skjuta på: spelaren ska hinna före. Koden återanvänder delarna från de andr
 ],
 "hybrid": {
   "kast": { "maxDrag": 105, "kraft": 0.11, "friktion": { "luft": 0.012, "mark": 0.09 }, "flygtid": { "min": 22, "max": 50 },
+            "vind": { "x": 0.03, "y": 0, "etikett": "Vind", "variation": { "min": 0.01, "max": 0.05, "motsattChans": 0.5 },
+                      "plats": { "x": 214, "y": 676 } },
             "siktlinje": 0.5, "spelplan": { "x": 0, "y": 90, "b": 390, "h": 680 } },
   "projektiler": [
     { "id": "avtal", "knapp": "Kasta avtal", "utseende": "avtal", "roll": "falla", "forstaText": "Avtalet räcker inte mot borgenärer" },
@@ -218,21 +227,23 @@ skjuta på: spelaren ska hinna före. Koden återanvänder delarna från de andr
       "aterkomst": { "vantaMs": 2000, "till": { "x": 97, "y": 505 } } }
   ],
   "startval": "hast",
-  "mal": { "x": 255, "y": 452, "b": 90, "h": 70 },
+  "mal": { "x": 265, "y": 459, "b": 70, "h": 56 },
   "studsyta": { "x": 225, "y": 398, "b": 150, "h": 124 },
   "vinstText": "Tradition!",
-  "fiender": { "utseende": "portfolj", "rader": [[{ "etikett": "Kronofogden" }, …], …], "b": 120, "h": 56,
-               "mellanrum": 8, "forskjutning": [0, 60], "startY": 96, "steg": { "x": 5, "ned": 15, "intervall": 275 },
+  "fiender": { "utseende": "portfolj", "rader": [[{ "etikett": "Kronofogden" }, …], …], "b": 120, "h": 52,
+               "mellanrum": 6, "forskjutning": [0, 60], "startY": 96, "steg": { "x": 5, "ned": 15, "intervall": 230 },
                "kant": { "vanster": 16, "hoger": 374 } },
   "faraY": 395,
-  "hud": { "rubrik": "Borgenärer", "varde": "{antal} i kö" }
+  "hud": { "rubrik": "Borgenärer", "varde": "{antal} i kö" },
+  "hinder": [{ "etikett": "Kvarstad", "x": 150, "y": 600, "b": 84, "h": 26, "tillX": 290, "fart": 70,
+               "text": "Kvarstad! Hästen hölls kvar." }]
 },
 "forlust": { "rubrik": "Utmätt.", "orsaker": { "botten": "Hästen stod kvar hos säljaren. Ditt avtal hjälpte inte." } }
 ```
 
 | Fält i `hybrid` | Vad det gör |
 |---|---|
-| `kast` | Kastfysiken, samma fält som i `slangbella` (utom antal, projektil och HUD). `vind` är valfri. |
+| `kast` | Kastfysiken, samma fält som i `slangbella` (utom antal, projektil och HUD). `vind` är valfri; med `variation` slumpas den inför varje kast, och indikatorn står vid `vind.plats`. |
 | `projektiler` | En knapp per projektil längst ner. `roll: "vinnare"` vinner om den stannar i `mal`. Missar den ligger den kvar `aterkomst.vantaMs` ms, galopperar till `aterkomst.till` och laddas igen. `roll: "falla"` studsar alltid bort från `studsyta`, räknas i `maxFallor` och visar `forstaText` första gången. `namn` står under slangbellan. |
 | `startval` | `id` på den projektil som är vald från början. |
 | `mal` | Rektangel (`x`, `y` = övre vänstra hörnet). En vinnare som stannar här vinner. |
@@ -241,8 +252,9 @@ skjuta på: spelaren ska hinna före. Koden återanvänder delarna från de andr
 | `fiender` | Formationen: samma fält som invaders-brickor (`rader`, `b`, `h`, `mellanrum`, `forskjutning`, `startY`, `steg`, `kant`) plus `utseende` (figur i art.ts). Fiender har bara `etikett`. |
 | `faraY` | Når formationens underkant hit innan man vunnit är nivån förlorad (orsak `botten`). Pågår ett kast får det landa först. |
 | `hud` | Rutan uppe till höger. `{antal}` byts mot antalet fiender. |
+| `hinder` | Valfritt. Skyltar (`etikett`, mittpunkt `x`/`y`, `b`, `h`) som pendlar mellan `x` och `tillX` med `fart` punkter per sekund. Det som kastas och träffar en skylt i luften faller ner där (en miss). `text` visas första gången. |
 
-Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar det cirka 35 sekunder.
+Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar det cirka 22 sekunder.
 
 ## Platshållartext
 

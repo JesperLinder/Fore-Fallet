@@ -16,6 +16,8 @@ export interface MekanikResultat {
   fallor?: number;
   /** Procent kvar på mätaren (invaders), för stjarnkrav.minMatare. */
   matareKvar?: number;
+  /** Antal dekorfigurer som försvunnit (invaders), för stjarnkrav.maxDekorForlorade. */
+  dekorForlorade?: number;
   /** Satt om nivån är förlorad. Då visas förlustskärmen i stället för domslutet. */
   forlust?: ForlustOrsak;
 }

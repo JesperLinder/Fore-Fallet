@@ -3,7 +3,8 @@
  * (Formation, delad med invaders) marscherar nedåt. Formationen går inte att stoppa – man ska hinna före.
  *
  * Projektilerna har en roll: "vinnare" vinner om den stannar i målet (missar den springer den tillbaka),
- * "falla" studsar alltid bort från studsytan och räknas i stjärnkraven. Allt kommer från nivåfilen ("hybrid").
+ * "falla" studsar alltid bort från studsytan och räknas i stjärnkraven. Valfritt: vind som slumpas per kast
+ * (med indikator) och hinder – skyltar som pendlar och stoppar kastet. Allt kommer från nivåfilen ("hybrid").
  */
 import Phaser from 'phaser';
 import type { FargNamn } from '../config/theme';
@@ -17,6 +18,9 @@ import { DJUP_KAST, Kastare, type Kast, type KastSlut } from './slingshot/launch
 import { Formation } from './common/formation';
 import { visaStart } from './common/startPanel';
 import { byggFiendeRuta, byggValknappar, ritaFiende } from './hybrid/hud';
+import { Hinder } from './hybrid/obstacles';
+import { hojd, slumpaVind } from './slingshot/flight';
+import { byggVindindikator } from './slingshot/hud';
 import { pratbubbla } from '../ui/Badge';
 import { skapaText } from '../ui/text';
 
@@ -38,6 +42,10 @@ export class Hybrid implements Mekanik {
   private fiender: Formation<{ etikett: string }>;
   private ritaKnappar: () => void;
   private namn: Phaser.GameObjects.Text;
+  private hinder?: Hinder;
+  /** Vinden för kastet som laddas/flyger just nu, och indikatorn (om nivån har vind). */
+  private vind = INGEN_VIND;
+  private visaVind?: (vind: { x: number; y: number }) => void;
 
   private valt: HybridProjektil;
   /** Projektilen som kastades senast (valet kan inte ändras under kastet, men sparas för säkerhets skull). */
@@ -64,6 +72,9 @@ export class Hybrid implements Mekanik {
     const f = this.inst.fiender;
     this.fiender = new Formation(this.scene, f, ritaFiende(f.utseende));
     if (this.inst.hud) byggFiendeRuta(this.scene, this.inst.hud, this.fiender.objekt.length);
+    if (this.inst.hinder?.length) this.hinder = new Hinder(this.scene, this.inst.hinder);
+    const v = this.inst.kast.vind;
+    if (v) this.visaVind = byggVindindikator(this.scene, v, v.plats);
 
     this.kastare = new Kastare({
       scene: this.scene,
@@ -72,7 +83,7 @@ export class Hybrid implements Mekanik {
       utslag: this.bana.utslag,
       kanSikta: () => this.startad && !this.klar && !this.upptagen,
       utseende: () => this.valt.utseende,
-      vind: () => this.inst.kast.vind ?? INGEN_VIND,
+      vind: () => this.vind,
       markfriktion: (x, y) => (inne(this.inst.mal, x, y) ? MALFRIKTION : this.inst.kast.friktion.mark),
       vidSkott: () => this.vidSkott(),
       vidSteg: (k) => this.vidSteg(k),
@@ -99,6 +110,11 @@ export class Hybrid implements Mekanik {
   }
 
   private ladda(): void {
+    const v = this.inst.kast.vind;
+    if (v) {
+      this.vind = slumpaVind(v);
+      this.visaVind?.(this.vind);
+    }
     this.kastare.laddaNasta();
     this.visaNamn();
   }
@@ -117,10 +133,22 @@ export class Hybrid implements Mekanik {
     else this.fallor += 1;
   }
 
-  /** Fällor studsar bort när de når studsytan. */
+  /** Hinder stoppar allt som kastas. Fällor studsar bort när de når studsytan. */
   private vidSteg(k: Kast): void {
-    if (this.kastat?.roll !== 'falla' || this.studsat) return;
     const { x, y } = k.kropp.position;
+    // Skylten står upp, så kollisionen räknas där projektilen syns (med höjden över marken).
+    const skylt = this.hinder?.traff(x, y - hojd(k.steg, k.flygsteg, k.styrka));
+    if (skylt) {
+      this.scene.matter.body.setVelocity(k.kropp, { x: 0, y: 0 });
+      k.flygsteg = Math.min(k.flygsteg, k.steg); // faller ner där den är
+      spela('misstag');
+      if (skylt.text && !this.visadeTexter.has(`hinder:${skylt.etikett}`)) {
+        this.visadeTexter.add(`hinder:${skylt.etikett}`);
+        this.popup(Phaser.Math.Clamp(x, 110, BREDD - 110), y - 40, skylt.text, 'vinrod', 'ljusbeige', 2000);
+      }
+      return;
+    }
+    if (this.kastat?.roll !== 'falla' || this.studsat) return;
     if (!inne(this.inst.studsyta ?? this.inst.mal, x, y)) return;
     this.studsat = true;
     const v = k.kropp.velocity;
@@ -193,6 +221,7 @@ export class Hybrid implements Mekanik {
   private uppdatera(_tid: number, dt: number): void {
     if (!this.startad || this.pausad || this.klar) return;
     this.fiender.uppdatera(Math.min(dt, 50));
+    this.hinder?.uppdatera(Math.min(dt, 50));
     // Formationen har nått stallet. Pågår ett kast får det landa först – det kan vara vinsten.
     if (this.fiender.nedersta() >= this.inst.faraY && !this.kastare.flyger) this.forlora();
   }

@@ -2,7 +2,7 @@
 import Phaser from 'phaser';
 import { avstand, css, farg } from '../../config/theme';
 import { text } from '../../config/strings';
-import type { SlangbellaInstallningar } from '../../core/levelTypes';
+import type { KastInstallningar, SlangbellaInstallningar } from '../../core/levelTypes';
 import { StatKort, matare, prickar } from '../../ui/StatCard';
 import { skapaText } from '../../ui/text';
 
@@ -42,10 +42,13 @@ export function byggHud(scene: Phaser.Scene, inst: SlangbellaInstallningar): Sla
  * Liten indikator som visar vind/slice: etikett plus pilar i vindens riktning.
  * Antalet pilar (1–3) visar styrkan. Returnerar en funktion som visar en ny vind.
  */
-export function byggVindindikator(scene: Phaser.Scene, inst: SlangbellaInstallningar): (vind: { x: number; y: number }) => void {
-  const x = avstand.l;
-  const y = 166;
-  const etikett = skapaText(scene, 12, 13, inst.vind.etikett, 'etikett', 'ljusbeige', { origo: [0, 0.5], storlek: 11 });
+export function byggVindindikator(
+  scene: Phaser.Scene,
+  vindInst: NonNullable<KastInstallningar['vind']>,
+  plats: { x: number; y: number } = { x: avstand.l, y: 166 },
+): (vind: { x: number; y: number }) => void {
+  const { x, y } = plats;
+  const etikett = skapaText(scene, 12, 13, vindInst.etikett, 'etikett', 'ljusbeige', { origo: [0, 0.5], storlek: 11 });
   const b = etikett.width + 62;
   const g = scene.add.graphics().fillStyle(farg.morkgron, 1).fillRoundedRect(0, 0, b, 26, 13);
   const pilar = scene.add.graphics();
@@ -54,7 +57,7 @@ export function byggVindindikator(scene: Phaser.Scene, inst: SlangbellaInstallni
   scene.tweens.add({ targets: pilar, alpha: 0.35, duration: 800, yoyo: true, repeat: -1 });
   const behallare = scene.add.container(x, y, [g, etikett, pilar]).setDepth(30);
 
-  const max = inst.vind.variation?.max ?? Math.hypot(inst.vind.x, inst.vind.y);
+  const max = vindInst.variation?.max ?? Math.hypot(vindInst.x, vindInst.y);
   return (vind) => {
     const styrka = Math.hypot(vind.x, vind.y);
     const antal = Phaser.Math.Clamp(Math.ceil((styrka / (max || 1)) * 3), 1, 3);

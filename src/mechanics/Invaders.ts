@@ -214,6 +214,13 @@ export class Invaders implements Mekanik {
       spela('traff');
       return true;
     }
+    const raddad = this.dekor?.traff(x, y);
+    if (raddad) {
+      spela('fanga');
+      const t = this.inst.dekor?.handelse.raddning?.text;
+      if (t) this.popup(raddad.x, raddad.y - 40, t, 'guld', 'morkgron');
+      return true;
+    }
     const skydd = this.skydd.find(
       (s) => s.kvar > 0 && Math.abs(x - s.data.x) <= s.data.b / 2 && Math.abs(y - s.data.y) <= s.data.h / 2,
     );
@@ -354,7 +361,7 @@ export class Invaders implements Mekanik {
     this.avslutaStyrning();
     spela('misstag');
     this.scene.cameras.main.shake(260, 0.006);
-    this.kontext.avsluta({ poang: this.poang, skadestand: 0, nollstallt: true, misstag: this.misstag, tidKvar: this.tidKvar, matareKvar: this.matareKvar(), forlust: orsak });
+    this.kontext.avsluta({ poang: this.poang, skadestand: 0, nollstallt: true, misstag: this.misstag, tidKvar: this.tidKvar, matareKvar: this.matareKvar(), dekorForlorade: this.dekor?.forlorade(), forlust: orsak });
   }
 
   private vinna(): void {
@@ -369,6 +376,7 @@ export class Invaders implements Mekanik {
         misstag: this.misstag,
         tidKvar: Math.max(0, this.tidKvar),
         matareKvar: this.matareKvar(),
+        dekorForlorade: this.dekor?.forlorade(),
       }),
     );
   }

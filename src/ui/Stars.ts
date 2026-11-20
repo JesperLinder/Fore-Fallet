@@ -1,4 +1,4 @@
-/** Stjärnbetyg med Fylgias fyruddiga stjärna. Stöder halva stjärnor (för halvvägsvinst). */
+/** Stjärnbetyg med Fylgias fyruddiga stjärna. Klarar halva stjärnor (kan finnas i äldre sparningar). */
 import Phaser from 'phaser';
 import { farg, type FargNamn } from '../config/theme';
 import { fyllStjarna, konturStjarna } from './shapes';

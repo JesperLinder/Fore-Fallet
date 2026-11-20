@@ -6,8 +6,8 @@
   "mekanik": "invaders",
   "fylgiaMal": true,
   "tema": "mork",
-  "uppdragstext": "Försäkringsbolaget vill säga upp försäkringen i förtid. Det har det inte rätt till. Skjut ner uppsägningarna.",
-  "fylgiaTips": "Skjut ner uppsägningsbreven – bolaget har inte rätt att säga upp i förtid. Korna? Dem kan ingen rädda.",
+  "uppdragstext": "Håll ut i 45 sekunder. Försäkringsbolaget säger upp försäkringen i förtid – utan rätt. Skjut ner varje uppsägning innan den når marken.",
+  "fylgiaTips": "Varje brev som når marken kostar försäkringen en femtedel. Och korna? Skjut ufot medan det lyfter en ko – då släpper det.",
   "resultat": "halvvagsvinst",
   "stjarnkrav": {
     "tre": {
@@ -17,6 +17,12 @@
       "maxMisstag": 2
     },
     "en": {}
+  },
+  "guldstjarna": {
+    "krav": {
+      "maxDekorForlorade": 0
+    },
+    "text": "Alla kor kvar i hagen."
   },
   "bana": {
     "lager": [
@@ -144,7 +150,10 @@
         "intervall": 7000,
         "langd": 2600,
         "vaxla": "ko-sprattel",
-        "ljud": "muu"
+        "ljud": "muu",
+        "raddning": {
+          "text": "Kon räddad!"
+        }
       },
       "raknare": {
         "namn": "Kor i hagen",
@@ -153,8 +162,7 @@
     },
     "tid": {
       "sekunder": 45,
-      "etikett": "Kvar",
-      "dold": true
+      "etikett": "Håll ut"
     },
     "matare": {
       "namn": "Försäkringen",
@@ -188,7 +196,7 @@
       "Undantag: garanti, särskild utfästelse eller särskild lag.",
       "Här hade bolaget varit oaktsamt när det sa upp försäkringen. Alltså skadestånd."
     ],
-    "fylgiaruta": "Fylgia var ombud i målet. Halvvägsvinster ger en halv stjärna extra – för att du lärde dig att läsa ett domslut på riktigt.",
+    "fylgiaruta": "Fylgia var ombud i målet. Att vinna halva målet räknas också – det är så domslut ser ut på riktigt.",
     "lankTillFallet": "https://lagen.nu/dom/nja/2020s115"
   }
 }

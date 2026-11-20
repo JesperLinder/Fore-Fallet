@@ -85,6 +85,20 @@
         "y": 90,
         "b": 390,
         "h": 680
+      },
+      "vind": {
+        "x": 0.03,
+        "y": 0,
+        "etikett": "Vind",
+        "variation": {
+          "min": 0.01,
+          "max": 0.05,
+          "motsattChans": 0.5
+        },
+        "plats": {
+          "x": 214,
+          "y": 676
+        }
       }
     },
     "projektiler": [
@@ -164,7 +178,19 @@
     "hud": {
       "rubrik": "Rubrik",
       "varde": "{antal} i kö"
-    }
+    },
+    "hinder": [
+      {
+        "etikett": "Skyltens text",
+        "x": 150,
+        "y": 600,
+        "b": 84,
+        "h": 26,
+        "tillX": 290,
+        "fart": 70,
+        "text": "Valfri text första gången något fastnar"
+      }
+    ]
   },
   "forlust": {
     "rubrik": "Rubrik på förlustskärmen",

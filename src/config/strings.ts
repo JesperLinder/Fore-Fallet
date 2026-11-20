@@ -66,6 +66,9 @@ export const text = {
     lasFallet: 'Läs hela fallet',
     spelaIgen: 'Spela igen',
     forsokIgen: 'Försök igen',
+    /** Raden under stjärnorna på nivåer med guldstjärna: tagen respektive inte tagen. */
+    guldTagen: (text: string) => `Guldstjärna! ${text}`,
+    guldKrav: (text: string) => `Guldstjärna: ${text}`,
     nastaMal: (titel: string) => `Nästa mål: ${titel}`,
     tillKartan: 'Till rättsfallskartan',
     /** Visas när nästa mål är låst för att spelaren fått 0 stjärnor. */

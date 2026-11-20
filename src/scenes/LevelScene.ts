@@ -10,7 +10,7 @@ import { text } from '../config/strings';
 import { arUpplast, hamtaNiva } from '../core/levels';
 import type { ForlustOrsak, Niva } from '../core/levelTypes';
 import { framsteg } from '../core/progress';
-import { beraknaStjarnor } from '../core/scoring';
+import { beraknaGuld, beraknaStjarnor } from '../core/scoring';
 import { skapaMekanik } from '../mechanics/registry';
 import type { Mekanik, MekanikResultat } from '../mechanics/Mechanic';
 import { skapaText } from '../ui/text';
@@ -25,6 +25,8 @@ export interface LevelData {
 export interface DomslutData {
   id: string;
   stjarnor: number;
+  /** Sant om guldstjärnan togs den här gången. */
+  guld: boolean;
   poang: number;
   skadestand: number;
 }
@@ -136,8 +138,10 @@ export class LevelScene extends BasScen {
       return;
     }
     const stjarnor = beraknaStjarnor(this.niva, r);
+    const guld = beraknaGuld(this.niva, r);
     framsteg.sparaResultat(this.niva.id, stjarnor);
-    const data: DomslutData = { id: this.niva.id, stjarnor, poang: r.poang, skadestand: r.skadestand };
+    if (guld) framsteg.sparaGuld(this.niva.id);
+    const data: DomslutData = { id: this.niva.id, stjarnor, guld, poang: r.poang, skadestand: r.skadestand };
     this.time.delayedCall(500, () => this.bytTill('Verdict', data));
   }
 

@@ -23,6 +23,8 @@ export const allaNivaer: (NivaPlatshallare | Niva)[] = Object.values(moduler).so
   (a, b) => a.nummer - b.nummer,
 );
 
+framsteg.uppgraderaHalvvags(allaNivaer.filter((n) => 'resultat' in n && n.resultat === 'halvvagsvinst').map((n) => n.id));
+
 /** Sant om filen är en fullständig nivå (inte bara en platshållare) och mekaniken finns byggd. */
 export function arSpelbar(niva: NivaPlatshallare | Niva): niva is Niva {
   return 'domslut' in niva && 'objekt' in niva && harMekanik(niva.mekanik);

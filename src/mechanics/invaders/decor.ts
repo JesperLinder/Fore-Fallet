@@ -1,6 +1,7 @@
 /**
  * Dekorhändelser i invaders: figurer i bakgrunden (t.ex. kor i hagen) som påverkas av återkommande
- * händelser spelaren inte kan påverka (t.ex. lyfts upp av ett ufo). Rent visuellt, ingen kollision.
+ * händelser (t.ex. lyfts upp av ett ufo). Utan "raddning" är det rent visuellt; med "raddning" kan
+ * spelaren skjuta källan under händelsen så att figuren faller tillbaka (traff).
  * Allt styrs av "dekor" i nivåfilen; en räknare kan visa hur många som är kvar.
  */
 import Phaser from 'phaser';
@@ -10,6 +11,9 @@ import { spela } from '../../core/sound';
 import { ritaFigur } from '../art';
 
 const VAXLA_MS = 130;
+/** Källans träffyta vid räddning (halva bredden/höjden kring källans mitt, t.ex. ett ufo). */
+const KALLA_HALV_B = 38;
+const KALLA_HALV_H = 22;
 
 interface Figur {
   g: Phaser.GameObjects.Graphics;
@@ -23,6 +27,8 @@ interface PagaendeLyft {
   startY: number;
   vaxlat: boolean;
   vaxlaTid: number;
+  /** Källan figuren lyfts mot just nu (uppdateras varje steg). */
+  kalla?: Phaser.Math.Vector2;
 }
 
 export class Dekorhandelser {
@@ -33,7 +39,7 @@ export class Dekorhandelser {
 
   /** kallor: positioner som händelsen utgår från, t.ex. ufonas. visaRaknare anropas när antalet ändras. */
   constructor(
-    scene: Phaser.Scene,
+    private scene: Phaser.Scene,
     private inst: DekorInstallningar,
     private kallor: () => Phaser.Math.Vector2[],
     private visaRaknare: (kvar: number, totalt: number) => void,
@@ -57,6 +63,30 @@ export class Dekorhandelser {
     if (this.lyft) this.flytta(this.lyft, dt);
   }
 
+  /** Antal figurer som försvunnit (eller är på väg bort). */
+  forlorade(): number {
+    return this.figurer.length - this.antalKvar();
+  }
+
+  /**
+   * Räddning: träffar ett skott i (x, y) källan medan en händelse pågår avbryts den och figuren faller
+   * tillbaka. Returnerar figurens position om skottet räddade den, annars undefined.
+   */
+  traff(x: number, y: number): Phaser.Math.Vector2 | undefined {
+    const l = this.lyft;
+    if (!this.inst.handelse.raddning || !l?.kalla) return undefined;
+    if (Math.abs(x - l.kalla.x) > KALLA_HALV_B || Math.abs(y - l.kalla.y) > KALLA_HALV_H) return undefined;
+    this.lyft = null;
+    this.kagla.clear();
+    const f = l.figur;
+    f.kvar = true;
+    f.g.clear();
+    ritaFigur(f.g, f.utseende, 0, 0);
+    this.scene.tweens.add({ targets: f.g, y: l.startY, scale: 1, alpha: 1, duration: 450, ease: 'Bounce.easeOut' });
+    this.visaRaknare(this.antalKvar(), this.figurer.length);
+    return new Phaser.Math.Vector2(f.g.x, f.g.y);
+  }
+
   private antalKvar(): number {
     return this.figurer.filter((f) => f.kvar).length;
   }
@@ -77,6 +107,7 @@ export class Dekorhandelser {
     const t = Math.min(1, l.tid / h.langd);
     const g = l.figur.g;
     const kalla = this.narmaste(g.x) ?? new Phaser.Math.Vector2(g.x, l.startY - 200);
+    l.kalla = kalla;
     // Glider mot källan i sidled och stiger långsamt (snabbare mot slutet).
     g.x = Phaser.Math.Linear(g.x, kalla.x, Math.min(1, dt / 400));
     g.y = Phaser.Math.Linear(l.startY, kalla.y + 14, t * t);

@@ -5,7 +5,7 @@
   "referens": "NJA 1987 s. 3",
   "mekanik": "hybrid",
   "fylgiaMal": false,
-  "uppdragstext": "Du har köpt en andel i travhästen. Grattis – men tränarens borgenärer är på väg. Få ut hästen ur säljarens besittning innan de når stallet.",
+  "uppdragstext": "Du har köpt en andel i travhästen. Grattis – men tränarens borgenärer är på väg. Få ut hästen ur säljarens besittning innan de når stallet. Se upp för vinden och kvarstadsskylten.",
   "fylgiaTips": "Ett avtal binder er två. Men mot säljarens borgenärer skyddas du först när hästen lämnat hans besittning.",
   "resultat": "vinst",
   "stjarnkrav": {
@@ -85,6 +85,20 @@
         "y": 90,
         "b": 390,
         "h": 680
+      },
+      "vind": {
+        "x": 0.03,
+        "y": 0,
+        "etikett": "Vind",
+        "variation": {
+          "min": 0.01,
+          "max": 0.05,
+          "motsattChans": 0.5
+        },
+        "plats": {
+          "x": 214,
+          "y": 676
+        }
       }
     },
     "projektiler": [
@@ -112,10 +126,10 @@
     ],
     "startval": "hast",
     "mal": {
-      "x": 255,
-      "y": 452,
-      "b": 90,
-      "h": 70
+      "x": 265,
+      "y": 459,
+      "b": 70,
+      "h": 56
     },
     "studsyta": {
       "x": 225,
@@ -142,11 +156,19 @@
           {
             "etikett": "Hyresvärden"
           }
+        ],
+        [
+          {
+            "etikett": "Skatteverket"
+          },
+          {
+            "etikett": "Hovslagaren"
+          }
         ]
       ],
       "b": 120,
-      "h": 56,
-      "mellanrum": 8,
+      "h": 52,
+      "mellanrum": 6,
       "forskjutning": [
         0,
         60
@@ -155,7 +177,7 @@
       "steg": {
         "x": 5,
         "ned": 15,
-        "intervall": 275
+        "intervall": 230
       },
       "kant": {
         "vanster": 16,
@@ -166,7 +188,19 @@
     "hud": {
       "rubrik": "Borgenärer",
       "varde": "{antal} i kö"
-    }
+    },
+    "hinder": [
+      {
+        "etikett": "Kvarstad",
+        "x": 150,
+        "y": 600,
+        "b": 84,
+        "h": 26,
+        "tillX": 290,
+        "fart": 70,
+        "text": "Kvarstad! Hästen hölls kvar."
+      }
+    ]
   },
   "forlust": {
     "rubrik": "Utmätt.",

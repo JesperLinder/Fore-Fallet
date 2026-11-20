@@ -1,12 +1,19 @@
-/** Räknar om resultatet till stjärnor: på poäng (stjarngranser) eller på misstag och tid (stjarnkrav). */
+/**
+ * Räknar om resultatet till stjärnor: på poäng (stjarngranser) eller på misstag och tid (stjarnkrav).
+ * Alla nivåer – även halvvägsvinster – ger 0–3 stjärnor. Guldstjärnan är en valfri bonus utanpå.
+ */
 import type { Niva, StjarnKrav } from './levelTypes';
 import type { MekanikResultat } from '../mechanics/Mechanic';
 
 export function beraknaStjarnor(niva: Niva, r: MekanikResultat): number {
   if (r.nollstallt || r.forlust) return 0;
-  const hela = niva.stjarnkrav ? helaKrav(niva.stjarnkrav, r) : helaPoang(niva, r.poang);
-  // Halvvägsvinst: man kan som mest få hälften, dvs. 1,5 stjärnor.
-  return niva.resultat === 'halvvagsvinst' ? hela / 2 : hela;
+  return niva.stjarnkrav ? helaKrav(niva.stjarnkrav, r) : helaPoang(niva, r.poang);
+}
+
+/** Sant om nivån har en guldstjärna och spelaren uppfyllt dess krav (nivån måste vara vunnen). */
+export function beraknaGuld(niva: Niva, r: MekanikResultat): boolean {
+  if (!niva.guldstjarna || r.nollstallt || r.forlust) return false;
+  return uppfyllt(niva.guldstjarna.krav, r);
 }
 
 function helaPoang(niva: Niva, poang: number): number {
@@ -16,16 +23,16 @@ function helaPoang(niva: Niva, poang: number): number {
 }
 
 function helaKrav(krav: NonNullable<Niva['stjarnkrav']>, r: MekanikResultat): number {
-  const uppfyllt = (k: StjarnKrav) =>
+  return uppfyllt(krav.tre, r) ? 3 : uppfyllt(krav.tva, r) ? 2 : uppfyllt(krav.en, r) ? 1 : 0;
+}
+
+function uppfyllt(k: StjarnKrav, r: MekanikResultat): boolean {
+  return (
     (k.maxMisstag === undefined || (r.misstag ?? 0) <= k.maxMisstag) &&
     (k.tidKvarOver === undefined || (r.tidKvar ?? 0) > k.tidKvarOver) &&
     (k.maxForsok === undefined || (r.forsok ?? 0) <= k.maxForsok) &&
     (k.maxFallor === undefined || (r.fallor ?? 0) <= k.maxFallor) &&
-    (k.minMatare === undefined || (r.matareKvar ?? 0) >= k.minMatare);
-  return uppfyllt(krav.tre) ? 3 : uppfyllt(krav.tva) ? 2 : uppfyllt(krav.en) ? 1 : 0;
-}
-
-/** Högsta möjliga antal stjärnor för nivån. */
-export function maxStjarnor(niva: Niva): number {
-  return niva.resultat === 'halvvagsvinst' ? 1.5 : 3;
+    (k.minMatare === undefined || (r.matareKvar ?? 0) >= k.minMatare) &&
+    (k.maxDekorForlorade === undefined || (r.dekorForlorade ?? 0) <= k.maxDekorForlorade)
+  );
 }

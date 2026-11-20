@@ -29,15 +29,18 @@ export interface InvadersHud {
 }
 
 export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar): InvadersHud {
-  const visaTid = inst.tid && !inst.tid.dold ? byggTid(scene, inst.tid) : () => {};
+  const synligTid = inst.tid && !inst.tid.dold ? inst.tid : undefined;
+  // Med korten (visning "kort") står klockan i ett eget kort, annars uppe till höger.
+  let visaTid: InvadersHud['visaTid'] = synligTid && inst.matare.visning !== 'kort' ? byggTid(scene, synligTid) : () => {};
   if (inst.info?.length) byggInfo(scene, inst.info);
   let tak = inst.infotext ? byggInfotext(scene, inst.infotext) : INFO_Y + INFO_H;
   let visaRaknare: InvadersHud['visaRaknare'] = () => {};
   let matare;
   if (inst.matare.visning === 'kort') {
-    const kort = byggKort(scene, inst.matare, inst.dekor?.raknare);
+    const kort = byggKort(scene, inst.matare, inst.dekor?.raknare, synligTid);
     matare = kort;
     visaRaknare = kort.visaRaknare;
+    visaTid = kort.visaTid;
     tak = kort.tak;
   } else {
     matare = inst.matare.visning === 'procent' ? byggProcent(scene, inst.matare) : byggMatare(scene, inst.matare);
@@ -46,7 +49,8 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar): Invad
     tak,
     visaRaknare,
     visaTid,
-    ...matare,
+    visaMatare: matare.visaMatare,
+    markeraMatare: matare.markeraMatare,
     fangstPlats: (i) => new Phaser.Math.Vector2(BREDD - avstand.l - 14 - i * 30, MATARRAD_Y - 22),
   };
 }
@@ -55,13 +59,14 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar): Invad
 function byggTid(scene: Phaser.Scene, tid: NonNullable<InvadersInstallningar['tid']>) {
   skapaText(scene, TID_HOGER, 40, tid.etikett, 'overrubrik', 'ljusbeige', { origo: [1, 0], storlek: 10 }).setDepth(30);
   const varde = skapaText(scene, TID_HOGER, 52, '', 'titel', 'guld', { origo: [1, 0], storlek: 28 }).setDepth(30);
-  const kortTid = tid.sekunder <= 60;
-  return (sekunder: number) => {
-    const s = Math.max(0, Math.ceil(sekunder));
-    const text = kortTid ? `00:${String(s).padStart(2, '0')}` : `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
-    varde.setText(text);
-    varde.setColor(css(s <= 10 ? 'lila' : 'guld'));
-  };
+  return (sekunder: number) => visaKlocka(varde, sekunder);
+}
+
+/** 00:SS (eller MM:SS över en minut); lila de sista tio sekunderna. */
+function visaKlocka(varde: Phaser.GameObjects.Text, sekunder: number): void {
+  const s = Math.max(0, Math.ceil(sekunder));
+  varde.setText(`${pad(Math.floor(s / 60))}:${pad(s % 60)}`);
+  varde.setColor(css(s <= 10 ? 'lila' : 'guld'));
 }
 
 function pad(n: number): string {
@@ -104,12 +109,16 @@ function byggKort(
   scene: Phaser.Scene,
   m: InvadersInstallningar['matare'],
   raknare?: { namn: string; text: string },
+  tid?: NonNullable<InvadersInstallningar['tid']>,
 ) {
   const x0 = avstand.l;
   const mellan = 10;
   const h = 56;
   const helB = BREDD - x0 * 2;
-  const b = raknare ? (helB - mellan) / 2 : helB;
+  // Bredder: klockkortet är smalast, räknaren mellanstor, mätaren tar resten.
+  const tidB = tid ? 92 : 0;
+  const rakB = raknare ? (tid ? 106 : (helB - mellan) / 2) : 0;
+  const b = helB - (tidB ? tidB + mellan : 0) - (rakB ? rakB + mellan : 0);
   const g = scene.add.graphics().setDepth(5);
   g.fillStyle(farg.gron, 1).fillRoundedRect(x0, INFO_Y, b, h, radie.m);
   skapaText(scene, x0 + 14, INFO_Y + 12, m.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
@@ -125,15 +134,25 @@ function byggKort(
   let visaRaknare = (_kvar: number, _totalt: number) => {};
   if (raknare) {
     const rx = x0 + b + mellan;
-    g.fillStyle(farg.gron, 1).fillRoundedRect(rx, INFO_Y, b, h, radie.m);
+    g.fillStyle(farg.gron, 1).fillRoundedRect(rx, INFO_Y, rakB, h, radie.m);
     skapaText(scene, rx + 14, INFO_Y + 12, raknare.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
     const varde = skapaText(scene, rx + 14, INFO_Y + 28, '', 'rubrik', 'ljusbeige', { storlek: 18 }).setDepth(6);
     visaRaknare = (kvar, totalt) => varde.setText(raknare.text.replace('{kvar}', String(kvar)).replace('{totalt}', String(totalt)));
   }
 
+  let visaTid = (_s: number) => {};
+  if (tid) {
+    const tx = x0 + helB - tidB;
+    g.fillStyle(farg.gron, 1).fillRoundedRect(tx, INFO_Y, tidB, h, radie.m);
+    skapaText(scene, tx + 14, INFO_Y + 12, tid.etikett, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
+    const varde = skapaText(scene, tx + 14, INFO_Y + 26, '', 'rubrik', 'guld', { storlek: 22 }).setDepth(6);
+    visaTid = (sekunder) => visaKlocka(varde, sekunder);
+  }
+
   return {
     tak: INFO_Y + h,
     visaRaknare,
+    visaTid,
     visaMatare: (steg: number) => {
       andel = Math.max(0, (m.steg - steg) / m.steg);
       ritaStapel(farg.guld);

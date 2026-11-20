@@ -16,8 +16,9 @@ Alla koordinater är i logiska punkter på en skärm som är 390 × 844 (x åt h
 | `etikett` | Valfri text på kartan i stället för "Invaders" (t.ex. `"Boss"`). |
 | `tema` | `"mork"` ger ljusa rubriker på mörk bakgrund. `"ljus"` är standard. |
 | `uppdragstext`, `fylgiaTips` | Visas i rutan "Din fylgia viskar" innan spelaren trycker Starta. |
-| `resultat` | `"vinst"` eller `"halvvagsvinst"` (då halveras stjärnorna, max 1,5). |
-| `stjarnkrav` | Krav för `en`, `tva` och `tre` stjärnor. Nivån måste vara vunnen. `maxMisstag`: högst så många misstag. `tidKvarOver`: mer än så många sekunder kvar. `minMatare`: minst så många procent kvar på mätaren. Ett tomt krav `{}` = bara klarad. |
+| `resultat` | `"vinst"` eller `"halvvagsvinst"` (domslutet visar då rutorna Vunnet / Inte vunnet). Båda ger 0–3 stjärnor. |
+| `stjarnkrav` | Krav för `en`, `tva` och `tre` stjärnor. Nivån måste vara vunnen. `maxMisstag`: högst så många misstag. `tidKvarOver`: mer än så många sekunder kvar. `minMatare`: minst så många procent kvar på mätaren. `maxDekorForlorade`: högst så många dekorfigurer förlorade. Ett tomt krav `{}` = bara klarad. |
+| `guldstjarna` | Valfritt. `{ "krav": {…}, "text": "…" }` ger en extra guldstjärna för en särskild bedrift (samma kravfält som `stjarnkrav`). Den visas på domslutet (med `text`) och på kartan, men räknas inte i stjärnräknaren och påverkar inte upplåsningen. |
 | `bana.lager` | Bakgrunden. För en enfärgad bakgrund räcker `[{ "farg": "morkgron", "topp": 0 }]`. |
 | `objekt` | Används inte av invaders. Lämna `[]`. |
 | `forlust.rubrik` | Rubrik på förlustskärmen (t.ex. "Tryckt. Förtal."). |
@@ -91,7 +92,7 @@ Block som stoppar spelarens skott och slits ner.
 ### Övrigt
 | Fält | Vad det gör |
 |---|---|
-| `tid` | Valfritt. `{ "sekunder", "etikett", "dold" }`. Med `dold: true` går klockan men visas inte. Upp till 60 sekunder visas som 00:SS, längre tider som MM:SS. |
+| `tid` | Valfritt. `{ "sekunder", "etikett", "dold" }`. Med `dold: true` går klockan men visas inte. Klockan visas som MM:SS, t.ex. 00:45. Med `matare.visning: "kort"` står den i ett eget kort till höger. |
 | `matare` | `namn` (t.ex. "Förtalsrisk"), `steg` (antal steg innan mätaren är full), `status` (valfri text till höger), `visning`: `"steg"` (standard, rutor längst ner som fylls) eller `"procent"` (procent kvar uppe till höger, t.ex. "God tro 100 %", tar klockans plats) eller `"kort"` (kort under rubriken med en guldstapel som börjar full och krymper, t.ex. "Försäkringen", med `dekor.raknare` som ett kort bredvid). |
 | `botten` | Valfritt. Vad som händer när en bricka når spelaren ("släpps igenom"), per typ: `dold` (aldrig avslöjad), `fel` och `ratt`. Varje regel kan ha `matare` (steg på mätaren, räknas som misstag), `poang` och `text` (pratbubbla). Med `botten` försvinner brickan i stället för att ge förlust, så använd inte `"botten"` i `forlust` samtidigt. |
 | `misstagText` | Valfritt. Pratbubbla vid misstag: `rattTraffad` och `fangstMissad`. |
@@ -116,7 +117,7 @@ Föremål som faller och ska skjutas ner innan de når spelaren. Det är motsats
 | `botten` | Vad som händer när ett hot når spelaren: `matare` (steg, räknas som misstag), `poang` och `text`. |
 
 ### `dekor` (valfritt): dekorhändelser
-Bakgrundsanimationer som spelaren inte kan påverka. De är rent visuella och har ingen kollision.
+Bakgrundsanimationer. Utan `raddning` kan spelaren inte påverka dem och de har ingen kollision.
 | Fält | Vad det gör |
 |---|---|
 | `figurer` | Figurerna som händelserna verkar på: `{ "utseende", "x", "y" }`, t.ex. åtta kor. |
@@ -124,4 +125,5 @@ Bakgrundsanimationer som spelaren inte kan påverka. De är rent visuella och ha
 | `handelse.intervall`, `start`, `langd` | Tid mellan händelserna, tid till den första och hur länge en händelse pågår (ms). När figurerna är slut slutar händelserna, men nivån fortsätter. |
 | `handelse.vaxla` | Valfri figur att växla med under händelsen, t.ex. `"ko-sprattel"` (sprattlande ben). |
 | `handelse.ljud` | Valfritt ljud, t.ex. `"muu"`. |
+| `handelse.raddning` | Valfritt. `{ "text": "Kon räddad!" }`: ett skott som träffar källan (ufot) under händelsen avbryter den, och figuren faller tillbaka. Förlorade figurer räknas i `maxDekorForlorade`. |
 | `raknare` | Valfri räknare i ett kort bredvid mätaren (kräver `matare.visning: "kort"`). `text` med `{kvar}` och `{totalt}`, t.ex. `"{kvar} av {totalt}"`. |

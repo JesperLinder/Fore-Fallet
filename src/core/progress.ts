@@ -1,5 +1,5 @@
 /**
- * Spelarens framsteg (bästa antal stjärnor per nivå) och inställningar (ljud av/på).
+ * Spelarens framsteg (bästa antal stjärnor per nivå, tagna guldstjärnor) och inställningar (ljud av/på).
  * Det här är den ENDA modulen som rör lagringen. Vill vi byta localStorage mot t.ex.
  * Capacitor Preferences eller en server räcker det att ändra lasData/skrivData här.
  */
@@ -7,8 +7,12 @@ const NYCKEL = 'forefallet.framsteg.v1';
 
 interface Framsteg {
   stjarnor: Record<string, number>;
+  /** Nivåer där guldstjärnan tagits. Räknas inte i totalen. */
+  guld?: Record<string, true>;
   /** Saknas = ljudet på. */
   ljud?: boolean;
+  /** Formatversion. 2: halvvägsvinster sparas som hela stjärnor (tidigare halverade). */
+  version?: number;
 }
 
 function lasData(): Framsteg {
@@ -47,13 +51,32 @@ export const framsteg = {
     skrivData(data);
   },
 
+  harGuld(nivaId: string): boolean {
+    return lasData().guld?.[nivaId] === true;
+  },
+
+  sparaGuld(nivaId: string): void {
+    const data = lasData();
+    data.guld = { ...data.guld, [nivaId]: true };
+    skrivData(data);
+  },
+
+  /** Engångsflytt: halvvägsnivåer sparades förr med halverade stjärnor (max 1,5). Dubblas till 0–3. */
+  uppgraderaHalvvags(nivaIds: string[]): void {
+    const data = lasData();
+    if ((data.version ?? 1) >= 2) return;
+    for (const id of nivaIds) if (data.stjarnor[id] !== undefined) data.stjarnor[id] = Math.min(3, data.stjarnor[id] * 2);
+    data.version = 2;
+    skrivData(data);
+  },
+
   totalaStjarnor(): number {
     return Object.values(lasData().stjarnor).reduce((summa, s) => summa + s, 0);
   },
 
   nollstall(): void {
     const { ljud } = lasData();
-    skrivData({ stjarnor: {}, ljud });
+    skrivData({ stjarnor: {}, ljud, version: 2 });
   },
 
   ljudPa(): boolean {

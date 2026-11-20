@@ -106,10 +106,13 @@ export class MapScene extends BasScen {
     kort.add([titel, referens]);
     // Stjärnorna/"Spela" står mitt i höjdled, eller på titelraden om märket fått flytta ner.
     let hogerY = KORT_H / 2;
+    // Tagen guldstjärna: en liten medaljong längst till höger; stjärnorna flyttar då in en bit.
+    const guld = lage === 'klar' && framsteg.harGuld(niva.id);
+    const stjarnX = guld ? KORT_B - 56 : KORT_B - 40;
     if (niva.fylgiaMal) {
       // Märket står efter titeln, eller efter referensraden om det annars krockar med stjärnorna/"Spela".
       const m = marke(this, titel.x + titel.width + 8, 22, text.karta.fylgiaMal);
-      const hogerGrans = KORT_B - (lage === 'last' ? 16 : 76);
+      const hogerGrans = KORT_B - (lage === 'last' ? 16 : guld ? 92 : 76);
       if (m.x + m.width > hogerGrans) {
         m.setPosition(referens.x + referens.width + 8, 46);
         hogerY = 22;
@@ -119,12 +122,16 @@ export class MapScene extends BasScen {
 
     // Höger sida: stjärnor eller "Spela".
     if (lage === 'klar') {
-      kort.add(stjarnRad(this, KORT_B - 40, hogerY, framsteg.stjarnor(niva.id) ?? 0, {
+      kort.add(stjarnRad(this, stjarnX, hogerY, framsteg.stjarnor(niva.id) ?? 0, {
         storlek: 12,
         mellanrum: 2,
         fyllFarg: 'morkgron',
         konturFarg: 'morkgron',
       }));
+      if (guld) {
+        g.fillStyle(farg.morkgron, 1).fillCircle(KORT_B - 22, hogerY, 10);
+        fyllStjarna(g, KORT_B - 22, hogerY, 12, farg.guld);
+      }
     }
     if (lage === 'nasta') {
       kort.add(skapaText(this, KORT_B - 18, hogerY, text.karta.spela, 'overrubrik', 'guld', { origo: [1, 0.5] }));
@@ -164,7 +171,7 @@ function kortLage(niva: NivaPlatshallare | Niva): KortLage {
   return arUpplast(niva) ? 'nasta' : 'last';
 }
 
-/** 9 -> "9", 1.5 -> "1,5" */
+/** 9 -> "9", 1.5 -> "1,5" (halva stjärnor kan finnas i gamla sparningar) */
 function formateraStjarnor(antal: number): string {
   return antal.toLocaleString('sv-SE', { maximumFractionDigits: 1 });
 }

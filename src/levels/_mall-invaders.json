@@ -19,6 +19,12 @@
     },
     "en": {}
   },
+  "guldstjarna": {
+    "krav": {
+      "maxDekorForlorade": 0
+    },
+    "text": "Valfri bonus, t.ex. Alla kor kvar i hagen."
+  },
   "bana": {
     "lager": [
       {
@@ -214,7 +220,10 @@
         "intervall": 7000,
         "langd": 2600,
         "vaxla": "ko-sprattel",
-        "ljud": "muu"
+        "ljud": "muu",
+        "raddning": {
+          "text": "Valfri text när en figur räddas"
+        }
       },
       "raknare": {
         "namn": "Räknarens namn",

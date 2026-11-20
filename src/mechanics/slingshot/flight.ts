@@ -14,6 +14,14 @@ export interface Hastighet {
   vy: number;
 }
 
+/** Vinden inför nästa kast: fast, eller slumpad inom vind.variation (samma regel för slangbella och hybrid). */
+export function slumpaVind(v: NonNullable<KastInstallningar['vind']>): { x: number; y: number } {
+  if (!v.variation) return { x: v.x, y: v.y };
+  const styrka = v.variation.min + Math.random() * (v.variation.max - v.variation.min);
+  const motsatt = Math.random() < (v.variation.motsattChans ?? 0);
+  return { x: Math.sign(v.x || 1) * styrka * (motsatt ? -1 : 1), y: v.y };
+}
+
 /** Hur många steg projektilen är i luften, beroende på skottets styrka (0–1). */
 export function antalFlygsteg(inst: KastInstallningar, styrka: number): number {
   return Math.round(inst.flygtid.min + (inst.flygtid.max - inst.flygtid.min) * styrka);

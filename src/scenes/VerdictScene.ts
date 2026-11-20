@@ -1,7 +1,9 @@
 /**
  * Domslutet efter en nivå: stjärnor, rubrik, utfall, domskälen och knappar vidare.
- * Stöder både "vinst" och "halvvagsvinst" (då med rutorna Vunnet / Inte vunnet och max 1,5 stjärnor).
+ * Stöder både "vinst" och "halvvagsvinst" (då med rutorna Vunnet / Inte vunnet). Båda ger 0–3 stjärnor;
+ * nivåer med "guldstjarna" visar en fjärde, fristående guldstjärna i en mörkgrön medaljong.
  */
+import type Phaser from 'phaser';
 import { BasScen } from './BaseScene';
 import { avstand, farg, radie, type FargNamn } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
@@ -10,7 +12,7 @@ import { arGodkand, arSpelbar, arUpplast, hamtaNiva, nastaNiva } from '../core/l
 import { spela } from '../core/sound';
 import type { Niva } from '../core/levelTypes';
 import { skapaText } from '../ui/text';
-import { fyllStjarna, streckadRam } from '../ui/shapes';
+import { fyllStjarna, konturStjarna, streckadRam } from '../ui/shapes';
 import { arPlatshallare } from '../core/placeholders';
 import { stjarnRad } from '../ui/Stars';
 import { marke } from '../ui/Badge';
@@ -39,7 +41,7 @@ export class VerdictScene extends BasScen {
     const halvvags = niva.resultat === 'halvvagsvinst';
     if (data.stjarnor > 0) this.time.delayedCall(250, () => spela('vinst'));
 
-    let y = this.ritaHuvud(niva, data.stjarnor, halvvags);
+    let y = this.ritaHuvud(niva, data.stjarnor, data.guld, halvvags);
     if (halvvags) y = this.ritaVunnetRutor(niva, y + avstand.xl);
     y = this.ritaDomskal(niva, y + avstand.l, halvvags);
     if (niva.fylgiaMal && niva.domslut.fylgiaruta) y = this.ritaFylgiaruta(niva.domslut.fylgiaruta, y + avstand.l);
@@ -47,7 +49,7 @@ export class VerdictScene extends BasScen {
     this.scroll = new DragScroll(this, y + avstand.xxl);
   }
 
-  private ritaHuvud(niva: Niva, stjarnor: number, halvvags: boolean): number {
+  private ritaHuvud(niva: Niva, stjarnor: number, guld: boolean, halvvags: boolean): number {
     const over = skapaText(this, MITT_X, 38, text.domslut.overrubrik(niva.nummer, niva.referens), 'overrubrik', 'morkockra', {
       origo: [0.5, 0.5],
     });
@@ -59,7 +61,10 @@ export class VerdictScene extends BasScen {
     const standard = halvvags ? text.domslut.halvvagsRubrik : text.domslut.vinstRubrik;
     skapaText(this, MITT_X, 86, niva.domslut.rubrik ?? standard, 'jatte', 'morkgron', { origo: [0.5, 0.5], storlek: 54 });
 
-    const rad = stjarnRad(this, MITT_X, 146, stjarnor, { storlek: 34, mellanrum: 12, fyllFarg: 'guld', konturFarg: 'guld' });
+    // Med guldstjärna flyttas raden åt vänster så att raden + medaljongen blir centrerad.
+    const radX = niva.guldstjarna ? MITT_X - 31 : MITT_X;
+    const rad = stjarnRad(this, radX, 146, stjarnor, { storlek: 34, mellanrum: 12, fyllFarg: 'guld', konturFarg: 'guld' });
+    if (niva.guldstjarna) rad.push(this.guldMedaljong(MITT_X + 70, 146, guld));
     rad.forEach((s, i) => {
       s.setScale(0);
       this.tweens.add({ targets: s, scale: 1, delay: 250 + i * 160, duration: 260, ease: 'Back.easeOut' });
@@ -67,6 +72,15 @@ export class VerdictScene extends BasScen {
 
     const utfall = niva.domslut.utfall?.[String(Math.floor(stjarnor)) as '0' | '1' | '2' | '3'];
     let y = 178;
+    if (niva.guldstjarna) {
+      const g = niva.guldstjarna.text;
+      const t = skapaText(this, MITT_X, y, guld ? text.domslut.guldTagen(g) : text.domslut.guldKrav(g), 'liten', ph(g, 'morkockra'), {
+        origo: [0.5, 0],
+        bredd: INNER_B - 20,
+        justering: 'center',
+      });
+      y += t.height + avstand.s;
+    }
     for (const rad of [niva.domslut.underrubrik, utfall]) {
       if (!rad) continue;
       const t = skapaText(this, MITT_X, y, rad, 'ingress', ph(rad, 'morkgron'), { origo: [0.5, 0], bredd: INNER_B - 20, justering: 'center' });
@@ -79,6 +93,20 @@ export class VerdictScene extends BasScen {
       justering: 'center',
     });
     return y + sammanfattning.height;
+  }
+
+  /** Guldstjärnan: guld i mörkgrön cirkel när den är tagen, annars en svag kontur. */
+  private guldMedaljong(x: number, y: number, tagen: boolean): Phaser.GameObjects.Container {
+    const g = this.add.graphics();
+    if (tagen) {
+      g.fillStyle(farg.morkgron, 1).fillCircle(0, 0, 24);
+      fyllStjarna(g, 0, 0, 28, farg.guld);
+    } else {
+      g.lineStyle(1.5, farg.morkgron, 0.35).strokeCircle(0, 0, 24);
+      konturStjarna(g, 0, 0, 28, farg.morkgron, 1.5);
+      g.setAlpha(0.5);
+    }
+    return this.add.container(x, y, [g]);
   }
 
   /** "Vunnet" (mörkgrön) och "Inte vunnet" (streckad) sida vid sida. "Inte vunnet" startar om nivån. */
