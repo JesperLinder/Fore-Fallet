@@ -6,7 +6,7 @@
 import type Phaser from 'phaser';
 import { BasScen } from './BaseScene';
 import { avstand, farg, radie, type FargNamn } from '../config/theme';
-import { BREDD, MITT_X } from '../config/display';
+import { BREDD, HOJD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
 import { arGodkand, arSpelbar, arUpplast, hamtaNiva, nastaNiva } from '../core/levels';
 import { spela } from '../core/sound';
@@ -18,7 +18,7 @@ import { stjarnRad } from '../ui/Stars';
 import { marke } from '../ui/Badge';
 import { Knapp } from '../ui/Button';
 import { DragScroll } from '../ui/DragScroll';
-import { lankKnapp } from '../ui/LinkButton';
+import { lankKnapp, lankYta } from '../ui/LinkButton';
 import type { DomslutData } from './LevelScene';
 
 const X0 = avstand.sida;
@@ -46,6 +46,7 @@ export class VerdictScene extends BasScen {
     y = this.ritaDomskal(niva, y + avstand.l, halvvags);
     if (niva.fylgiaMal && niva.domslut.fylgiaruta) y = this.ritaFylgiaruta(niva.domslut.fylgiaruta, y + avstand.l);
     y = this.ritaKnappar(niva, y + avstand.xl);
+    y = this.ritaKarriar(y + avstand.xl);
     this.scroll = new DragScroll(this, y + avstand.xxl);
   }
 
@@ -169,6 +170,30 @@ export class VerdictScene extends BasScen {
     });
     const h = ty - y + avstand.s;
     g.fillStyle(halvvags ? farg.beige : farg.morkgron, 1).fillRoundedRect(X0, y, INNER_B, h, radie.l);
+    return y + h;
+  }
+
+  /**
+   * Karriärrutan sist: "Gillar du tvister?" med en lila pilknapp. Hela rutan är en länk till karriärsidan.
+   * Får innehållet plats står rutan längst ner på skärmen, som i mockupen; annars direkt efter knapparna.
+   */
+  private ritaKarriar(minY: number): number {
+    const k = text.domslut.karriar;
+    const pilX = INNER_B - 38;
+    const rubrik = skapaText(this, 18, 16, k.rubrik, 'rubrik', 'morkgron', { storlek: 19 });
+    const brod = skapaText(this, 18, rubrik.y + rubrik.height + 4, k.text, 'brod', 'morkgron', { storlek: 13, bredd: pilX - 24 - 18 });
+    const h = brod.y + brod.height + 16;
+    const g = this.add.graphics();
+    g.fillStyle(farg.beige, 1).fillRoundedRect(0, 0, INNER_B, h, radie.l);
+    g.fillStyle(farg.lila, 1).fillCircle(pilX, h / 2, 23);
+    // Pil åt höger.
+    g.lineStyle(2, farg.morkgron, 1);
+    g.lineBetween(pilX - 7, h / 2, pilX + 7, h / 2);
+    g.lineBetween(pilX + 2, h / 2 - 5, pilX + 7, h / 2);
+    g.lineBetween(pilX + 2, h / 2 + 5, pilX + 7, h / 2);
+    const y = Math.max(minY, HOJD - avstand.l - h);
+    this.add.container(X0, y, [g, rubrik, brod]);
+    lankYta(this, X0 + INNER_B / 2, y + h / 2, INNER_B, h, `${k.rubrik} ${k.text}`, k.url);
     return y + h;
   }
 

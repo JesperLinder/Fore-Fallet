@@ -73,6 +73,12 @@ export const text = {
     tillKartan: 'Till rättsfallskartan',
     /** Visas när nästa mål är låst för att spelaren fått 0 stjärnor. */
     kravForNasta: 'Minst en stjärna låser upp nästa mål',
+    /** Rutan längst ner på domslutet, med länk till Fylgias karriärsida. */
+    karriar: {
+      rubrik: 'Gillar du tvister?',
+      text: 'Fylgia söker juniorassistenter och biträdande jurister',
+      url: 'https://www.fylgia.se/sv/karriar',
+    },
   },
 
   /** Formaterar kronor med svenskt tusentalsavstånd: 25000 -> "25 000 kr". */
