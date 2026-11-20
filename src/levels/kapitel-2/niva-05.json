@@ -1,5 +1,8 @@
 {
-  "id": "kapitel-2-niva-05",
-  "titel": "Kommer snart",
-  "mekanik": "slingshot"
+  "id": "trahuset",
+  "titel": "Trähuset",
+  "referens": "NJA 1985 s. 717",
+  "rattsomrade": "Avtalsrätt",
+  "mekanik": "invaders",
+  "kommerSnart": true
 }

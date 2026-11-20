@@ -9,7 +9,7 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel'>;
 
 interface Ton {
@@ -56,6 +56,23 @@ const LJUD: Record<Tonljud, Ton[]> = {
   // Dovt "duns" när något träffar (sköldläge).
   duns: [{ fran: 95, till: 45, start: 0, langd: 0.22, form: 'sine', volym: 0.3 }],
   misstag: [{ fran: 180, till: 90, start: 0, langd: 0.28, form: 'sawtooth', volym: 0.07 }],
+  // Memory: mjukt "flipp" när ett kort vänds – två korta, mjuka toner som glider uppåt.
+  flipp: [
+    { fran: 420, till: 640, start: 0, langd: 0.05, form: 'sine', volym: 0.1 },
+    { fran: 700, till: 900, start: 0.035, langd: 0.05, form: 'sine', volym: 0.06 },
+  ],
+  // Memory: ljust ackord (dur) när ett par hittas.
+  par: [
+    { fran: 784, till: 784, start: 0, langd: 0.3, form: 'triangle', volym: 0.06 },
+    { fran: 988, till: 988, start: 0.02, langd: 0.3, form: 'triangle', volym: 0.06 },
+    { fran: 1175, till: 1175, start: 0.04, langd: 0.32, form: 'triangle', volym: 0.06 },
+    { fran: 1568, till: 1568, start: 0.06, langd: 0.3, form: 'sine', volym: 0.03 },
+  ],
+  // Memory: dovt ljud när två kort inte matchar.
+  miss: [
+    { fran: 210, till: 150, start: 0, langd: 0.2, form: 'triangle', volym: 0.16 },
+    { fran: 160, till: 110, start: 0.12, langd: 0.22, form: 'triangle', volym: 0.12 },
+  ],
   vinst: [
     { fran: 523, till: 523, start: 0, langd: 0.14, form: 'triangle', volym: 0.13 },
     { fran: 659, till: 659, start: 0.12, langd: 0.14, form: 'triangle', volym: 0.13 },
@@ -86,6 +103,10 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   klonk: 0.85,
   duns: 0.62,
   jubel: 0.91,
+  // Flippet hörs ofta (två gånger per drag) och ligger därför som skottet, ett par dB under de andra.
+  flipp: 1.3,
+  par: 0.92,
+  miss: 0.81,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };

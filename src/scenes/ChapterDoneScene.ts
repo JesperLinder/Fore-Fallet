@@ -4,7 +4,7 @@
  * knappen "Till nästa kapitel", som öppnar nästa kapitels karta.
  */
 import { BasScen } from './BaseScene';
-import { avstand, farg } from '../config/theme';
+import { arMork, avstand, farg } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
 import { allaKapitel, hamtaKapitel, kapitelMaxStjarnor, kapitelStjarnor, nastaKapitel } from '../core/levels';
@@ -31,7 +31,8 @@ export class ChapterDoneScene extends BasScen {
     ikonKnapp(this, 46, 48, 'konturMork', ritaTillbaka, () => this.bytTill('Kapitel'));
 
     const stjarna = this.add.graphics({ x: MITT_X, y: 240 });
-    fyllStjarna(stjarna, 0, 0, 170, farg[k.farg]);
+    // Mörka accentfärger syns inte mot den mörkgröna bakgrunden: då blir stjärnan lila.
+    fyllStjarna(stjarna, 0, 0, 170, arMork(k.farg) ? farg.lila : farg[k.farg]);
     stjarna.setScale(0).setAngle(-30);
     this.tweens.add({ targets: stjarna, scale: 1, angle: 0, duration: 900, delay: 150, ease: 'Back.easeOut' });
     this.time.delayedCall(250, () => spela('jubel'));

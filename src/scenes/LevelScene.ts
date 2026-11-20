@@ -7,7 +7,7 @@ import { BasScen } from './BaseScene';
 import { avstand, farg, radie } from '../config/theme';
 import { BREDD, HOJD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
-import { arUpplast, hamtaNiva, kapitelFor, sattAktivtKapitel } from '../core/levels';
+import { arUpplast, hamtaNiva, kapitelEtikett, kapitelFor, sattAktivtKapitel } from '../core/levels';
 import type { ForlustOrsak, Niva } from '../core/levelTypes';
 import { framsteg } from '../core/progress';
 import { beraknaGuld, beraknaStjarnor } from '../core/scoring';
@@ -111,9 +111,9 @@ export class LevelScene extends BasScen {
     // kontrast mot lila, så nivåetiketten blir mörkgrön där.
     const lilaBakgrund = n.bana.lager[0]?.farg === 'lila';
     const overFarg = mork ? 'guld' : lilaBakgrund ? 'morkgron' : 'morkockra';
-    const over = skapaText(this, avstand.l, 22, text.niva.overrubrik(n.nummer, referens), 'overrubrik', overFarg);
+    const over = skapaText(this, avstand.l, 22, kapitelEtikett(n.id) + text.niva.overrubrik(n.nummer, referens), 'overrubrik', overFarg);
     let x = over.x + over.width + 8;
-    if (n.rubrikmarke) x += marke(this, x, over.y + over.height / 2, n.rubrikmarke, 'guld', 'morkgron').width + 6;
+    if (n.rubrikmarke) x += marke(this, x, over.y + over.height / 2, n.rubrikmarke, n.rubrikmarkeFarg ?? 'guld', 'morkgron').width + 6;
     let hoger = x - 8;
     if (n.fylgiaMal) {
       hoger = x + marke(this, x, over.y + over.height / 2, text.karta.fylgiaMal, lilaBakgrund ? 'morkgron' : 'lila', lilaBakgrund ? 'lila' : 'morkgron').width;

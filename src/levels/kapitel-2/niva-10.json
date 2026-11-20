@@ -1,5 +1,12 @@
 {
-  "id": "kapitel-2-niva-10",
-  "titel": "Kommer snart",
-  "mekanik": "slingshot"
+  "id": "potatispartiet",
+  "titel": "Potatispartiet",
+  "referens": "NJA 1982 s. 301",
+  "rattsomrade": "Köprätt",
+  "mekanik": "boss",
+  "kommerSnart": true,
+  "kartmarke": {
+    "text": "Boss",
+    "farg": "guld"
+  }
 }

@@ -5,7 +5,7 @@
  */
 import Phaser from 'phaser';
 import { BasScen } from './BaseScene';
-import { avstand, farg, radie, type FargNamn } from '../config/theme';
+import { arMork, avstand, farg, radie, type FargNamn } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
 import { allaKapitel, kapitelMaxStjarnor, kapitelStatus, kapitelStjarnor, type Kapitel, type KapitelStatus } from '../core/levels';
@@ -37,30 +37,28 @@ export class ChapterSelectScene extends BasScen {
     skapaText(this, KORT_X - 2, 112, text.kapitel.rubrik, 'titel', 'morkgron');
 
     let y = LISTA_Y;
-    for (const k of allaKapitel) {
-      this.ritaKort(k, y);
-      y += KORT_H + KORT_MELLANRUM;
-    }
+    for (const k of allaKapitel) y += this.ritaKort(k, y) + KORT_MELLANRUM;
     this.scroll = new DragScroll(this, y + avstand.xxl);
   }
 
-  private ritaKort(k: Kapitel, y: number): void {
+  /** Ritar kapitlets kort och returnerar dess höjd. */
+  private ritaKort(k: Kapitel, y: number): number {
     const status = kapitelStatus(k);
     const kort = this.add.container(KORT_X, y);
+    // Bakgrunden ritas sist (när höjden är känd) i en egen grafik som ligger underst.
+    const bg = this.add.graphics();
     const g = this.add.graphics();
-    kort.add(g);
-
-    // Samma formspråk som korten på kartan: klart = ljust kort, pågår = mörkt kort, låst = streckad ram.
-    if (status === 'klart') g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(0, 0, KORT_B, KORT_H, radie.l);
-    if (status === 'pagar') g.fillStyle(farg.morkgron, 1).fillRoundedRect(0, 0, KORT_B, KORT_H, radie.l);
-    if (status === 'last') streckadRam(g, 0, 0, KORT_B, KORT_H, radie.l, farg.morkgron);
+    kort.add([bg, g]);
 
     // Nummercirkel i kapitlets accentfärg (låst: bara en ring).
     const cx = 40;
     const cy = KORT_H / 2;
+    // Mörka accentfärger (t.ex. vinröd) får ljus siffra och, på det mörka "pågår"-kortet, en ljus ring runt.
     if (status === 'last') g.lineStyle(1, farg.morkgron, 1).strokeCircle(cx, cy, 26);
     else g.fillStyle(farg[k.farg], 1).fillCircle(cx, cy, 26);
-    kort.add(skapaText(this, cx, cy, String(k.nummer), 'rubrik', 'morkgron', { origo: [0.5, 0.5], storlek: 22 }));
+    if (status === 'pagar' && arMork(k.farg)) g.lineStyle(1.5, farg.beige, 1).strokeCircle(cx, cy, 26);
+    const nrFarg: FargNamn = status !== 'last' && arMork(k.farg) ? 'ljusbeige' : 'morkgron';
+    kort.add(skapaText(this, cx, cy, String(k.nummer), 'rubrik', nrFarg, { origo: [0.5, 0.5], storlek: 22 }));
 
     const textFarg: FargNamn = status === 'pagar' ? 'ljusbeige' : 'morkgron';
     const x = 82;
@@ -68,10 +66,12 @@ export class ChapterSelectScene extends BasScen {
     kort.add(skapaText(this, x, 18, text.kapitel.nummer(k.nummer), 'overrubrik', status === 'pagar' ? 'guld' : 'morkockra', { storlek: 11 }));
     const titel = skapaText(this, x, 34, k.titel, 'rubrik', textFarg, { storlek: 21, bredd: textB });
     kort.add(titel);
-    kort.add(skapaText(this, x, titel.y + titel.height + 2, k.undertitel, 'liten', textFarg, { bredd: textB }));
+    const under = skapaText(this, x, titel.y + titel.height + 2, k.undertitel, 'liten', textFarg, { bredd: textB });
+    kort.add(under);
 
-    // Längst ner: stjärnor till vänster, status till höger.
-    const ny = KORT_H - 20;
+    // Längst ner: stjärnor till vänster, status till höger. En lång undertitel gör kortet högre.
+    const ny = Math.max(KORT_H - 20, under.y + under.height + 16);
+    const h = ny + 20;
     const stjarnFarg = status === 'pagar' ? farg.guld : farg.morkgron;
     fyllStjarna(g, x + 7, ny, 14, stjarnFarg);
     const stjarnor = `${formatera(kapitelStjarnor(k))} / ${kapitelMaxStjarnor(k)}`;
@@ -80,9 +80,14 @@ export class ChapterSelectScene extends BasScen {
     m.setPosition(KORT_B - 16 - m.width, ny);
     kort.add(m);
 
-    kort.setSize(KORT_B, KORT_H);
+    // Samma formspråk som korten på kartan: klart = ljust kort, pågår = mörkt kort, låst = streckad ram.
+    if (status === 'klart') bg.fillStyle(farg.ljusbeige, 1).fillRoundedRect(0, 0, KORT_B, h, radie.l);
+    if (status === 'pagar') bg.fillStyle(farg.morkgron, 1).fillRoundedRect(0, 0, KORT_B, h, radie.l);
+    if (status === 'last') streckadRam(bg, 0, 0, KORT_B, h, radie.l, farg.morkgron);
+
+    kort.setSize(KORT_B, h);
     kort.setInteractive({
-      hitArea: new Phaser.Geom.Rectangle(0, 0, KORT_B, KORT_H),
+      hitArea: new Phaser.Geom.Rectangle(0, 0, KORT_B, h),
       hitAreaCallback: Phaser.Geom.Rectangle.Contains,
       useHandCursor: status !== 'last',
     });
@@ -91,6 +96,7 @@ export class ChapterSelectScene extends BasScen {
       if (status === 'last') this.tweens.add({ targets: kort, x: kort.x + 6, duration: 50, yoyo: true, repeat: 2 });
       else this.bytTill('Map', { kapitel: k.id });
     });
+    return h;
   }
 }
 

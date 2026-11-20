@@ -1,5 +1,8 @@
 {
-  "id": "kapitel-2-niva-08",
-  "titel": "Kommer snart",
-  "mekanik": "invaders"
+  "id": "friskvardskursen",
+  "titel": "Friskvårdskursen",
+  "referens": "NJA 2002 s. 644",
+  "rattsomrade": "Avtalsrätt",
+  "mekanik": "hybrid",
+  "kommerSnart": true
 }

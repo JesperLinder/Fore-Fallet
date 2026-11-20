@@ -1,5 +1,8 @@
 {
-  "id": "kapitel-2-niva-02",
-  "titel": "Kommer snart",
-  "mekanik": "invaders"
+  "id": "semesterdagarna",
+  "titel": "Semesterdagarna",
+  "referens": "NJA 1992 s. 213",
+  "rattsomrade": "Skadestånd",
+  "mekanik": "hybrid",
+  "kommerSnart": true
 }

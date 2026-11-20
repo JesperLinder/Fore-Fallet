@@ -1,5 +1,69 @@
 {
-  "id": "kapitel-2-niva-03",
-  "titel": "Kommer snart",
-  "mekanik": "hybrid"
+  "id": "husbilen",
+  "titel": "Husbilen",
+  "referens": "NJA 1996 s. 598",
+  "rattsomrade": "Köprätt",
+  "mekanik": "memory",
+  "kartmarke": { "text": "Memory", "farg": "lila" },
+  "rubrikmarke": "Memory",
+  "rubrikmarkeFarg": "lila",
+  "fylgiaMal": false,
+  "uppdragstext": "Du ska byta husbil. Undersök den ordentligt – men lita inte blint på säljarens förklaringar.",
+  "fylgiaTips": "Du kände mögellukt. Säljaren hade en annan förklaring. Hittar du fuktskadan efteråt kan du ändå åberopa den.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": { "maxDrag": 14 },
+    "tva": { "maxDrag": 20 },
+    "en": {}
+  },
+  "tema": "ljus",
+  "bana": { "lager": [{ "farg": "ljusbeige", "topp": 0 }] },
+  "objekt": [],
+  "memory": {
+    "kolumner": 4,
+    "rader": 4,
+    "hud": { "par": "Par", "drag": "Drag" },
+    "tid": { "sekunder": 75, "etikett": "Tid kvar" },
+    "infotext": "Undersök husbilen innan bytet. Hitta paren – men se upp för säljarens förklaringar. De lägger dimma över korten bredvid.",
+    "kort": [
+      { "etikett": "Takluckan", "par": "tak", "antal": 2, "form": "tak" },
+      { "etikett": "Golvet", "par": "golv", "antal": 2, "form": "golv" },
+      { "etikett": "Dörren", "par": "dorr", "antal": 2, "form": "dorr" },
+      { "etikett": "Fönstret", "par": "fonster", "antal": 2, "form": "fonster" },
+      { "etikett": "Väggpanelen", "par": "vagg", "antal": 2, "form": "vagg" },
+      { "etikett": "Bakre hörnet", "par": "horn", "antal": 2, "form": "horn" },
+      { "etikett": "Mögellukt", "par": "fukt", "form": "lukt", "kant": "guld" },
+      { "etikett": "Fuktskadan", "par": "fukt", "form": "droppe", "kant": "guld" },
+      {
+        "etikett": "Säljarens förklaring",
+        "par": "saljare",
+        "antal": 2,
+        "farg": "vinrod",
+        "form": "pratbubbla",
+        "effekt": { "typ": "dimma", "sekunder": 3, "avstand": 1 }
+      }
+    ],
+    "teckenforklaring": [
+      { "typ": "hittat", "text": "Hittat par" },
+      { "typ": "kort", "farg": "vinrod", "text": "Säljarens förklaring" },
+      { "typ": "dimma", "text": "Dimma" }
+    ],
+    "vinst": "alla-par",
+    "forlust": ["tid-slut"],
+    "vandTillbakaMs": 800,
+    "tipsUnderSpel": true
+  },
+  "forlust": {
+    "rubrik": "Bytet gick igenom.",
+    "orsaker": { "tid-slut": "Du hann inte undersöka klart. Försök igen." }
+  },
+  "domslut": {
+    "rubrik": "Felet var ditt att åberopa",
+    "domskal": [
+      "Vid ett byte av husbilar undersökte köparen husbilen två gånger och kände mögellukt.",
+      "Säljaren hänvisade till andra förklaringar till lukten.",
+      "Köparen borde inte ha märkt fuktskadorna vid sin undersökning – och fick därför åberopa felet."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1996s598"
+  }
 }

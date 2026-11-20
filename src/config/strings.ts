@@ -64,6 +64,8 @@ export const text = {
     fylgiaMal: 'Fylgia-mål',
     info: 'Fylgia-målen spelas som de gick i verkligheten. Ibland vinner man allt, ibland halva. Så ser advokatlivet ut.',
     tillbaka: 'Tillbaka',
+    /** Till höger på låsta nivåer som inte är byggda än. */
+    kommerSnart: 'Kommer snart',
   },
 
   /** Hur varje mekanik visas på kartan, om nivån inte har en egen etikett. */
@@ -71,10 +73,14 @@ export const text = {
     slingshot: 'Slangbella',
     invaders: 'Invaders',
     hybrid: 'Hybrid',
+    memory: 'Memory',
+    boss: 'Boss',
   } as Record<string, string>,
 
   niva: {
     overrubrik: (nummer: number, referens: string) => `Nivå ${nummer} · ${referens}`,
+    /** Före nivåetiketten från kapitel 2, t.ex. "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 visas utan. */
+    kapitelPrefix: (kapitel: number) => `K${kapitel} · `,
     fylgiaViskar: 'Din fylgia viskar',
     pausRubrik: 'Paus',
     fortsatt: 'Fortsätt',

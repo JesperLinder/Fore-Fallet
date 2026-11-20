@@ -1,0 +1,62 @@
+{
+  "id": "byt-mig",
+  "titel": "Ny memorynivå",
+  "referens": "NJA ÅÅÅÅ s. NN",
+  "rattsomrade": "Köprätt",
+  "mekanik": "memory",
+  "kartmarke": { "text": "Memory", "farg": "lila" },
+  "rubrikmarke": "Memory",
+  "rubrikmarkeFarg": "lila",
+  "fylgiaMal": false,
+  "uppdragstext": "Vad spelaren ska göra, i en eller två meningar.",
+  "fylgiaTips": "Fylgians tips: vad som avgör målet.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": { "maxDrag": 14 },
+    "tva": { "maxDrag": 20 },
+    "en": {}
+  },
+  "tema": "ljus",
+  "bana": { "lager": [{ "farg": "ljusbeige", "topp": 0 }] },
+  "objekt": [],
+  "memory": {
+    "kolumner": 4,
+    "rader": 4,
+    "hud": { "par": "Par", "drag": "Drag" },
+    "tid": { "sekunder": 75, "etikett": "Tid kvar" },
+    "matare": { "namn": "Misstanke", "steg": 6 },
+    "infotext": "Förklaringen i den mörkgröna rutan under HUD:en.",
+    "kort": [
+      { "etikett": "Kort A", "par": "a", "antal": 2, "form": "stjarna" },
+      { "etikett": "Kort B", "par": "b", "antal": 2, "form": "cirkel" },
+      { "etikett": "Kort C", "par": "c", "antal": 2 },
+      { "etikett": "Kort D", "par": "d", "antal": 2 },
+      { "etikett": "Kort E", "par": "e", "antal": 2 },
+      { "etikett": "Vänster halva", "par": "papper", "kant": "guld" },
+      { "etikett": "Höger halva", "par": "papper", "kant": "guld" },
+      { "etikett": "Blandaren", "par": "blanda", "antal": 2, "farg": "gron", "effekt": { "typ": "blanda" } },
+      { "etikett": "Dimman", "par": "dimma", "antal": 2, "farg": "vinrod", "effekt": { "typ": "dimma", "sekunder": 3, "avstand": 1 } }
+    ],
+    "teckenforklaring": [
+      { "typ": "hittat", "text": "Hittat par" },
+      { "typ": "kort", "farg": "vinrod", "text": "Dimkort" },
+      { "typ": "dimma", "text": "Dimma" }
+    ],
+    "vinst": "alla-par",
+    "forlust": ["tid-slut", "matare-full"],
+    "vandTillbakaMs": 800,
+    "tipsUnderSpel": true
+  },
+  "forlust": {
+    "rubrik": "Rubrik på förlustskärmen.",
+    "orsaker": {
+      "tid-slut": "Förklaring när tiden tagit slut.",
+      "matare-full": "Förklaring när mätaren är full."
+    }
+  },
+  "domslut": {
+    "rubrik": "Domslutets rubrik",
+    "domskal": ["Första domskälet.", "Andra domskälet.", "Tredje domskälet."],
+    "lankTillFallet": "https://lagen.nu/dom/nja/AAAAsNN"
+  }
+}

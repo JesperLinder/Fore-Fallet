@@ -258,6 +258,8 @@ src/
   mechanics/slingshot/    kastaren (launcher.ts: slangbella, sikte, flygning), flygmodell, bana, resultatrad
   mechanics/invaders/     brickornas rutnät, fallande objekt, HUD (tid, inforuta, mätare)
   mechanics/hybrid/       hybridens HUD: borgenärsrutan, valknappar, hur fiender ritas
+  mechanics/Memory.ts     memorymekaniken (rutnät, vändning, par, effekterna "dimma" och "blanda")
+  mechanics/memory/       memoryts HUD (par, drag, tid, mätare, inforuta) och symbolerna på korten (forms.ts)
   mechanics/common/       delat: formation.ts (marscherande rutnät), startPanel.ts (Starta-rutan)
   scenes/ChapterSelect…   kapitelvalet; ChapterDoneScene är "Kapitel klart"
   levels/kapitel-N/       ett kapitel: kapitel.json och en JSON-fil per nivå
@@ -329,7 +331,7 @@ Allt ljud finns i `src/core/sound.ts`, som skapar effekterna och musiken med Web
 
 - **Huvudvolym**: `HUVUDVOLYM` (0,8). Efter den sitter en mjuk begränsare, så att många ljud samtidigt inte spräcks.
 - **Utjämning**: `UTJAMNING` har en faktor per ljud. Alla effekter ligger inom ±1 dB från samma mål.
-  - Skottet ligger 3 dB lägre med flit, eftersom det hörs ofta.
+  - Skottet och memoryts "flipp" ligger 3 dB lägre med flit, eftersom de hörs ofta.
   - Musiken ligger cirka 5 dB under effekterna.
   - Mätt som medelvärdet av K-vägd ljudstyrka (ITU BS.1770) och samma mätning med högpass 180 Hz, som en telefonhögtalare.
   - Måttet är det starkaste 100 ms-fönstret. Mät om ett nytt ljud med `renderaLjud` i en OfflineAudioContext.
@@ -388,7 +390,7 @@ src/levels/
   kapitel-1/              "Klassikerna", de tio första nivåerna
     kapitel.json          kapitelfilen
     niva-01.json … niva-10.json
-  kapitel-2/              tio platshållarnivåer ("Kommer snart") tills riktiga nivåer finns
+  kapitel-2/              "Civilrätten": Husbilen (nivå 3) är spelbar, övriga nio är "kommer snart"
   _mall-*.json            mallar för nya nivåer (läses inte in)
 ```
 
@@ -410,7 +412,7 @@ src/levels/
 | `id` | unikt id. Framstegen sparas per kapitel-id, så **byt aldrig id på ett kapitel som spelare redan spelat**. |
 | `nummer` | kapitlens ordning i kapitelvalet (1, 2, 3 …) |
 | `titel`, `undertitel` | visas i kapitelvalet och överst på kartan ("Kapitel 1 · Tio mål i Högsta domstolen") |
-| `farg` | accentfärg, en av profilfärgerna: `morkgron`, `gron`, `beige`, `ljusbeige`, `guld`, `morkockra`, `lila`, `vinrod`. Används för nummercirkeln i kapitelvalet och stjärnan på "Kapitel klart". Välj en ljus färg (`guld`, `lila`, `beige`): numret skrivs i mörkgrönt. |
+| `farg` | accentfärg, en av profilfärgerna: `morkgron`, `gron`, `beige`, `ljusbeige`, `guld`, `morkockra`, `lila`, `vinrod`. Används för nummercirkeln i kapitelvalet och stjärnan på "Kapitel klart". På en mörk färg (`vinrod`, `morkgron`, `gron`, `morkockra`) skrivs numret ljust, och stjärnan på "Kapitel klart" blir lila (en mörk stjärna syns inte mot den mörkgröna bakgrunden). |
 | `nivaer` | nivåernas `id` i spelordning. Nivånumret (1, 2, 3 …) räknas fram härifrån. |
 
 **Upplåsning:** kapitel 1 är alltid öppet. Ett kapitel låses upp när det föregående är klarat, det vill säga alla
@@ -419,11 +421,35 @@ minst en stjärna (`STJARNOR_FOR_NASTA` i `src/core/levels.ts`). I testläget (`
 
 **Efter ett kapitel:** sista nivån leder till "Säsongen klar" för kapitlet. Därifrån leder "Fortsätt" första gången till:
 
-- **Grattis** (med länken till karriärsidan) om det är det sista kapitlet som går att spela, alltså om inget senare
-  kapitel har någon spelbar nivå. Så länge kapitel 2 bara har platshållare gäller det kapitel 1.
+- **Grattis** (med länken till karriärsidan) om det är det sista färdiga kapitlet, alltså om inget senare kapitel
+  har alla sina nivåer spelbara. Så länge kapitel 2 inte är färdigbyggt gäller det kapitel 1, precis som innan
+  kapitel 2 fanns.
 - **Kapitel klart** (kortare, med knappen "Till nästa kapitel") efter övriga kapitel.
 
 Båda kan nås igen från kapitlets karta, via knappen under listan.
+
+### Kapitel 2: Civilrätten
+
+| Nr | id | Titel | Referens | Rättsområde | Mekanik | Status |
+|---|---|---|---|---|---|---|
+| 1 | `tvattvattnet` | Tvättvattnet | NJA 1982 s. 386 | Skadestånd | invaders | kommer snart |
+| 2 | `semesterdagarna` | Semesterdagarna | NJA 1992 s. 213 | Skadestånd | hybrid | kommer snart |
+| 3 | `husbilen` | Husbilen | NJA 1996 s. 598 | Köprätt | memory | **spelbar** |
+| 4 | `oxelhacken` | Oxelhäcken | NJA 1990 s. 71 | Grannerätt | invaders | kommer snart |
+| 5 | `trahuset` | Trähuset | NJA 1985 s. 717 | Avtalsrätt | invaders | kommer snart |
+| 6 | `testamentet` | Det sönderrivna testamentet | NJA 2017 s. 362 | Arvsrätt | memory | kommer snart |
+| 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | kommer snart |
+| 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | hybrid | kommer snart |
+| 9 | `tva-testamenten` | De två testamentena | NJA 2022 s. 509 | Arvsrätt | memory | kommer snart |
+| 10 | `potatispartiet` | Potatispartiet | NJA 1982 s. 301 | Köprätt | boss | kommer snart |
+
+- Nivåer med `"kommerSnart": true` visas låsta med "Kommer snart" på kartan, **även i testläget**. Ta bort fältet
+  (och fyll på nivån) när den byggs.
+- Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
+- Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
+- **Tillfälligt:** Husbilen är upplåst så fort kapitel 2 är upplåst, utan att nivå 1–2 behöver vara klarade
+  (`TILLFALLIGT_UPPLASTA` i `src/core/levels.ts`). **Ta bort `husbilen` därifrån när nivå 1–2 är byggda.**
+- Efter Husbilen leder domslutets knapp till kartan (nästa nivå "kommer snart").
 
 ### Lägga till ett kapitel
 
@@ -431,7 +457,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 2. Lägg en `kapitel.json` där med nytt `id` (till exempel `"kapitel-3"`), `nummer`, `titel`, `undertitel`, `farg`
    och `nivaer`.
 3. Lägg nivåfilerna i samma mapp (se nedan). Till en början räcker platshållare:
-   `{ "id": "kapitel-3-niva-01", "titel": "Kommer snart", "mekanik": "slingshot" }`.
+   `{ "id": "nytt-id", "titel": "Titel", "referens": "NJA …", "rattsomrade": "…", "mekanik": "slingshot", "kommerSnart": true }`.
 4. Kör `npm run kolla-platshallare`. Den kontrollerar att varje id i `nivaer` har en nivåfil och tvärtom, och
    varnar för platshållarnivåer och text inom hakparenteser.
 5. Klart. Kapitelvalet, kartan och skärmarna läser in kapitlet automatiskt; ingen kod behöver ändras.
@@ -456,7 +482,11 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | Fält | Betydelse |
 |---|---|
 | `id`, `titel`, `referens` | identitet och visning på kartan (`nummer` räknas fram ur `kapitel.json`) |
-| `mekanik` | `"slingshot"`, `"invaders"` eller `"hybrid"` |
+| `rattsomrade` | valfritt, t.ex. `"Köprätt"`: visas på kartan efter referensen i stället för mekanikens namn |
+| `kartmarke` | valfritt märke efter titeln på kartan: `{ "text": "Memory", "farg": "lila" }` |
+| `kommerSnart` | `true`: nivån är inte byggd än och visas låst med "Kommer snart", även i testläget |
+| `rubrikmarke`, `rubrikmarkeFarg` | valfritt märke efter nivåetiketten i nivåns rubrik, t.ex. `"BOSS"` (guld) eller `"Memory"` med `"lila"` |
+| `mekanik` | `"slingshot"`, `"invaders"`, `"hybrid"` eller `"memory"` (`"boss"` är reserverad för Potatispartiet, inte byggd än) |
 | `fylgiaMal` | visar märket "Fylgia-mål" |
 | `etikett` | valfri text på kartan i stället för mekaniknamnet ("Boss", "Final") |
 | `uppdragstext`, `fylgiaTips` | visas i rutan "Din fylgia viskar" |
@@ -804,6 +834,20 @@ totala stjärnor, alla fall med stjärnor (och guldstjärnor) där upplåsta rad
 karriärrutan och "Säsong 2 kommer". Länkarna står i `src/config/links.ts`: `dela` (tom = ingen delningsknapp) och
 `karriar`. Delningen använder telefonens delningsfunktion (Web Share API) och kopierar annars texten till urklipp.
 
+### Memorynivåer
+
+Memory är ett rutnät med kort (t.ex. 4 × 4) där spelaren hittar par. Allt nivåspecifikt står i nivåfilens `memory`:
+korten och deras parnycklar, specialkort med effekter (`dimma`, `blanda`), HUD-rubriker, valfri tid och mätare,
+inforutan, teckenförklaringen och vinst- och förlustvillkoren. Stjärnorna räknas på antal drag (`stjarnkrav.maxDrag`).
+
+- **Mall:** `src/levels/_mall-memory.json`, med alla fält förklarade i `src/levels/_mall-memory.md`.
+- **Exempel:** Husbilen, `src/levels/kapitel-2/niva-03.json`.
+- **Kod:** `src/mechanics/Memory.ts` (en ny effekt = en ny rad i `EFFEKTER`), `src/mechanics/memory/hud.ts` och
+  `src/mechanics/memory/forms.ts` (symbolerna på korten).
+- Korten är minst 72 punkter höga, och ett tredje kort går inte att vända medan två är uppe.
+- Vändningen är en 3D-vändning på cirka 250 ms. Med reducerad rörelse i telefonens inställningar blir den en toning.
+- Ljud: "flipp" när ett kort vänds, ett ljust ackord vid par och ett dovt ljud vid miss.
+
 ### Hybridnivåer
 
 En hybridnivå kombinerar slangbellan med en formation som marscherar nedåt, som i invaders. Formationen går inte att
@@ -865,7 +909,7 @@ Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar
 
 Text inom hakparenteser, till exempel `[FYLLS I AV MÅLANSVARIG]`, räknas som platshållare. Den visas i vinrött på domslutet
 och ger en varning i webbläsarens konsol när spelet startar. Kontrollen går igenom alla kapitelfiler och nivåfiler, texterna i `src/config/`, HTML-sidorna i `public/` och texterna i `store/`.
-Den varnar också för **platshållarnivåer** (nivåfiler utan `domslut`, till exempel kapitel 2:s "Kommer snart") och för
+Den varnar också för **platshållarnivåer** (nivåfiler utan `domslut` eller med `"kommerSnart": true`, till exempel kapitel 2:s nio nivåer som inte är byggda) och för
 kapitelfiler där `nivaer` inte stämmer med nivåfilerna i mappen.
 Enda tillåtna undantaget är `[KONTAKT-E-POST]` i `public/integritet.html`; för den skrivs bara en påminnelse ut. Kör:
 
@@ -878,8 +922,8 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 
 ## Platshållare
 
-- **Kapitel 1: alla tio nivåer är spelbara.** **Kapitel 2** har titeln `[KAPITEL 2-TITEL]` och tio platshållarnivåer
-  ("Kommer snart", bara `id`, `titel` och `mekanik`), som syns låsta på kartan. Platshållarkontrollen varnar för dem.
+- **Kapitel 1: alla tio nivåer är spelbara.** **Kapitel 2** ("Civilrätten"): Husbilen är spelbar; de övriga nio
+  är "kommer snart" (titel, referens, rättsområde och mekanik), låsta på kartan. Platshållarkontrollen varnar för dem.
 - **Typsnitt**: Newsreader och Instrument Sans (OFL), lokalt i `public/fonts/`. Byts mot ABC Arizona i `public/fonts/typsnitt.css` + `src/config/theme.ts`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

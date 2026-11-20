@@ -8,7 +8,7 @@ import { BasScen } from './BaseScene';
 import { avstand, farg, radie, type FargNamn } from '../config/theme';
 import { BREDD, HOJD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
-import { arGodkand, arSpelbar, arUpplast, hamtaNiva, kapitelFor, nastaNiva } from '../core/levels';
+import { arGodkand, arSpelbar, arUpplast, hamtaNiva, kapitelEtikett, kapitelFor, nastaNiva } from '../core/levels';
 import { spela } from '../core/sound';
 import type { Niva } from '../core/levelTypes';
 import { skapaText } from '../ui/text';
@@ -52,7 +52,7 @@ export class VerdictScene extends BasScen {
   }
 
   private ritaHuvud(niva: Niva, stjarnor: number, guld: boolean, halvvags: boolean): number {
-    const over = skapaText(this, MITT_X, 38, text.domslut.overrubrik(niva.nummer, niva.referens), 'overrubrik', 'morkockra', {
+    const over = skapaText(this, MITT_X, 38, kapitelEtikett(niva.id) + text.domslut.overrubrik(niva.nummer, niva.referens), 'overrubrik', 'morkockra', {
       origo: [0.5, 0.5],
     });
     if (niva.fylgiaMal) {
@@ -61,7 +61,10 @@ export class VerdictScene extends BasScen {
       m.x = over.x + over.width / 2 + 8;
     }
     const standard = halvvags ? text.domslut.halvvagsRubrik : text.domslut.vinstRubrik;
-    skapaText(this, MITT_X, 86, niva.domslut.rubrik ?? standard, 'jatte', 'morkgron', { origo: [0.5, 0.5], storlek: 54 });
+    const rubrik = skapaText(this, MITT_X, 86, niva.domslut.rubrik ?? standard, 'jatte', 'morkgron', { origo: [0.5, 0.5], storlek: 54 });
+    // En rubrik som inte ryms på skärmen (t.ex. "Felet var ditt att åberopa") krymps till innehållsbredden.
+    // Rubriker som ryms på skärmen lämnas orörda (några i kapitel 1 är något bredare än innehållsytan).
+    if (rubrik.width > BREDD - 8) rubrik.setFontSize(Math.max(28, Math.floor((54 * INNER_B) / rubrik.width)));
 
     // Med guldstjärna flyttas raden åt vänster så att raden + medaljongen blir centrerad.
     const radX = niva.guldstjarna ? MITT_X - 31 : MITT_X;
@@ -211,11 +214,14 @@ export class VerdictScene extends BasScen {
     // Nästa nivå kräver minst en stjärna här: uppmana till ett nytt försök.
     const behoverStjarna = !!nasta && !arGodkand(niva);
     // Efter sista nivån leder knappen till avslutningsskärmen för säsongen.
+    // Nästa nivå som inte är byggd än ("kommer snart"): till kartan i stället för "Nästa mål".
     const etikett = behoverStjarna
       ? text.domslut.kravForNasta
-      : nasta
-        ? text.domslut.nastaMal(nasta.titel)
-        : text.domslut.sasongKlar;
+      : nasta && !arSpelbar(nasta)
+        ? text.domslut.tillKartan
+        : nasta
+          ? text.domslut.nastaMal(nasta.titel)
+          : text.domslut.sasongKlar;
     const ny = y + h + avstand.m + 29;
     new Knapp(this, MITT_X, ny, etikett, { bredd: INNER_B, hojd: 56, variant: 'mork', kanTryckas: tryck }, () => {
       if (behoverStjarna) this.bytTill('Level', { id: niva.id });

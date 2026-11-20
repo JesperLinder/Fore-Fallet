@@ -1,5 +1,8 @@
 {
-  "id": "kapitel-2-niva-04",
-  "titel": "Kommer snart",
-  "mekanik": "invaders"
+  "id": "oxelhacken",
+  "titel": "Oxelhäcken",
+  "referens": "NJA 1990 s. 71",
+  "rattsomrade": "Grannerätt",
+  "mekanik": "invaders",
+  "kommerSnart": true
 }

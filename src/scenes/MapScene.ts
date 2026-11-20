@@ -5,7 +5,7 @@
  */
 import Phaser from 'phaser';
 import { BasScen } from './BaseScene';
-import { avstand, farg, radie } from '../config/theme';
+import { arMork, avstand, farg, radie, type FargNamn } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
 import {
@@ -87,7 +87,9 @@ export class MapScene extends BasScen {
     fyllStjarna(g, x + 20, 48, 14, farg.lila);
     raknare.setPosition(x + 32, 48).setDepth(1);
 
-    skapaText(this, KORT_X, 96, text.karta.overrubrik(k.nummer, k.undertitel), 'overrubrik', 'morkockra');
+    // En lång undertitel bryts på två rader och flyttas upp en bit, så att titeln står kvar på samma plats.
+    const over = skapaText(this, KORT_X, 96, text.karta.overrubrik(k.nummer, k.undertitel), 'overrubrik', 'morkockra', { bredd: KORT_B });
+    if (over.height > 20) over.setY(110 - over.height);
     skapaText(this, KORT_X - 2, 112, k.titel, 'titel', 'morkgron');
   }
 
@@ -124,7 +126,11 @@ export class MapScene extends BasScen {
     // Titel, referens och mekanik.
     const textFarg = lage === 'nasta' ? 'ljusbeige' : 'morkgron';
     const titel = skapaText(this, 72, 22, niva.titel, 'rubrik', textFarg, { origo: [0, 0.5], storlek: 19 });
-    const typ = niva.etikett ?? text.mekanikNamn[niva.mekanik] ?? niva.mekanik;
+    // En lång titel på en låst "kommer snart"-nivå krymps så att den inte går in i texten till höger.
+    const titelMax = KORT_B - 72 - 80;
+    if (niva.kommerSnart && titel.width > titelMax) titel.setFontSize(Math.max(14, Math.floor((19 * titelMax) / titel.width)));
+    // Rättsområdet (kapitel 2 och framåt) står efter referensen i stället för mekanikens namn.
+    const typ = niva.rattsomrade ?? niva.etikett ?? text.mekanikNamn[niva.mekanik] ?? niva.mekanik;
     const referens = skapaText(this, 72, 46, niva.referens ? `${niva.referens} · ${typ}` : typ, 'liten', textFarg, { origo: [0, 0.5] });
     kort.add([titel, referens]);
     // Stjärnorna/"Spela" står mitt i höjdled, eller på titelraden om märket fått flytta ner.
@@ -139,6 +145,21 @@ export class MapScene extends BasScen {
       if (m.x + m.width > hogerGrans) {
         m.setPosition(referens.x + referens.width + 8, 46);
         hogerY = 22;
+      }
+      kort.add(m);
+    }
+
+    if (niva.kartmarke) {
+      // Märket ("Memory", "Boss") efter titeln, eller efter referensraden om det inte får plats.
+      const hogerGrans = KORT_B - (niva.kommerSnart && lage === 'last' ? 74 : guld ? 92 : 76);
+      const m = marke(this, titel.x + titel.width + 8, 22, niva.kartmarke.text, niva.kartmarke.farg, morkText(niva.kartmarke.farg));
+      if (m.x + m.width > hogerGrans) {
+        m.setPosition(referens.x + referens.width + 8, 46);
+        if (m.x + m.width > hogerGrans) {
+          // Får inte plats någonstans: kortare referensrad (utan rättsområdet).
+          referens.setText(niva.referens ?? '');
+          m.setX(referens.x + referens.width + 8);
+        }
       }
       kort.add(m);
     }
@@ -160,7 +181,9 @@ export class MapScene extends BasScen {
       kort.add(skapaText(this, KORT_B - 18, hogerY, text.karta.spela, 'overrubrik', 'guld', { origo: [1, 0.5] }));
     }
     // Låsta nivåer med etikett (t.ex. "Boss", "Final") visar den till höger, som i mockupen.
-    if (lage === 'last' && niva.etikett) {
+    if (lage === 'last' && niva.kommerSnart) {
+      kort.add(skapaText(this, KORT_B - 18, KORT_H / 2, text.karta.kommerSnart.toUpperCase().replace(' ', '\n'), 'overrubrik', 'morkockra', { origo: [1, 0.5], justering: 'right', storlek: 10 }));
+    } else if (lage === 'last' && niva.etikett) {
       kort.add(skapaText(this, KORT_B - 18, hogerY, niva.etikett.toUpperCase(), 'overrubrik', 'morkockra', { origo: [1, 0.5] }));
     }
 
@@ -208,6 +231,11 @@ export class MapScene extends BasScen {
   private skaka(mal: Phaser.GameObjects.Container): void {
     this.tweens.add({ targets: mal, x: mal.x + 6, duration: 50, yoyo: true, repeat: 2 });
   }
+}
+
+/** Text på ett märke: mörkgrön på ljusa färger, ljusbeige på mörka. */
+function morkText(bakgrund: FargNamn): FargNamn {
+  return arMork(bakgrund) ? 'ljusbeige' : 'morkgron';
 }
 
 function kortLage(niva: NivaPlatshallare | Niva): KortLage {

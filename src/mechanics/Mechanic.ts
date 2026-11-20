@@ -13,6 +13,8 @@ export interface MekanikResultat {
   tidKvar?: number;
   /** Antal försök (hybrid: kast med vinnaren, slangbella med block: använda skott) och fällor (hybrid). */
   forsok?: number;
+  /** Antal drag (memory: två vända kort), för stjarnkrav.maxDrag. */
+  drag?: number;
   fallor?: number;
   /** Procent kvar på mätaren (invaders), för stjarnkrav.minMatare. */
   matareKvar?: number;

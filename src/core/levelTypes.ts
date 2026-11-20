@@ -5,7 +5,8 @@
  */
 import type { FargNamn } from '../config/theme';
 
-export type MekanikTyp = 'slingshot' | 'invaders' | 'hybrid';
+/** "boss" är reserverad för kapitel 2:s bossnivå (Potatispartiet), som inte är byggd än. */
+export type MekanikTyp = 'slingshot' | 'invaders' | 'hybrid' | 'memory' | 'boss';
 export type Resultat = 'vinst' | 'halvvagsvinst';
 
 /** Kapitelfilen, src/levels/kapitel-N/kapitel.json. */
@@ -35,6 +36,12 @@ export interface NivaPlatshallare {
   fylgiaMal?: boolean;
   /** Valfri etikett på kartan i stället för mekanikens namn, t.ex. "Boss" eller "Final". Låsta nivåer visar den till höger. */
   etikett?: string;
+  /** Rättsområde, t.ex. "Köprätt". Visas på kartan efter referensen i stället för mekanikens namn. */
+  rattsomrade?: string;
+  /** Märke på kartan efter titeln, t.ex. { "text": "Memory", "farg": "lila" } eller { "text": "Boss", "farg": "guld" }. */
+  kartmarke?: { text: string; farg: FargNamn };
+  /** Nivån är inte byggd än: visas låst på kartan med "Kommer snart" (även i testläget). */
+  kommerSnart?: boolean;
 }
 
 /** En fullständig, spelbar nivå. */
@@ -65,11 +72,15 @@ export interface Niva extends NivaPlatshallare {
   invaders?: InvadersInstallningar;
   /** Inställningar för hybrid (slangbella + borgenärer) – krävs när mekanik är "hybrid". */
   hybrid?: HybridInstallningar;
+  /** Inställningar för memory – krävs när mekanik är "memory". Se MemoryInstallningar och _mall-memory.md. */
+  memory?: MemoryInstallningar;
   /** Förlustskärmen, för mekaniker där man kan förlora. */
   forlust?: Forlust;
   domslut: Domslut;
   /** Guldmärke efter nivåetiketten i rubriken, t.ex. "BOSS". */
   rubrikmarke?: string;
+  /** Märkets färg (standard "guld"), t.ex. "lila" för "Memory". */
+  rubrikmarkeFarg?: FargNamn;
   /** Svart mellanstopp i en sekund innan nivån visas, t.ex. "BOSS – NJA 1997 s. 660". */
   mellanstopp?: string;
   /** Läggs till efter referensen i nivåetiketten, t.ex. "Final" ger "NIVÅ 10 · HD 2023 · FINAL". */
@@ -83,6 +94,8 @@ export interface StjarnKrav {
   tidKvarOver?: number;
   /** Vann på högst så här många försök (hybrid: kast med vinnarprojektilen). */
   maxForsok?: number;
+  /** Vann på högst så här många drag (memory: ett drag = två vända kort). */
+  maxDrag?: number;
   /** Gick i högst så här många fällor (hybrid: kast med en fälla, t.ex. avtalet). */
   maxFallor?: number;
   /** Minst så här många procent kvar på mätaren (invaders, t.ex. "God tro" 75). */
@@ -815,4 +828,62 @@ export interface HybridProjektil {
   forstaText?: string;
   /** Vinnare som missar: vänta så här länge (ms), galoppera sedan hit och kom tillbaka. */
   aterkomst?: { vantaMs: number; till: { x: number; y: number } };
+}
+
+// ---------- Memory ----------
+
+/** Ett kort (eller flera likadana, med "antal") i memoryt. */
+export interface MemoryKort {
+  /** Text på framsidan. */
+  etikett: string;
+  /**
+   * Parnyckeln: två kort med samma nyckel är ett par. Korten behöver inte vara likadana
+   * (t.ex. "Mögellukt" + "Fuktskadan", eller vänster och höger halva av ett papper).
+   */
+  par: string;
+  /** Antal likadana kort (standard 1). Ett par av två likadana kort: "antal": 2. */
+  antal?: number;
+  /** Framsidans färg (standard "ljusbeige"). Texten blir ljus på mörka färger. */
+  farg?: FargNamn;
+  /** Valfri symbol ovanför texten, från mechanics/memory/forms.ts (t.ex. "tak", "dorr", "droppe"). */
+  form?: string;
+  /** Valfri färgad kant när kortet är vänt, t.ex. "guld". */
+  kant?: FargNamn;
+  /** Valfri effekt när kortet vänds upp (se MemoryEffekt). */
+  effekt?: MemoryEffekt;
+}
+
+/**
+ * Specialeffekt när ett kort vänds upp. Finns: "dimma" (dimma över korten runt omkring i "sekunder";
+ * "avstand" 1 = de närmaste, även diagonalt; de kan inte vändas under tiden) och "blanda" (blandar om alla
+ * kort som inte är hittade, när draget är klart). Nya effekter läggs till i EFFEKTER i mechanics/Memory.ts.
+ */
+export interface MemoryEffekt {
+  typ: string;
+  sekunder?: number;
+  avstand?: number;
+}
+
+export interface MemoryInstallningar {
+  kolumner: number;
+  rader: number;
+  kort: MemoryKort[];
+  /** Rubrikerna i HUD:en, t.ex. { "par": "Par", "drag": "Drag" }. */
+  hud: { par: string; drag: string };
+  /** Valfri tidsgräns: { "sekunder": 75, "etikett": "Tid kvar" }. */
+  tid?: { sekunder: number; etikett: string };
+  /** Valfri mätare som fylls ett steg per miss, t.ex. { "namn": "Misstanke", "steg": 5 }. Full mätare kan ge förlust. */
+  matare?: { namn: string; steg: number };
+  /** Mörkgrön ruta under HUD:en med nivåns förklaring. */
+  infotext?: string;
+  /** Rader under rutnätet. "typ": "hittat" (hittat par), "kort" (ett kort i "farg") eller "dimma". */
+  teckenforklaring?: { typ: 'hittat' | 'kort' | 'dimma'; text: string; farg?: FargNamn }[];
+  /** Vinstvillkor. Finns: "alla-par". */
+  vinst: 'alla-par';
+  /** Förlustvillkor: "tid-slut" (tiden tog slut) och/eller "matare-full" (mätaren full). */
+  forlust: ('tid-slut' | 'matare-full')[];
+  /** Hur länge två kort som inte matchar ligger uppe (ms, standard 800). */
+  vandTillbakaMs?: number;
+  /** Visa fylgians tips längst ner under spelet (efter "Starta"). */
+  tipsUnderSpel?: boolean;
 }

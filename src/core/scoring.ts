@@ -31,6 +31,7 @@ function uppfyllt(k: StjarnKrav, r: MekanikResultat): boolean {
     (k.maxMisstag === undefined || (r.misstag ?? 0) <= k.maxMisstag) &&
     (k.tidKvarOver === undefined || (r.tidKvar ?? 0) > k.tidKvarOver) &&
     (k.maxForsok === undefined || (r.forsok ?? 0) <= k.maxForsok) &&
+    (k.maxDrag === undefined || (r.drag ?? 0) <= k.maxDrag) &&
     (k.maxFallor === undefined || (r.fallor ?? 0) <= k.maxFallor) &&
     (k.minMatare === undefined || (r.matareKvar ?? 0) >= k.minMatare) &&
     (k.maxDekorForlorade === undefined || (r.dekorForlorade ?? 0) <= k.maxDekorForlorade) &&

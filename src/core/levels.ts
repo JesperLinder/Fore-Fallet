@@ -10,6 +10,7 @@ import { framsteg } from './progress';
 import { hittaPlatshallare } from './placeholders';
 import { harMekanik } from '../mechanics/registry';
 import { testlage } from '../debug/flaggor';
+import { text } from '../config/strings';
 
 type NivaFil = Omit<NivaPlatshallare, 'nummer'> & { nummer?: number };
 
@@ -75,9 +76,9 @@ framsteg.kopplaKapitel(
   allaNivaer.filter((n) => 'resultat' in n && n.resultat === 'halvvagsvinst').map((n) => n.id),
 );
 
-/** Sant om filen är en fullständig nivå (inte bara en platshållare) och mekaniken finns byggd. */
+/** Sant om filen är en fullständig nivå (inte bara en platshållare eller "kommer snart") och mekaniken finns byggd. */
 export function arSpelbar(niva: NivaPlatshallare | Niva): niva is Niva {
-  return 'domslut' in niva && 'objekt' in niva && harMekanik(niva.mekanik);
+  return !niva.kommerSnart && 'domslut' in niva && 'objekt' in niva && harMekanik(niva.mekanik);
 }
 
 /** Antal stjärnor som krävs på en nivå för att nästa ska låsas upp. */
@@ -89,14 +90,23 @@ export function arGodkand(niva: NivaPlatshallare | Niva): boolean {
 }
 
 /**
+ * TILLFÄLLIGT: nivåer som är upplåsta så fort kapitlet är upplåst, utan att föregående nivå behöver vara klarad.
+ * Husbilen (kapitel 2, nivå 3) är den enda spelbara nivån i kapitel 2 än så länge och ska gå att testa.
+ * TA BORT "husbilen" härifrån när nivå 1–2 i kapitel 2 (tvattvattnet, semesterdagarna) är byggda.
+ */
+const TILLFALLIGT_UPPLASTA = new Set<string>(['husbilen']);
+
+/**
  * En nivå är upplåst om den är spelbar och föregående nivå i kapitlet är godkänd. Kapitlets första nivå
- * är upplåst när kapitlet är det. I testläget är alla spelbara nivåer upplåsta.
+ * är upplåst när kapitlet är det. I testläget är alla spelbara nivåer upplåsta (nivåer som "kommer snart"
+ * är inte spelbara och alltså alltid låsta).
  */
 export function arUpplast(niva: NivaPlatshallare | Niva): niva is Niva {
   if (!arSpelbar(niva)) return false;
   if (testlage) return true;
   const k = kapitelFor(niva.id);
   if (!k) return false;
+  if (TILLFALLIGT_UPPLASTA.has(niva.id)) return arKapitelUpplast(k);
   const foregaende = k.nivaLista[k.nivaLista.findIndex((n) => n.id === niva.id) - 1];
   return foregaende ? arGodkand(foregaende) : arKapitelUpplast(k);
 }
@@ -150,12 +160,24 @@ export function kapitelMaxStjarnor(k: Kapitel): number {
   return k.nivaLista.length * 3;
 }
 
+/** Sant om alla kapitlets nivåer går att spela (inga platshållare eller "kommer snart"). */
+export function arKapitelFardigt(k: Kapitel): boolean {
+  return k.nivaLista.length > 0 && k.nivaLista.every(arSpelbar);
+}
+
 /**
- * Sant om kapitlet är det sista som går att spela: inget senare kapitel har någon spelbar nivå.
- * Efter det visas den stora grattisskärmen; efter övriga kapitel "Kapitel klart".
+ * Sant om kapitlet är det sista färdiga: inget senare kapitel har alla sina nivåer spelbara.
+ * Efter det visas den stora grattisskärmen; efter övriga kapitel "Kapitel klart". Så länge kapitel 2 bara är
+ * delvis byggt får kapitel 1 alltså grattisskärmen, precis som innan kapitel 2 fanns.
  */
 export function arSistaKapitlet(k: Kapitel): boolean {
-  return !allaKapitel.slice(allaKapitel.indexOf(k) + 1).some((senare) => senare.nivaLista.some(arSpelbar));
+  return !allaKapitel.slice(allaKapitel.indexOf(k) + 1).some(arKapitelFardigt);
+}
+
+/** "K2 · " före nivåetiketten från kapitel 2; tom för kapitel 1 (som ser ut som förut). */
+export function kapitelEtikett(nivaId: string): string {
+  const nr = kapitelFor(nivaId)?.nummer ?? 1;
+  return nr > 1 ? text.niva.kapitelPrefix(nr) : '';
 }
 
 /** Kapitlet som kartan senast visade (eller vars nivå spelades). Kartan öppnar det om inget annat anges. */

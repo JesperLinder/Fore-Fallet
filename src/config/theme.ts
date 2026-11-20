@@ -17,6 +17,12 @@ export const farg = {
 
 export type FargNamn = keyof typeof farg;
 
+/** Mörka profilfärger: text och symboler på dem ska vara ljusa (ljusbeige), på övriga mörkgröna. */
+export const MORKA_FARGER: readonly FargNamn[] = ['morkgron', 'gron', 'vinrod', 'morkockra'];
+export function arMork(f: FargNamn): boolean {
+  return MORKA_FARGER.includes(f);
+}
+
 /** Gör om en profilfärg till CSS-sträng ("#0f2827"), som Phaser-text vill ha. */
 export function css(namn: FargNamn): string {
   return '#' + farg[namn].toString(16).padStart(6, '0');

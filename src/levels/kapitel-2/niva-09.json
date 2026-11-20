@@ -1,5 +1,12 @@
 {
-  "id": "kapitel-2-niva-09",
-  "titel": "Kommer snart",
-  "mekanik": "invaders"
+  "id": "tva-testamenten",
+  "titel": "De två testamentena",
+  "referens": "NJA 2022 s. 509",
+  "rattsomrade": "Arvsrätt",
+  "mekanik": "memory",
+  "kommerSnart": true,
+  "kartmarke": {
+    "text": "Memory",
+    "farg": "lila"
+  }
 }

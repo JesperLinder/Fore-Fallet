@@ -1,5 +1,8 @@
 {
-  "id": "kapitel-2-niva-07",
-  "titel": "Kommer snart",
-  "mekanik": "slingshot"
+  "id": "salmonellan",
+  "titel": "Salmonellan i skolköket",
+  "referens": "NJA 1989 s. 389",
+  "rattsomrade": "Produktansvar",
+  "mekanik": "invaders",
+  "kommerSnart": true
 }

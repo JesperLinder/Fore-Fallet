@@ -1,5 +1,12 @@
 {
-  "id": "kapitel-2-niva-06",
-  "titel": "Kommer snart",
-  "mekanik": "invaders"
+  "id": "testamentet",
+  "titel": "Det sönderrivna testamentet",
+  "referens": "NJA 2017 s. 362",
+  "rattsomrade": "Arvsrätt",
+  "mekanik": "memory",
+  "kommerSnart": true,
+  "kartmarke": {
+    "text": "Memory",
+    "farg": "lila"
+  }
 }

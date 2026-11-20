@@ -1,5 +1,8 @@
 {
-  "id": "kapitel-2-niva-01",
-  "titel": "Kommer snart",
-  "mekanik": "slingshot"
+  "id": "tvattvattnet",
+  "titel": "Tvättvattnet",
+  "referens": "NJA 1982 s. 386",
+  "rattsomrade": "Skadestånd",
+  "mekanik": "invaders",
+  "kommerSnart": true
 }

@@ -2,7 +2,7 @@
 // i texterna i src/config/ (strings.ts, links.ts …), i HTML-sidorna i public/ och i App Store-materialet i store/.
 // Undantag: public/integritet.html får innehålla [KONTAKT-E-POST] – då skrivs bara en påminnelse ut.
 // Kör: npm run kolla-platshallare   (med --strikt avslutas det med fel om något hittas)
-// Varnar också för platshållarnivåer (nivåfiler utan domslut, t.ex. "Kommer snart") och för kapitelfiler som
+// Varnar också för platshållarnivåer (nivåfiler utan domslut eller med "kommerSnart") och för kapitelfiler som
 // inte stämmer med nivåfilerna i mappen. Mallar (filer som börjar med _) hoppas över.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -37,7 +37,7 @@ for (const kmapp of readdirSync(NIVAER).filter((f) => statSync(join(NIVAER, f)).
     const niva = JSON.parse(readFileSync(join(dir, fil), 'utf8'));
     ids.push(niva.id);
     sok(niva, '', `${kmapp}/${fil}`);
-    if (!('domslut' in niva)) platshallarnivaer.push(`${kmapp}/${fil} ("${niva.id}", ${niva.titel})`);
+    if (!('domslut' in niva) || niva.kommerSnart) platshallarnivaer.push(`${kmapp}/${fil} ("${niva.id}", ${niva.titel})`);
   }
   for (const id of kapitel.nivaer ?? []) if (!ids.includes(id)) fynd.push(`${kmapp}/kapitel.json: nivån "${id}" har ingen nivåfil`);
   for (const id of ids) if (!(kapitel.nivaer ?? []).includes(id)) fynd.push(`${kmapp}: nivåfilen "${id}" saknas i kapitel.json`);
