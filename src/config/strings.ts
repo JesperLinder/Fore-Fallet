@@ -4,10 +4,38 @@
  */
 export const text = {
   titel: {
-    overrubrik: 'Ett prejudikatspel',
     rubrik: 'Före fallet',
-    underrubrik: 'En fylgia ser hindret innan det kommer. Nu är det din tur.',
+    underrubrik: 'Ett prejudikatspel',
+    rad: 'En fylgia ser hindret innan det kommer. Nu är det din tur.',
     spela: 'Spela',
+    omSpelet: 'Om spelet',
+  },
+
+  om: {
+    rubrik: 'Om spelet',
+    text: 'Före fallet är ett spel från Advokatfirman Fylgia. Varje nivå bygger på ett verkligt avgörande från Högsta domstolen. Sammanfattningarna är förenklade och är inte juridisk rådgivning – läs gärna hela avgörandena via länkarna efter varje nivå.',
+    kallorRubrik: 'Källor',
+    kallor: 'Rättsfallen kommer från Högsta domstolens avgöranden. Länkar till lagen.nu och domstol.se.',
+    integritet: 'Integritetspolicy',
+    nollstall: 'Nollställ framsteg',
+    nollstallFraga: 'Nollställa framstegen?',
+    nollstallText: 'Alla stjärnor och upplåsta nivåer försvinner. Det går inte att ångra.',
+    nollstallJa: 'Nollställ',
+    avbryt: 'Avbryt',
+    nollstallt: 'Framstegen är nollställda.',
+    version: (v: string) => `Version ${v}`,
+  },
+
+  grattis: {
+    logotyp: 'Fylgia',
+    rubrik: 'Du klarade hela spelet.',
+    underrubrik: 'Grattis!',
+    text: 'Fylgia söker ambitiösa jurister som du. Sök jobb hos oss.',
+    sokJobb: 'Sök jobb hos Fylgia',
+    tillKartan: 'Tillbaka till kartan',
+    stjarnor: (antal: string, max: number) => `${antal} av ${max} stjärnor`,
+    /** Den lilla knappen på kartan när spelet är klarat. */
+    kartknapp: 'Du klarade hela spelet',
   },
 
   karta: {
@@ -91,8 +119,7 @@ export const text = {
     kopierat: 'Kopierat!',
     delaText: (stjarnor: string, max: number) =>
       `Jag klarade Före fallet med ${stjarnor} av ${max} stjärnor. Klarar du dig bättre i Högsta domstolen?`,
-    karriarText: 'Gillar du det här mer än tentaplugget? Fylgia söker notarier och biträdande jurister.',
-    karriarKnapp: 'Se lediga jobb',
+    fortsatt: 'Fortsätt',
     nasta: 'Säsong 2 kommer',
   },
 

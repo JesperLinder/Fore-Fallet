@@ -7,12 +7,12 @@ import { BasScen } from './BaseScene';
 import { avstand, farg, radie } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
-import { allaNivaer, arUpplast, maxTotalaStjarnor } from '../core/levels';
+import { allaNivaer, arUpplast, maxTotalaStjarnor, spelKlarat } from '../core/levels';
 import type { Niva, NivaPlatshallare } from '../core/levelTypes';
 import { framsteg } from '../core/progress';
 import { skapaText } from '../ui/text';
 import { fyllStjarna, streckadRam } from '../ui/shapes';
-import { ikonKnapp, ritaTillbaka, ritaLjud } from '../ui/Button';
+import { ikonKnapp, ritaTillbaka, ritaLjud, Knapp } from '../ui/Button';
 import { stjarnRad } from '../ui/Stars';
 import { marke } from '../ui/Badge';
 import { DragScroll } from '../ui/DragScroll';
@@ -46,6 +46,7 @@ export class MapScene extends BasScen {
       y += KORT_H + KORT_MELLANRUM;
     });
     y = this.ritaInforuta(y + 40);
+    if (spelKlarat()) y = this.ritaGrattisknapp(y + avstand.m);
     if (testlage) y = testknapparKarta(this, y + avstand.l, () => this.scene.restart());
 
     this.scroll = new DragScroll(this, y + avstand.xxl);
@@ -155,6 +156,19 @@ export class MapScene extends BasScen {
       if (arUpplast(niva)) this.bytTill('Level', { id: niva.id });
       else this.skaka(kort);
     });
+  }
+
+  /** Liten knapp till grattisskärmen, när hela spelet är klarat. */
+  private ritaGrattisknapp(y: number): number {
+    const h = 44;
+    const k = new Knapp(this, MITT_X, y + h / 2, text.grattis.kartknapp, { bredd: KORT_B, hojd: h, variant: 'konturLjus', kanTryckas: () => !this.scroll.arDrag() }, () =>
+      this.bytTill('Grattis'),
+    );
+    const g = this.add.graphics();
+    fyllStjarna(g, 0, 0, 16, farg.lila);
+    k.addAt(g, 1);
+    g.setX(-k.width / 2 + 24);
+    return y + h;
   }
 
   private ritaInforuta(y: number): number {

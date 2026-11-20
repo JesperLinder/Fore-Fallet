@@ -1,15 +1,21 @@
-/** Titelskärmen: Fylgia-logotyp, stor lila stjärna, spelets namn och knappen "Spela". */
+/**
+ * Startskärmen: Fylgia uppe till vänster, stor lila fyruddig stjärna som långsamt roterar (ett varv på 20 s),
+ * "Före fallet", "Ett prejudikatspel" och raden om fylgian. "Spela" tar en ny spelare direkt till första
+ * nivån, annars till kartan. "Om spelet" öppnar Om-skärmen.
+ */
 import Phaser from 'phaser';
 import { BasScen } from './BaseScene';
 import { avstand, farg } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
+import { allaNivaer } from '../core/levels';
+import { framsteg } from '../core/progress';
 import { text } from '../config/strings';
 import { skapaText } from '../ui/text';
 import { fyllStjarna, streckadLinje } from '../ui/shapes';
 import { Knapp } from '../ui/Button';
 import { logotyp } from '../ui/Logo';
 
-const STJARNA_Y = 300;
+const STJARNA_Y = 270;
 
 export class TitleScene extends BasScen {
   constructor() {
@@ -23,17 +29,24 @@ export class TitleScene extends BasScen {
 
     this.ritaEmblem();
 
-    skapaText(this, MITT_X, 404, text.titel.overrubrik, 'overrubrik', 'guld', { origo: [0.5, 0.5], storlek: 13 });
-    skapaText(this, MITT_X, 446, text.titel.rubrik, 'jatte', 'beige', { origo: [0.5, 0.5] });
-    skapaText(this, MITT_X, 516, text.titel.underrubrik, 'ingress', 'beige', {
+    skapaText(this, MITT_X, 470, text.titel.rubrik, 'jatte', 'beige', { origo: [0.5, 0.5] });
+    skapaText(this, MITT_X, 520, text.titel.underrubrik, 'ingress', 'beige', { origo: [0.5, 0.5], storlek: 22 });
+    skapaText(this, MITT_X, 584, text.titel.rad, 'brod', 'beige', {
       origo: [0.5, 0.5],
-      bredd: 250,
+      bredd: 260,
       justering: 'center',
     });
 
-    new Knapp(this, MITT_X, 700, text.titel.spela, { bredd: BREDD - avstand.sida * 2 - 8, hojd: 56, variant: 'guld' }, () =>
-      this.bytTill('Map'),
-    );
+    const b = BREDD - avstand.sida * 2 - 8;
+    new Knapp(this, MITT_X, 690, text.titel.spela, { bredd: b, hojd: 56, variant: 'guld' }, () => this.spela());
+    new Knapp(this, MITT_X, 758, text.titel.omSpelet, { bredd: b, hojd: 56, variant: 'konturMork' }, () => this.bytTill('Om'));
+  }
+
+  /** En ny spelare (inga sparade resultat) går direkt till första nivån, andra till kartan. */
+  private spela(): void {
+    const ny = allaNivaer.every((n) => !framsteg.arKlar(n.id));
+    if (ny) this.bytTill('Level', { id: allaNivaer[0].id });
+    else this.bytTill('Map');
   }
 
   /** Den stora stjärnan med ringar runt, som i mockupen. */
@@ -61,17 +74,11 @@ export class TitleScene extends BasScen {
       repeat: -1,
       onUpdate: () => prick.setPosition(MITT_X + Math.cos(bana.v) * 122, STJARNA_Y + Math.sin(bana.v) * 122),
     });
-    this.add.graphics().fillStyle(farg.guld, 1).fillTriangle(103, 376, 119, 376, 111, 389);
+    this.add.graphics().fillStyle(farg.guld, 1).fillTriangle(103, STJARNA_Y + 76, 119, STJARNA_Y + 76, 111, STJARNA_Y + 89);
 
     const stjarna = this.add.graphics({ x: MITT_X, y: STJARNA_Y });
     fyllStjarna(stjarna, 0, 0, 216, farg.lila);
-    this.tweens.add({
-      targets: stjarna,
-      scale: 1.03,
-      duration: 2600,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
+    // Ett varv på 20 sekunder.
+    this.tweens.add({ targets: stjarna, angle: 360, duration: 20000, repeat: -1 });
   }
 }

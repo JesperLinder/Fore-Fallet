@@ -19,6 +19,8 @@ interface Framsteg {
   guld?: Record<string, true>;
   /** Saknas = ljudet på. */
   ljud?: boolean;
+  /** Grattisskärmen har visats (efter första gången hela spelet klarats). */
+  grattisSett?: boolean;
   /** Formatversion. 2: halvvägsvinster sparas som hela stjärnor (tidigare halverade). */
   version?: number;
 }
@@ -124,6 +126,16 @@ export const framsteg = {
   nollstall(): void {
     const { ljud } = lasData();
     skrivData({ stjarnor: {}, ljud, version: 2 });
+  },
+
+  harSettGrattis(): boolean {
+    return lasData().grattisSett === true;
+  },
+
+  sattGrattisSett(): void {
+    const data = lasData();
+    data.grattisSett = true;
+    skrivData(data);
   },
 
   ljudPa(): boolean {

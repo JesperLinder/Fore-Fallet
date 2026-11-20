@@ -73,7 +73,7 @@ src/
   core/progress.ts        sparar stjärnor och ljudval (ENDA stället som rör lagringen: Preferences i appen, localStorage på webben)
   core/sound.ts           all ljud: effekter och musik med Web Audio (inga ljudfiler), huvudvolym, upplåsning på iOS
   core/scoring.ts         poäng → stjärnor
-  scenes/                 Boot, Title, Map, Level, Verdict (+ BaseScene)
+  scenes/                 Boot, Title, Map, Level, Verdict, Season, About (Om spelet), Congrats (Grattis) + BaseScene
   mechanics/              Slingshot.ts, Invaders.ts, Hybrid.ts, registry.ts, art.ts (figurer)
   mechanics/slingshot/    kastaren (launcher.ts: slangbella, sikte, flygning), flygmodell, bana, resultatrad
   mechanics/invaders/     brickornas rutnät, fallande objekt, HUD (tid, inforuta, mätare)
@@ -88,6 +88,27 @@ public/fonts/             typsnitten (woff2) med licenser (OFL-*.txt) och typsni
 public/assets/            Fylgias logotyp och symbol (SVG ur varumärkesmanualen)
 public/icon.svg           appikon/favicon, icon-1024.png är samma i 1024×1024 för iOS
 ```
+
+## Skärmarna
+
+- **Startskärmen** (`TitleScene`) har två knappar:
+  - **Spela**: en ny spelare utan sparade resultat går direkt till nivå 1, andra till kartan.
+  - **Om spelet**.
+
+  Den lila stjärnan roterar ett varv på 20 sekunder.
+- **Om spelet** (`AboutScene`) visar:
+  - spelets text och källor;
+  - länken "Integritetspolicy" (`lankar.integritet`);
+  - "Nollställ framsteg" med en bekräftelsefråga;
+  - versionsnumret, som hämtas från `package.json` vid bygget (`__VERSION__` i `vite.config.ts`).
+- **Säsongen klar** (`SeasonScene`, efter domslutet i nivå 10) har två knappar:
+  - **Dela resultat**, som delar länken `lankar.dela`;
+  - **Fortsätt**, som leder till grattisskärmen första gången hela spelet är klarat och annars till kartan.
+- **Grattis** (`CongratsScene`) visas när alla tio nivåer har minst en stjärna (halvvägsvinst räknas).
+  - Den kan också nås från kartan via knappen "Du klarade hela spelet" under listan.
+  - Stjärnan skalas upp från noll, och 36 guldkonfettibitar faller en gång.
+  - "Sök jobb hos Fylgia" öppnar `lankar.sokJobb` i telefonens webbläsare.
+- Alla länkar finns i `src/config/links.ts`.
 
 ## Gemensamt gränssnitt i nivåerna
 
@@ -146,7 +167,7 @@ Uppmätt i Chromium i alla tio nivåer:
 | Med processorn strypt 4 gånger ("äldre telefon") | cirka 4–13 ms, inom 16,7 ms för 60 bilder/s |
 | Fysikkroppar | högst 9 (nivå 10) |
 
-- Inga nivåer har partikeleffekter.
+- Inga nivåer har partikeleffekter. Den enda är konfettin på grattisskärmen: 36 bilder (en delad textur) som faller en gång och tas bort.
 - Skott, fallande objekt, block och kastade föremål tas bort när de lämnar skärmen eller är klara.
 - Antalet objekt är stabilt under spel; inga läckor hittades.
 - Nivå 2, 5 och 6 ritar mest (cirka 3 ms), nivå 7, 8 och 10 minst (cirka 1 ms).

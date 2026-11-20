@@ -1,6 +1,7 @@
 /**
  * Avslutningsskärmen för säsongen (efter domslutet i sista nivån): stor lila stjärna, totala stjärnor,
- * alla fall med stjärnor (tryck för att spela om), dela resultatet, Fylgias karriärruta och "Säsong 2 kommer".
+ * alla fall med stjärnor (tryck för att spela om), dela resultatet, "Fortsätt" och "Säsong 2 kommer".
+ * "Fortsätt" leder till grattisskärmen första gången hela spelet är klarat, annars till kartan.
  */
 import Phaser from 'phaser';
 import { BasScen } from './BaseScene';
@@ -8,14 +9,13 @@ import { avstand, farg, radie } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
 import { lankar } from '../config/links';
-import { allaNivaer, arUpplast, maxTotalaStjarnor } from '../core/levels';
+import { allaNivaer, arUpplast, maxTotalaStjarnor, spelKlarat } from '../core/levels';
 import { framsteg } from '../core/progress';
 import { skapaText } from '../ui/text';
 import { fyllStjarna } from '../ui/shapes';
 import { ikonKnapp, ritaTillbaka, Knapp } from '../ui/Button';
 import { stjarnRad } from '../ui/Stars';
 import { DragScroll } from '../ui/DragScroll';
-import { lankKnapp } from '../ui/LinkButton';
 import { pratbubbla } from '../ui/Badge';
 
 const X0 = avstand.sida;
@@ -41,7 +41,7 @@ export class SeasonScene extends BasScen {
 
     let y = this.ritaLista(380);
     y = this.ritaDela(y + avstand.l);
-    y = this.ritaKarriar(y + avstand.l);
+    y = this.ritaFortsatt(y + avstand.m);
     skapaText(this, MITT_X, y + 40, text.sasong.nasta, 'overrubrik', 'beige', { origo: [0.5, 0.5], storlek: 13 });
     this.scroll = new DragScroll(this, y + 80);
   }
@@ -100,16 +100,12 @@ export class SeasonScene extends BasScen {
     }
   }
 
-  /** Lila ruta med karriärtexten och en knapp till karriärsidan. */
-  private ritaKarriar(y: number): number {
-    const t = skapaText(this, X0 + 62, y + 20, text.sasong.karriarText, 'brod', 'morkgron', { bredd: INNER_B - 62 - 20, storlek: 14 });
-    const knappY = t.y + t.height + 16;
-    const kh = 48;
-    const h = knappY - y + kh + 20;
-    const g = this.add.graphics().setDepth(-1);
-    g.fillStyle(farg.lila, 1).fillRoundedRect(X0, y, INNER_B, h, radie.l);
-    fyllStjarna(g, X0 + 32, y + 40, 26, farg.morkgron);
-    lankKnapp(this, X0 + 62 + (INNER_B - 62 - 20) / 2, knappY + kh / 2, text.sasong.karriarKnapp, { bredd: INNER_B - 62 - 20, hojd: kh, variant: 'mork' }, lankar.karriar);
+  /** "Fortsätt": grattisskärmen första gången hela spelet är klarat, annars kartan. */
+  private ritaFortsatt(y: number): number {
+    const h = 56;
+    new Knapp(this, MITT_X, y + h / 2, text.sasong.fortsatt, { bredd: INNER_B, hojd: h, variant: 'konturMork', kanTryckas: () => !this.scroll?.arDrag() }, () =>
+      this.bytTill(spelKlarat() && !framsteg.harSettGrattis() ? 'Grattis' : 'Map'),
+    );
     return y + h;
   }
 }

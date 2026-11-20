@@ -59,3 +59,9 @@ export function nastaNiva(id: string): NivaPlatshallare | Niva | undefined {
 export function maxTotalaStjarnor(): number {
   return allaNivaer.length * 3;
 }
+
+/** Hela spelet är klarat: alla nivåer har minst en stjärna (en halvvägsvinst räknas som klarad). */
+export function spelKlarat(): boolean {
+  return allaNivaer.every((n) => arGodkand(n));
+}
+

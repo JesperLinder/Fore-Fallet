@@ -8,6 +8,8 @@ import { MapScene } from './scenes/MapScene';
 import { LevelScene } from './scenes/LevelScene';
 import { VerdictScene } from './scenes/VerdictScene';
 import { SeasonScene } from './scenes/SeasonScene';
+import { AboutScene } from './scenes/AboutScene';
+import { CongratsScene } from './scenes/CongratsScene';
 import { laasUppLjud, ljudTillstand, pausaLjud } from './core/sound';
 
 const spel = new Phaser.Game({
@@ -25,7 +27,7 @@ const spel = new Phaser.Game({
   // DOM-lager ovanpå canvasen, för riktiga länkar (Safari öppnar bara nya flikar från riktiga länktryck).
   dom: { createContainer: true },
   physics: { default: 'matter' },
-  scene: [BootScene, TitleScene, MapScene, LevelScene, VerdictScene, SeasonScene],
+  scene: [BootScene, TitleScene, MapScene, LevelScene, VerdictScene, SeasonScene, AboutScene, CongratsScene],
 });
 
 // iOS släpper bara fram ljud som startas inne i ett tryck. Lås upp vid första (och varje) tryck – direkt i
