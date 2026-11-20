@@ -72,3 +72,38 @@ export function forhandsvisning(
   }
   return punkter;
 }
+
+/** Matters accelerationsskala: gravitation g ger g * 0.001 * (1000/60)² punkter per steg² vid 60 steg/s. */
+const MATTER_G = 0.001 * (1000 / 60) ** 2;
+
+/**
+ * Sidovy: punkter längs kastbågen med gravitation och luftmotstånd, samma integration som Matter
+ * (hastighet = hastighet · (1 − luft) + g, position += hastighet). Slutar när bågen når marken.
+ */
+export function forhandsvisningSida(
+  startX: number,
+  startY: number,
+  v0: Hastighet,
+  inst: KastInstallningar,
+  varN = 3,
+): { x: number; y: number }[] {
+  const sida = inst.sidvy;
+  if (!sida) return [];
+  const g = sida.gravitation * MATTER_G;
+  const punkter: { x: number; y: number }[] = [];
+  let { vx, vy } = v0;
+  let x = startX;
+  let y = startY;
+  for (let i = 1; i <= 240; i++) {
+    vx *= 1 - inst.friktion.luft;
+    vy = vy * (1 - inst.friktion.luft) + g;
+    x += vx;
+    y += vy;
+    if (y >= sida.mark) {
+      punkter.push({ x, y: sida.mark });
+      break;
+    }
+    if (i % varN === 0) punkter.push({ x, y });
+  }
+  return punkter;
+}

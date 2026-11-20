@@ -94,11 +94,11 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | `stjarnkrav` | krav för 1, 2 och 3 stjärnor: `maxMisstag`, `tidKvarOver`, `minMatare`, `maxDekorForlorade`, `maxAntal` (invaders), `maxForsok`, `maxFallor` (hybrid) |
 | `tema` | `"mork"` för mörk bakgrund (ljusa rubriker) |
 | `bana.lager` | bakgrundens färglager uppifrån och ner |
-| `slangbella` | antal skott, kraft, friktion, vind/slice (valfritt `vind.variation` = slumpad per skott), `siktlinje` (andel av banan som visas, 0–1), spelplan, rubriker i resultatraden |
+| `slangbella` | antal skott, kraft, friktion, valfri vind/slice (`vind.variation` = slumpad per skott), `siktlinje` (andel av banan som visas, 0–1), spelplan, rubriker i resultatraden (valfria). Med `sidvy` och fysikblock: se "Slangbella med fysikblock" nedan. Mall: `src/levels/_mall-slingshot.json` |
 | `invaders` | spelare, skott, brickor, fångstobjekt, skydd, tid, mätare, vinst- och förlustvillkor (se nedan) |
 | `hybrid` | kastfysik, projektiler, mål, studsyta, fiender och faragräns (se nedan) |
 | `forlust` | rubrik (och valfria orsakstexter) på förlustskärmen |
-| `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` (valfritt `b`/`h`), `text` |
+| `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` (valfritt `b`/`h`), `text`, och i sidovy `block` (fysikblock) och `plattform` |
 | `domslut` | `rubrik`, `underrubrik` (valfri kursiv rad), `text` (valfri), `domskal` (3 st), `fylgiaruta` (lila ruta, bara Fylgia-mål), `lankTillFallet`, `utfall` per antal stjärnor, och `vunnet`/`inteVunnet` för halvvägsvinst (utan `inteVunnet` visas bara Vunnet-rutan, i full bredd) |
 
 Objekt med `utseende` (t.ex. `"bil"`, `"golfboll"`) hämtar figuren från `src/mechanics/art.ts`.
@@ -239,6 +239,61 @@ medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stä
 
 **Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio. Ljudet slås av och på med högtalarknappen på kartan.
 
+### Slangbella med fysikblock (sidovy)
+
+Nivå 1 ses uppifrån. Med `slangbella.sidvy` ses banan i stället från sidan, med riktig gravitation: projektilen är en
+vanlig Matter-kropp som studsar mot marken, och objekt av typen `block` är fysikblock som kan staplas, välta och
+falla. Koden finns i `mechanics/slingshot/blocks.ts`; kastet och siktlinjen (med gravitationen inräknad) i
+`slingshot/launcher.ts` och `slingshot/flight.ts`. Utan `sidvy` fungerar slangbellan exakt som förut.
+
+- **Stillhet vid start:** blocken sover tills projektilen träffar ett block. Då väcks alla, så att inget svävar kvar.
+- **Nedslaget:** ett block räknas som nedslaget när dess mittpunkt hamnat under `nedLinje`, lämnat sin `plattform`
+  (utanför dess bredd eller under dess överkant) eller åkt utanför skärmen.
+- **Vinst:** `vinst` är en lista där alla villkor måste gälla: `"alla-block"` (alla block med `mal: true`) och/eller
+  `"block:<id>"` (ett visst block). Efter varje skott vinner man så fort villkoren gäller; annars väntar spelet tills
+  blocken legat stilla en stund. Tar skotten slut innan är nivån förlorad (orsak `skott-slut`).
+- **Stjärnor:** `stjarnkrav` med `maxForsok` (använda skott) och `minAntal`/`maxAntal` (block med `raknas`).
+- **Papper:** `papper: true` ger högt luftmotstånd, lätt rotation och sidodrift när blocket faller, och prassel vid träff.
+  `landningsljud: "klonk"` spelas när ett nedslaget block slår i marken eller en plattform.
+
+Nivå 7 (Elräkningen) i förkortad form:
+
+```json
+"tema": "mork",
+"stjarnkrav": { "tre": { "maxForsok": 1, "minAntal": { "matare": 1 } }, "tva": { "maxForsok": 2 }, "en": {} },
+"bana": { "lager": [{ "farg": "morkgron", "topp": 0 }, { "farg": "gron", "topp": 668 }] },
+"slangbella": {
+  "antal": 3, "projektil": "ansvarsstjarna", "projektilNamn": "Ansvarsstjärnan",
+  "maxDrag": 105, "kraft": 0.1, "friktion": { "luft": 0.004, "mark": 0.09 }, "flygtid": { "min": 22, "max": 50 },
+  "siktlinje": 0.45, "spelplan": { "x": 0, "y": 90, "b": 390, "h": 754 },
+  "sidvy": { "gravitation": 1, "mark": 668, "radie": 11, "vikt": 0.011 },
+  "raknare": { "rubrik": "Efterdebitering", "text": "{kvar} år" },
+  "infotext": "Elbolaget har fakturerat för lite i flera år. …",
+  "tipsUnderSpel": true,
+  "vinst": ["alla-block"],
+  "nedLinje": 640
+},
+"objekt": [
+  { "typ": "utslag", "x": 96, "y": 640 },
+  { "typ": "plattform", "id": "disk", "x": 296, "y": 646, "b": 84, "h": 44, "farg": "gron", "etikett": "FAKTURA ÅR 1–4" },
+  { "typ": "block", "x": 296, "y": 600, "b": 110, "h": 48, "vikt": 0.00015, "utseende": "faktura", "etikett": "År 1",
+    "mal": true, "papper": true, "plattform": "disk", "nedText": "År 1: borta" },
+  …,
+  { "typ": "block", "id": "elmatare", "x": 296, "y": 445, "b": 28, "h": 34, "vikt": 0.0015, "utseende": "elmatare",
+    "raknas": "matare", "plattform": "disk", "landningsljud": "klonk", "nedText": "Mätaren var deras ansvar" }
+],
+"forlust": { "rubrik": "Betala.", "orsaker": { "skott-slut": "Hela efterdebiteringen landade hos dig." } }
+```
+
+| Fält | Vad det gör |
+|---|---|
+| `sidvy` | `gravitation` (1 = jordlik), `mark` (markens överkant, y; en fast markkropp ligger under), valfritt `radie` och `vikt` (täthet) för projektilen. Siktlinjen räknar med gravitationen. |
+| `block` (objekt) | Mittpunkt `x`/`y`, `b`, `h`, `vikt` (täthet: papper ca 0.00015, metall ca 0.0015), `utseende` (art.ts), valfritt `id`, `etikett`, `mal`, `raknas`, `nedText`, `papper`, `landningsljud`, `plattform`. Blocken ska ligga exakt på varandra (y = underliggandes överkant − h/2). |
+| `plattform` (objekt) | Fast plattform med `id`, mittpunkt `x`/`y`, `b`, `h`, `farg` och valfri `etikett` under. |
+| `raknare` | Rutan uppe till höger; `{kvar}` = block med `mal` som står kvar. |
+| `infotext`, `tipsUnderSpel` | Uppdraget i en ruta under rubriken, och bara tipset (kort ruta) längst ner. |
+| `projektilNamn` | Text under slangbellan. Utan resultatrad (`hud`) visas kvarvarande skott som små projektiler bredvid slangbellan. |
+
 ### Hybridnivåer
 
 En hybridnivå kombinerar slangbellan med en formation som marscherar nedåt, som i invaders. Formationen går inte att
@@ -310,7 +365,7 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 
 ## Platshållare
 
-- **Nivå 7–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Nivå 8–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

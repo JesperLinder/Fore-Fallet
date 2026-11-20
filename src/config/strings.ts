@@ -48,6 +48,7 @@ export const text = {
       'matare-full': (matare: string) => `${matare}: mätaren är full.`,
       'tid-slut': () => 'Tiden tog slut innan allt var rättat.',
       botten: () => 'Brickorna hann ända ner.',
+      'skott-slut': () => 'Skotten tog slut.',
     },
   },
 

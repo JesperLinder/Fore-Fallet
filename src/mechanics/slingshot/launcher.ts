@@ -1,7 +1,8 @@
 /**
  * Kastaren: själva slangbellan, delad mellan slangbellenivåer och hybridnivåer.
  * Sköter dra-och-släpp, siktlinje, Matter-kroppen, flygning (vind, friktion), skugga och spår,
- * och meddelar mekaniken via återanrop när ett kast är klart. Vad som händer vid landning,
+ * och meddelar mekaniken via återanrop när ett kast är klart. Två lägen: uppifrån (standard, egen
+ * flygmodell med höjd och landning) och sidovy (inst.sidvy: Matter sköter gravitation och studsar). Vad som händer vid landning,
  * poäng och hinder bestämmer mekaniken som använder den.
  */
 import Phaser from 'phaser';
@@ -9,7 +10,7 @@ import { farg, type FargNamn } from '../../config/theme';
 import type { KastInstallningar, Niva } from '../../core/levelTypes';
 import { spela } from '../../core/sound';
 import { ritaFigur } from '../art';
-import { antalFlygsteg, forhandsvisning, hojd, nastaHastighet } from './flight';
+import { antalFlygsteg, forhandsvisning, forhandsvisningSida, hojd, nastaHastighet } from './flight';
 
 export type MatterKropp = MatterJS.BodyType;
 export type KastSlut = 'ute' | 'stannat';
@@ -17,6 +18,10 @@ export type KastSlut = 'ute' | 'stannat';
 const MIN_DRAG = 14;
 const STOPPFART = 0.08;
 const MAX_STEG = 900;
+/** Sidovy: kastet är slut när projektilen varit långsammare än så här i så många steg i rad, eller efter MAX_STEG_SIDA. */
+const VILA_FART = 0.25;
+const VILA_STEG = 30;
+const MAX_STEG_SIDA = 420;
 export const DJUP_KAST = { landad: 2, bage: 3, band: 4, skugga: 4, projektil: 5, sikte: 6, popup: 20 };
 
 export interface Kast {
@@ -24,6 +29,8 @@ export interface Kast {
   steg: number;
   flygsteg: number;
   styrka: number;
+  /** Sidovy: antal steg i rad som projektilen varit nästan stilla. */
+  stilla?: number;
 }
 
 export interface KastareVal {
@@ -158,7 +165,7 @@ export class Kastare {
     if (this.drag.length() < MIN_DRAG) return;
     const styrka = this.drag.length() / inst.maxDrag;
     const v0 = { vx: -this.drag.x * inst.kraft, vy: -this.drag.y * inst.kraft };
-    const hela = forhandsvisning(x, y, v0, inst, styrka);
+    const hela = inst.sidvy ? forhandsvisningSida(x, y, v0, inst) : forhandsvisning(x, y, v0, inst, styrka);
     // Nivån kan korta siktlinjen så att man inte ser var projektilen landar.
     const andel = Phaser.Math.Clamp(inst.siktlinje ?? 1, 0.05, 1);
     const punkter = hela.slice(0, Math.max(1, Math.ceil(hela.length * andel)));
@@ -184,6 +191,21 @@ export class Kastare {
     const { x, y } = this.val.utslag;
     const inst = this.val.inst;
     const styrka = drag.length() / inst.maxDrag;
+    if (inst.sidvy) {
+      // Sidovy: en vanlig kropp som Matter flyttar (gravitation, luftmotstånd, studs).
+      const kropp = this.scene.matter.add.circle(x, y, inst.sidvy.radie ?? 10, {
+        label: 'projektil',
+        density: inst.sidvy.vikt ?? 0.004,
+        restitution: 0.3,
+        friction: 0.4,
+        frictionAir: inst.friktion.luft,
+      });
+      this.scene.matter.body.setVelocity(kropp, { x: -drag.x * inst.kraft, y: -drag.y * inst.kraft });
+      this.kast = { kropp, steg: 0, flygsteg: 0, styrka, stilla: 0 };
+      this.spar.clear();
+      this.val.vidSkott?.(this.kast);
+      return;
+    }
     const kropp = this.scene.matter.add.circle(x, y, 7, {
       label: 'projektil',
       restitution: 0.5,
@@ -205,6 +227,7 @@ export class Kastare {
       const k = this.kast;
       if (!k) return;
       k.steg += 1;
+      if (this.val.inst.sidvy) return; // sidovy: Matter sköter rörelsen
       const iLuften = k.steg <= k.flygsteg;
       const { x, y } = k.kropp.position;
       const markfriktion = this.val.markfriktion(x, y);
@@ -222,6 +245,14 @@ export class Kastare {
       if (this.kast !== k) return; // vidSteg kan ha avslutat kastet
       const fart = Math.hypot(k.kropp.velocity.x, k.kropp.velocity.y);
       const plan = this.val.inst.spelplan;
+      if (this.val.inst.sidvy) {
+        // Över skärmen är tillåtet (bågen kan gå högt); ute är bara åt sidorna och nedåt.
+        const uteSida = x < plan.x - 20 || x > plan.x + plan.b + 20 || y > plan.y + plan.h;
+        k.stilla = fart < VILA_FART ? (k.stilla ?? 0) + 1 : 0;
+        if (uteSida) this.avsluta(k, 'ute');
+        else if (k.stilla >= VILA_STEG || k.steg > MAX_STEG_SIDA) this.avsluta(k, 'stannat');
+        return;
+      }
       const ute = x < plan.x || x > plan.x + plan.b || y < plan.y || y > plan.y + plan.h;
       if (ute) this.avsluta(k, 'ute');
       else if ((k.steg > k.flygsteg && fart < STOPPFART) || k.steg > MAX_STEG) this.avsluta(k, 'stannat');
@@ -238,6 +269,11 @@ export class Kastare {
   }
 
   private ritaFlygning(k: Kast, x: number, y: number): void {
+    if (this.val.inst.sidvy) {
+      this.projektil.setPosition(x, y).setRotation(k.kropp.angle);
+      if (k.steg % 4 === 0) this.spar.fillStyle(farg.guld, 1).fillCircle(x, y, 1.4);
+      return;
+    }
     const h = hojd(k.steg, k.flygsteg, k.styrka);
     this.projektil.setPosition(x, y - h).setScale(1 + h / 70);
     this.skugga.clear();
@@ -251,7 +287,7 @@ export class Kastare {
     this.scene.matter.world.remove(k.kropp);
     this.kast = null;
     this.skugga.clear();
-    this.projektil.setScale(1).setVisible(false);
+    this.projektil.setScale(1).setRotation(0).setVisible(false);
     this.val.vidSlut(k, x, y, orsak);
   }
 

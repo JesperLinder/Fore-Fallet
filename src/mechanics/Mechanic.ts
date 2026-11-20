@@ -11,7 +11,7 @@ export interface MekanikResultat {
   /** Antal misstag och sekunder kvar, för nivåer med stjarnkrav. */
   misstag?: number;
   tidKvar?: number;
-  /** Antal försök och fällor, för nivåer med stjarnkrav (hybrid). */
+  /** Antal försök (hybrid: kast med vinnaren, slangbella med block: använda skott) och fällor (hybrid). */
   forsok?: number;
   fallor?: number;
   /** Procent kvar på mätaren (invaders), för stjarnkrav.minMatare. */

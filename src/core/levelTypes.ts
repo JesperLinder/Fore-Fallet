@@ -66,9 +66,11 @@ export interface StjarnKrav {
   maxDekorForlorade?: number;
   /** Högst så här många i namngivna räknare (invaders: onHit/onPass med "raknas"), t.ex. { "missad": 1 }. */
   maxAntal?: Record<string, number>;
+  /** Minst så här många i namngivna räknare, t.ex. { "matare": 1 } (slangbella: block med "raknas"). */
+  minAntal?: Record<string, number>;
 }
 
-export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten';
+export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten' | 'skott-slut';
 
 export interface Forlust {
   rubrik: string;
@@ -187,7 +189,50 @@ export interface TextObjekt extends BasObjekt {
   stil?: 'overrubrik' | 'liten' | 'rubrik';
 }
 
+/**
+ * Fysikblock (slangbella i sidovy): en vanlig Matter-kropp som kan staplas, välta och falla.
+ * x, y = mittpunkt. Blocken sover tills något träffar dem, så att de ligger helt still vid start.
+ */
+export interface BlockObjekt extends BasObjekt {
+  typ: 'block';
+  /** Valfritt namn, för vinstvillkoret "block:<id>" och plattformar. */
+  id?: string;
+  b: number;
+  h: number;
+  /** Täthet (Matter density). Papper ca 0.0002, trä ca 0.001, metall ca 0.003. */
+  vikt: number;
+  /** Figur i art.ts, t.ex. "faktura" eller "elmatare". */
+  utseende: string;
+  /** Text på blocket, t.ex. "År 1". */
+  etikett?: string;
+  /** Räknas i räknaren och i vinstvillkoret "alla-block". */
+  mal?: boolean;
+  /** Räknas i en namngiven räknare när blocket slagits ned, för stjarnkrav.minAntal/maxAntal. */
+  raknas?: string;
+  /** Pratbubbla när blocket slagits ned, t.ex. "År 3: borta". */
+  nedText?: string;
+  /** Fladdrar som papper när det faller: lätt rotation och sidodrift. Ger också prassel vid träff. */
+  papper?: boolean;
+  /** Ljud när blocket landar efter att ha slagits ned, t.ex. "klonk". */
+  landningsljud?: 'klonk';
+  /** Plattformen (id) blocket står på. Lämnar blocket plattformen räknas det som nedslaget. */
+  plattform?: string;
+}
+
+/** Statisk plattform som block kan stå på (sidovy). x, y = mittpunkt. */
+export interface PlattformObjekt extends BasObjekt {
+  typ: 'plattform';
+  id: string;
+  b: number;
+  h: number;
+  farg: FargNamn;
+  /** Valfri text under plattformen, t.ex. "FAKTURA ÅR 1–4". */
+  etikett?: string;
+}
+
 export type NivaObjekt =
+  | BlockObjekt
+  | PlattformObjekt
   | UtslagObjekt
   | MalObjekt
   | HinderObjekt
@@ -226,6 +271,19 @@ export interface KastInstallningar {
   siktlinje?: number;
   /** Den del av skärmen där projektilen är i spel. Utanför = ute. */
   spelplan: { x: number; y: number; b: number; h: number };
+  /**
+   * Sidovy (valfritt): banan ses från sidan med riktig gravitation, och projektilen är en vanlig Matter-kropp
+   * som studsar mot marken och fysikblock. Utan sidvy ses banan uppifrån (som nivå 1 och 3).
+   */
+  sidvy?: {
+    /** Gravitation nedåt (Matter, 1 = jordlik). */
+    gravitation: number;
+    /** Markens överkant (y). Under den finns en fast markkropp. */
+    mark: number;
+    /** Projektilens radie och täthet (standard 10 och 0.004). */
+    radie?: number;
+    vikt?: number;
+  };
 }
 
 export interface SlangbellaInstallningar extends KastInstallningar {
@@ -233,10 +291,24 @@ export interface SlangbellaInstallningar extends KastInstallningar {
   antal: number;
   /** Utseende på projektilen (figur i art.ts). */
   projektil: string;
-  /** Sidvind/slice (krävs för slangbellan, eftersom vindindikatorn visas). */
-  vind: NonNullable<KastInstallningar['vind']>;
-  /** Rubriker i resultatraden. */
-  hud: { matare: string; projektiler: string; kostnad: string };
+  /** Valfritt namn under slangbellan, t.ex. "Ansvarsstjärnan". */
+  projektilNamn?: string;
+  /** Rubriker i resultatraden (nivå 1). Utelämnas = ingen resultatrad. */
+  hud?: { matare: string; projektiler: string; kostnad: string };
+  /** Räknare uppe till höger för block med "mal", t.ex. { "rubrik": "Efterdebitering", "text": "{kvar} år" }. */
+  raknare?: { rubrik: string; text: string };
+  /** Valfri ruta under rubriken med uppdraget. */
+  infotext?: string;
+  /** Längst ner visas bara Fylgia-tipset (kort ruta) i stället för uppdrag + tips. Passar ihop med infotext. */
+  tipsUnderSpel?: boolean;
+  /**
+   * Vinstvillkor för fysikblock (alla måste gälla): "alla-block" = alla block med "mal" nedslagna,
+   * "block:<id>" = ett visst block nedslaget. Med vinst är nivån förlorad om skotten tar slut innan (orsak "skott-slut").
+   * Utelämnas = nivån tar slut efter sista skottet och stjärnorna räknas på poäng (som nivå 1).
+   */
+  vinst?: string[];
+  /** Block vars mittpunkt hamnar under den här linjen (y) räknas som nedslagna. */
+  nedLinje?: number;
 }
 
 // ---------- Invaders ----------

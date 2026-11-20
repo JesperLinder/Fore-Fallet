@@ -1,0 +1,147 @@
+{
+  "id": "unikt-id",
+  "nummer": 0,
+  "titel": "Nivåns titel",
+  "referens": "NJA ÅÅÅÅ s. N",
+  "mekanik": "slingshot",
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Uppdraget, en eller två meningar.",
+  "fylgiaTips": "Fylgias tips: vad rättsfallet säger, kort.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxForsok": 1,
+      "minAntal": {
+        "bonus": 1
+      }
+    },
+    "tva": {
+      "maxForsok": 2
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      },
+      {
+        "farg": "gron",
+        "topp": 668
+      }
+    ]
+  },
+  "slangbella": {
+    "antal": 3,
+    "projektil": "ansvarsstjarna",
+    "projektilNamn": "Valfritt namn under slangbellan",
+    "maxDrag": 105,
+    "kraft": 0.1,
+    "friktion": {
+      "luft": 0.004,
+      "mark": 0.09
+    },
+    "flygtid": {
+      "min": 22,
+      "max": 50
+    },
+    "siktlinje": 0.45,
+    "spelplan": {
+      "x": 0,
+      "y": 90,
+      "b": 390,
+      "h": 754
+    },
+    "sidvy": {
+      "gravitation": 1,
+      "mark": 668,
+      "radie": 11,
+      "vikt": 0.011
+    },
+    "raknare": {
+      "rubrik": "Räknarens rubrik",
+      "text": "{kvar} kvar"
+    },
+    "infotext": "Valfri ruta under rubriken med uppdraget.",
+    "tipsUnderSpel": true,
+    "vinst": [
+      "alla-block"
+    ],
+    "nedLinje": 640
+  },
+  "objekt": [
+    {
+      "typ": "utslag",
+      "x": 96,
+      "y": 640
+    },
+    {
+      "typ": "plattform",
+      "id": "bord",
+      "x": 296,
+      "y": 646,
+      "b": 84,
+      "h": 44,
+      "farg": "gron",
+      "etikett": "Valfri text under plattformen"
+    },
+    {
+      "typ": "block",
+      "x": 296,
+      "y": 600,
+      "b": 110,
+      "h": 48,
+      "vikt": 0.00015,
+      "utseende": "faktura",
+      "etikett": "A",
+      "mal": true,
+      "papper": true,
+      "plattform": "bord",
+      "nedText": "Valfri text när blocket faller"
+    },
+    {
+      "typ": "block",
+      "x": 296,
+      "y": 555,
+      "b": 94,
+      "h": 42,
+      "vikt": 0.00015,
+      "utseende": "faktura",
+      "etikett": "B",
+      "mal": true,
+      "papper": true,
+      "plattform": "bord"
+    },
+    {
+      "typ": "block",
+      "id": "topp",
+      "x": 296,
+      "y": 517,
+      "b": 28,
+      "h": 34,
+      "vikt": 0.0015,
+      "utseende": "elmatare",
+      "raknas": "bonus",
+      "plattform": "bord",
+      "landningsljud": "klonk",
+      "nedText": "Valfri text"
+    }
+  ],
+  "forlust": {
+    "rubrik": "Rubrik på förlustskärmen",
+    "orsaker": {
+      "skott-slut": "Valfri text när skotten tar slut."
+    }
+  },
+  "domslut": {
+    "rubrik": "Rubrik",
+    "domskal": [
+      "Domskäl 1.",
+      "Domskäl 2.",
+      "Domskäl 3."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/AAAAsN"
+  }
+}

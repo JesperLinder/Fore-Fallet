@@ -34,6 +34,7 @@ function uppfyllt(k: StjarnKrav, r: MekanikResultat): boolean {
     (k.maxFallor === undefined || (r.fallor ?? 0) <= k.maxFallor) &&
     (k.minMatare === undefined || (r.matareKvar ?? 0) >= k.minMatare) &&
     (k.maxDekorForlorade === undefined || (r.dekorForlorade ?? 0) <= k.maxDekorForlorade) &&
-    Object.entries(k.maxAntal ?? {}).every(([namn, max]) => (r.antal?.[namn] ?? 0) <= max)
+    Object.entries(k.maxAntal ?? {}).every(([namn, max]) => (r.antal?.[namn] ?? 0) <= max) &&
+    Object.entries(k.minAntal ?? {}).every(([namn, min]) => (r.antal?.[namn] ?? 0) >= min)
   );
 }

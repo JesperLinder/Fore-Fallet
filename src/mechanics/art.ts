@@ -4,7 +4,7 @@
  */
 import Phaser from 'phaser';
 import { farg } from '../config/theme';
-import { streckadLinje } from '../ui/shapes';
+import { fyllStjarna, streckadLinje } from '../ui/shapes';
 
 /** f = valfri färg för figurer som kan färgas (t.ex. bilsiluett). */
 type Rita = (g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, f?: number) => void;
@@ -119,6 +119,30 @@ const figurer: Record<string, Rita> = {
   gasbubbla(g, x, y) {
     g.fillStyle(farg.guld, 1).fillCircle(x, y, 6);
     g.fillStyle(farg.ljusbeige, 0.6).fillCircle(x - 2, y - 2, 1.6);
+  },
+
+  /** Faktura (fysikblock): beige ark med mörka textrader. b/h = blockets storlek. */
+  faktura(g, x, y, b = 80, h = 40) {
+    g.fillStyle(farg.beige, 1).fillRect(x - b / 2, y - h / 2, b, h);
+    g.lineStyle(1.5, farg.morkgron, 1);
+    // Raderna i övre delen; nedre högra hörnet lämnas åt etiketten (t.ex. "År 1").
+    const rader = Math.max(1, Math.floor((h - 24) / 6) + 1);
+    for (let i = 0; i < rader; i++) {
+      const langd = (i === 0 ? 0.35 : i % 2 ? 0.5 : 0.3) * b;
+      g.lineBetween(x - b / 2 + 9, y - h / 2 + 9 + i * 6, x - b / 2 + 9 + langd, y - h / 2 + 9 + i * 6);
+    }
+  },
+
+  /** Elmätare i guld med mörk mätartavla. */
+  elmatare(g, x, y, b = 30, h = 36) {
+    g.fillStyle(farg.guld, 1).fillRoundedRect(x - b / 2, y - h / 2, b, h, 4);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x, y - h * 0.05, Math.min(b, h) * 0.3);
+    g.lineStyle(2, farg.guld, 1).lineBetween(x, y - h * 0.05, x + b * 0.15, y - h * 0.2);
+  },
+
+  /** Ansvarsstjärnan: Fylgias fyruddiga stjärna i lila (projektil). */
+  ansvarsstjarna(g, x, y) {
+    fyllStjarna(g, x, y, 26, farg.lila);
   },
 
   /** Platt ufo i lila (inget känt filmufo). */

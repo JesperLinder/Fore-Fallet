@@ -94,7 +94,8 @@ function byggInfo(scene: Phaser.Scene, info: NonNullable<InvadersInstallningar['
 }
 
 /** Längre text i en grön ruta under rubriken. Returnerar rutans underkant. */
-function byggInfotext(scene: Phaser.Scene, innehall: string, tema: 'ljus' | 'mork'): number {
+/** Ruta under rubriken med en längre text. Returnerar rutans underkant (y). Används även av slangbellan. */
+export function byggInfotext(scene: Phaser.Scene, innehall: string, tema: 'ljus' | 'mork'): number {
   const x0 = avstand.l;
   const b = BREDD - x0 * 2;
   const ljus = tema === 'ljus';

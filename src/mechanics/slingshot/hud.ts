@@ -1,6 +1,11 @@
-/** Resultatraden överst i en slangbellenivå: mätare, återstående skott och kostnad. Plus vindindikatorn. */
+/**
+ * Slangbellans HUD: resultatraden (mätare, skott, kostnad), vindindikatorn, räknaren för fysikblock
+ * och kön av kvarvarande skott bredvid slangbellan.
+ */
 import Phaser from 'phaser';
-import { avstand, css, farg } from '../../config/theme';
+import { avstand, css, farg, radie } from '../../config/theme';
+import { BREDD } from '../../config/display';
+import { ritaFigur } from '../art';
 import { text } from '../../config/strings';
 import type { KastInstallningar, SlangbellaInstallningar } from '../../core/levelTypes';
 import { StatKort, matare, prickar } from '../../ui/StatCard';
@@ -15,7 +20,7 @@ export interface SlangbellaHud {
   visaKostnad: (belopp: number) => void;
 }
 
-export function byggHud(scene: Phaser.Scene, inst: SlangbellaInstallningar): SlangbellaHud {
+export function byggHud(scene: Phaser.Scene, inst: SlangbellaInstallningar & { hud: NonNullable<SlangbellaInstallningar['hud']> }): SlangbellaHud {
   const x0 = avstand.l;
   const bMatare = 172;
   const bSkott = 76;
@@ -74,4 +79,33 @@ export function byggVindindikator(
     // Liten puls så att spelaren ser att vinden har ändrats.
     scene.tweens.add({ targets: behallare, scale: 1.08, duration: 120, yoyo: true });
   };
+}
+
+/** Räknaren uppe till höger för block med "mal", t.ex. "EFTERDEBITERING / 4 år". Returnerar en visa-funktion. */
+export function byggRaknare(scene: Phaser.Scene, r: NonNullable<SlangbellaInstallningar['raknare']>): (kvar: number) => void {
+  const hoger = BREDD - avstand.l - 56; // lämnar plats åt pausknappen
+  const rubrik = skapaText(scene, 0, 28, r.rubrik, 'overrubrik', 'beige', { origo: [0.5, 0], storlek: 10 });
+  const varde = skapaText(scene, 0, 42, '', 'rubrik', 'ljusbeige', { origo: [0.5, 0], storlek: 20 });
+  const g = scene.add.graphics();
+  scene.add.container(0, 0, [g, rubrik, varde]).setDepth(30);
+  return (kvar) => {
+    varde.setText(r.text.replace('{kvar}', String(kvar)));
+    const b = Math.max(rubrik.width, varde.width) + 28;
+    const x = hoger - b;
+    g.clear().fillStyle(farg.morkgron, 1).fillRoundedRect(x, 20, b, 54, radie.m);
+    g.lineStyle(1, farg.gron, 1).strokeRoundedRect(x, 20, b, 54, radie.m);
+    rubrik.setX(x + b / 2);
+    varde.setX(x + b / 2);
+  };
+}
+
+/** Kvarvarande skott som små projektiler bredvid slangbellan (när resultatraden saknas). */
+export function byggSkottko(scene: Phaser.Scene, utslag: { x: number; y: number }, figur: string, antal: number): (kvar: number) => void {
+  const figurer = Array.from({ length: antal }, (_, i) => {
+    const g = scene.add.graphics({ x: utslag.x + 52 + i * 22, y: utslag.y + 48 }).setDepth(4).setScale(0.6);
+    ritaFigur(g, figur, 0, 0);
+    return g;
+  });
+  // Den som ligger i slangbellan räknas inte: visa kvar − 1.
+  return (kvar) => figurer.forEach((g, i) => g.setVisible(i < kvar - 1));
 }

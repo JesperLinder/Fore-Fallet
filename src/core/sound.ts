@@ -4,8 +4,8 @@
  */
 import { framsteg } from './progress';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst';
-type Tonljud = Exclude<Ljud, 'pssst'>;
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk';
+type Tonljud = Exclude<Ljud, 'pssst' | 'prassel'>;
 
 interface Ton {
   /** Frekvens i Hz vid start och slut (glidning). */
@@ -34,6 +34,11 @@ const LJUD: Record<Tonljud, Ton[]> = {
   muu: [
     { fran: 150, till: 135, start: 0, langd: 0.22, form: 'sawtooth', volym: 0.05 },
     { fran: 135, till: 330, start: 0.2, langd: 0.55, form: 'sawtooth', volym: 0.035 },
+  ],
+  // Torrt "klonk": kort fyrkantston som faller, och en dov duns under.
+  klonk: [
+    { fran: 330, till: 160, start: 0, langd: 0.06, form: 'square', volym: 0.07 },
+    { fran: 110, till: 60, start: 0, langd: 0.12, form: 'triangle', volym: 0.25 },
   ],
   misstag: [{ fran: 180, till: 90, start: 0, langd: 0.28, form: 'sawtooth', volym: 0.07 }],
   vinst: [
@@ -64,6 +69,10 @@ export function spela(ljud: Ljud): void {
   const nu = ctx.currentTime;
   if (ljud === 'pssst') {
     spelaBrus(ctx, nu);
+    return;
+  }
+  if (ljud === 'prassel') {
+    spelaPrassel(ctx, nu);
     return;
   }
   for (const ton of LJUD[ljud]) {
@@ -97,6 +106,33 @@ function spelaBrus(ctx: AudioContext, t0: number): void {
   const forstarkning = ctx.createGain();
   forstarkning.gain.setValueAtTime(0.0001, t0);
   forstarkning.gain.exponentialRampToValueAtTime(0.12, t0 + 0.02);
+  forstarkning.gain.exponentialRampToValueAtTime(0.0001, t0 + langd);
+  kalla.connect(filter).connect(forstarkning).connect(ctx.destination);
+  kalla.start(t0);
+  kalla.stop(t0 + langd);
+}
+
+/** Pappersprassel: brus i korta, ojämna knaster genom ett bandpassfilter. */
+function spelaPrassel(ctx: AudioContext, t0: number): void {
+  const langd = 0.28;
+  const buffert = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * langd), ctx.sampleRate);
+  const data = buffert.getChannelData(0);
+  let knaster = 0;
+  for (let i = 0; i < data.length; i++) {
+    // Nytt knaster då och då; varje knaster klingar av snabbt.
+    if (Math.random() < 0.004) knaster = 0.6 + Math.random() * 0.4;
+    knaster *= 0.9985;
+    data[i] = (Math.random() * 2 - 1) * (0.15 + knaster);
+  }
+  const kalla = ctx.createBufferSource();
+  kalla.buffer = buffert;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(3200, t0);
+  filter.Q.setValueAtTime(0.8, t0);
+  const forstarkning = ctx.createGain();
+  forstarkning.gain.setValueAtTime(0.0001, t0);
+  forstarkning.gain.exponentialRampToValueAtTime(0.16, t0 + 0.01);
   forstarkning.gain.exponentialRampToValueAtTime(0.0001, t0 + langd);
   kalla.connect(filter).connect(forstarkning).connect(ctx.destination);
   kalla.start(t0);

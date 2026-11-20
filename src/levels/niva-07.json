@@ -4,5 +4,173 @@
   "titel": "Elräkningen",
   "referens": "NJA 1991 s. 3",
   "mekanik": "slingshot",
-  "fylgiaMal": false
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Elbolaget har fakturerat för lite i åratal. Nu vill de ha allt på en gång. Rasera tornet.",
+  "fylgiaTips": "Den som själv orsakat felet i faktureringen kan förlora rätten att ta igen det i efterhand.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxForsok": 1,
+      "minAntal": {
+        "matare": 1
+      }
+    },
+    "tva": {
+      "maxForsok": 2
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      },
+      {
+        "farg": "gron",
+        "topp": 668
+      }
+    ]
+  },
+  "slangbella": {
+    "antal": 3,
+    "projektil": "ansvarsstjarna",
+    "projektilNamn": "Ansvarsstjärnan",
+    "maxDrag": 105,
+    "kraft": 0.1,
+    "friktion": {
+      "luft": 0.004,
+      "mark": 0.09
+    },
+    "flygtid": {
+      "min": 22,
+      "max": 50
+    },
+    "siktlinje": 0.45,
+    "spelplan": {
+      "x": 0,
+      "y": 90,
+      "b": 390,
+      "h": 754
+    },
+    "sidvy": {
+      "gravitation": 1,
+      "mark": 668,
+      "radie": 11,
+      "vikt": 0.011
+    },
+    "raknare": {
+      "rubrik": "Efterdebitering",
+      "text": "{kvar} år"
+    },
+    "infotext": "Elbolaget har fakturerat för lite i flera år. Nu kommer hela smällen på en gång. Rasera fakturatornet – felet låg på deras sida.",
+    "tipsUnderSpel": true,
+    "vinst": [
+      "alla-block"
+    ],
+    "nedLinje": 640
+  },
+  "objekt": [
+    {
+      "typ": "utslag",
+      "x": 96,
+      "y": 640
+    },
+    {
+      "typ": "plattform",
+      "id": "disk",
+      "x": 296,
+      "y": 646,
+      "b": 84,
+      "h": 44,
+      "farg": "gron",
+      "etikett": "FAKTURA ÅR 1–4"
+    },
+    {
+      "typ": "block",
+      "x": 296,
+      "y": 600.0,
+      "b": 110,
+      "h": 48,
+      "vikt": 0.00015,
+      "utseende": "faktura",
+      "etikett": "År 1",
+      "mal": true,
+      "papper": true,
+      "plattform": "disk",
+      "nedText": "År 1: borta"
+    },
+    {
+      "typ": "block",
+      "x": 296,
+      "y": 555.0,
+      "b": 94,
+      "h": 42,
+      "vikt": 0.00015,
+      "utseende": "faktura",
+      "etikett": "År 2",
+      "mal": true,
+      "papper": true,
+      "plattform": "disk",
+      "nedText": "År 2: borta"
+    },
+    {
+      "typ": "block",
+      "x": 296,
+      "y": 515.0,
+      "b": 80,
+      "h": 38,
+      "vikt": 0.00015,
+      "utseende": "faktura",
+      "etikett": "År 3",
+      "mal": true,
+      "papper": true,
+      "plattform": "disk",
+      "nedText": "År 3: borta"
+    },
+    {
+      "typ": "block",
+      "x": 296,
+      "y": 479.0,
+      "b": 66,
+      "h": 34,
+      "vikt": 0.00015,
+      "utseende": "faktura",
+      "etikett": "År 4",
+      "mal": true,
+      "papper": true,
+      "plattform": "disk",
+      "nedText": "År 4: borta"
+    },
+    {
+      "typ": "block",
+      "id": "elmatare",
+      "x": 296,
+      "y": 445.0,
+      "b": 28,
+      "h": 34,
+      "vikt": 0.0015,
+      "utseende": "elmatare",
+      "raknas": "matare",
+      "plattform": "disk",
+      "landningsljud": "klonk",
+      "nedText": "Mätaren var deras ansvar"
+    }
+  ],
+  "forlust": {
+    "rubrik": "Betala.",
+    "orsaker": {
+      "skott-slut": "Hela efterdebiteringen landade hos dig."
+    }
+  },
+  "domslut": {
+    "rubrik": "Tornet föll",
+    "domskal": [
+      "En elleverantör hade i flera år fakturerat för betydligt mindre ström än kunden faktiskt använde.",
+      "Felet berodde på omständigheter som leverantören själv bar ansvaret för.",
+      "Den som har orsakat felet i faktureringen kan förlora rätten att kräva in mellanskillnaden i efterhand."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1991s3"
+  }
 }
