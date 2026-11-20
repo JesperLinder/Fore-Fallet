@@ -17,6 +17,8 @@ import { skapaText } from '../ui/text';
 import { tipsPanel } from '../ui/TipPanel';
 import { Knapp, ikonKnapp, ritaPaus } from '../ui/Button';
 import { marke } from '../ui/Badge';
+import { testlage } from '../debug/flaggor';
+import { testknapparNiva } from '../debug/Testpanel';
 
 export interface LevelData {
   id: string;
@@ -61,6 +63,9 @@ export class LevelScene extends BasScen {
     this.mekanik = skapaMekanik({ scene: this, niva, tips, avsluta: (r) => this.nivanKlar(r) });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.mekanik.forstor());
     if (niva.mellanstopp) this.visaMellanstopp(niva.mellanstopp);
+    if (testlage) {
+      testknapparNiva(this, niva, (d) => { this.mekanik.pausa(true); this.bytTill('Verdict', d); }, (o) => { this.mekanik.pausa(true); this.visaForlust(o); });
+    }
   }
 
   /** Svart skärm med en rad text i en sekund innan nivån visas (t.ex. "BOSS – NJA 1997 s. 660"). */

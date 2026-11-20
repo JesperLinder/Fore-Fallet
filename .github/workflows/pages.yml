@@ -28,7 +28,10 @@ jobs:
           cache: npm
       - run: npm ci
       # Typkontroll + bygge. --base gör att alla sökvägar pekar på /<repo>/.
+      # VITE_TESTLAGE=1: webbtestversionen har testläget (?debug=1). App-bygget (npm run build) har det inte.
       - run: npm run build -- --base=/${{ github.event.repository.name }}/
+        env:
+          VITE_TESTLAGE: '1'
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

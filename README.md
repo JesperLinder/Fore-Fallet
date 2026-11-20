@@ -14,11 +14,30 @@ npm run dev -- --host
 
 Övriga kommandon:
 
-- `npm run build`: typkontroll + produktionsbygge till `dist/`
+- `npm run build`: platshållarkontroll, typkontroll, produktionsbygge till `dist/` och en kontroll av att bygget saknar testläge
 - `npm run preview`: kör det byggda spelet lokalt
 - `npm run typecheck`: bara typkontroll
 
-Rensa sparade framsteg: kör `localStorage.removeItem('forefallet.framsteg.v1')` i webbläsarens konsol.
+Rensa sparade framsteg: kör `localStorage.removeItem('forefallet.framsteg.v1')` i webbläsarens konsol, eller använd testläget.
+
+## Testläge
+
+Lägg till `?debug=1` i adressen, t.ex. `http://localhost:5173/?debug=1` eller
+`https://jesperlinder.github.io/Fore-Fallet/?debug=1`. Då gäller följande:
+
+- Alla nivåer är upplåsta, och "TESTLÄGE" står under logotypen på kartan.
+- Längst ner i varje nivå finns knapparna **Vinst 3★**, **Vinst 1★** och **Förlust**. I nivå 5 heter de
+  **Halvvägsvinst 3★/1★**. Vinsterna sparas som vanliga resultat (3★ ger också guldstjärnan där den finns) och visar domslutet.
+  Förlust visar nivåns förlustskärm.
+- Under listan på kartan finns knappen **Nollställ framsteg**.
+
+Testläget styrs av en byggvariabel och finns bara i:
+
+- utvecklingsläget (`npm run dev`)
+- bygget för webbtest, `VITE_TESTLAGE=1` (GitHub Pages-arbetsflödet sätter den)
+
+Vanliga `npm run build`, som används för appen, tar bort all testkod (`src/debug/`). Sist i bygget kontrollerar
+`scripts/kolla-bygge.mjs` att ingen testkod följt med; annars avbryts bygget.
 
 ## Publicering på GitHub Pages
 
@@ -62,6 +81,7 @@ src/
   mechanics/common/       delat: formation.ts (marscherande rutnät), startPanel.ts (Starta-rutan)
   levels/                 en JSON-fil per nivå
   ui/                     knappar, text, stjärnor, paneler, märken, scroll
+  debug/                  testläget (?debug=1), finns bara i utvecklings-/webbtestbygget
   platform/openLink.ts    öppnar externa länkar (Capacitor Browser i appen, ny flik på webben)
 public/assets/            Fylgias logotyp och symbol (SVG ur varumärkesmanualen)
 public/icon.svg           appikon/favicon, icon-1024.png är samma i 1024×1024 för iOS
@@ -492,7 +512,7 @@ Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar
 ## Platshållartext
 
 Text inom hakparenteser, till exempel `[FYLLS I AV MÅLANSVARIG]`, räknas som platshållare. Den visas i vinrött på domslutet
-och ger en varning i webbläsarens konsol när spelet startar. Kontrollera alla nivåfiler med:
+och ger en varning i webbläsarens konsol när spelet startar. Kontrollera alla nivåfiler och texterna i `src/config/` med:
 
 ```bash
 npm run kolla-platshallare

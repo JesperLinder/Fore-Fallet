@@ -18,6 +18,8 @@ import { marke } from '../ui/Badge';
 import { DragScroll } from '../ui/DragScroll';
 import { logotyp } from '../ui/Logo';
 import { ljud, spela } from '../core/sound';
+import { testlage } from '../debug/flaggor';
+import { testknapparKarta } from '../debug/Testpanel';
 
 const LISTA_Y = 164;
 const KORT_H = 68;
@@ -44,6 +46,7 @@ export class MapScene extends BasScen {
       y += KORT_H + KORT_MELLANRUM;
     });
     y = this.ritaInforuta(y + 40);
+    if (testlage) y = testknapparKarta(this, y + avstand.l, () => this.scene.restart());
 
     this.scroll = new DragScroll(this, y + avstand.xxl);
   }

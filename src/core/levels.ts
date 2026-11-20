@@ -6,6 +6,7 @@ import type { Niva, NivaPlatshallare } from './levelTypes';
 import { framsteg } from './progress';
 import { hittaPlatshallare } from './placeholders';
 import { harMekanik } from '../mechanics/registry';
+import { testlage } from '../debug/flaggor';
 
 // Filer som börjar med _ (t.ex. _mall-invaders.json) är mallar och läses inte in.
 const moduler = import.meta.glob<NivaPlatshallare | Niva>(['../levels/*.json', '!../levels/_*.json'], {
@@ -38,11 +39,11 @@ export function arGodkand(niva: NivaPlatshallare | Niva): boolean {
   return (framsteg.stjarnor(niva.id) ?? 0) >= STJARNOR_FOR_NASTA;
 }
 
-/** En nivå är upplåst om den är spelbar och föregående nivå är godkänd. */
+/** En nivå är upplåst om den är spelbar och föregående nivå är godkänd (i testläget: alla spelbara). */
 export function arUpplast(niva: NivaPlatshallare | Niva): niva is Niva {
   const index = allaNivaer.indexOf(niva);
   const foregaende = allaNivaer[index - 1];
-  return arSpelbar(niva) && (!foregaende || arGodkand(foregaende));
+  return arSpelbar(niva) && (testlage || !foregaende || arGodkand(foregaende));
 }
 
 export function hamtaNiva(id: string): NivaPlatshallare | Niva | undefined {
