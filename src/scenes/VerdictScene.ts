@@ -109,8 +109,16 @@ export class VerdictScene extends BasScen {
     return this.add.container(x, y, [g]);
   }
 
-  /** "Vunnet" (mörkgrön) och "Inte vunnet" (streckad) sida vid sida. "Inte vunnet" startar om nivån. */
+  /**
+   * "Vunnet" (mörkgrön) och "Inte vunnet" (streckad) sida vid sida. "Inte vunnet" startar om nivån.
+   * Saknar nivån texten "inteVunnet" visas bara "Vunnet", i full bredd.
+   */
   private ritaVunnetRutor(niva: Niva, y: number): number {
+    if (!niva.domslut.inteVunnet) {
+      const vunnet = this.ruta(X0, y, INNER_B, text.domslut.vunnet, niva.domslut.vunnet ?? '', 'guld', 'beige');
+      this.add.graphics().setDepth(-1).fillStyle(farg.morkgron, 1).fillRoundedRect(X0, y, INNER_B, vunnet.h, radie.l);
+      return y + vunnet.h;
+    }
     const b = (INNER_B - avstand.m) / 2;
     const vunnet = this.ruta(X0, y, b, text.domslut.vunnet, niva.domslut.vunnet ?? '', 'guld', 'beige');
     const ix = X0 + b + avstand.m;

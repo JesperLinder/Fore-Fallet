@@ -41,6 +41,25 @@
       "fart": 1000
     },
     "brickor": {
+      "typer": {
+        "fel": {
+          "stil": "mork",
+          "skaBort": true,
+          "onHit": {
+            "effekt": "ta-bort",
+            "ersattTyp": "ratt"
+          }
+        },
+        "ratt": {
+          "stil": "ljus",
+          "smalTraff": 3,
+          "onHit": {
+            "effekt": "skaka",
+            "misstag": true,
+            "matare": 1
+          }
+        }
+      },
       "rader": [
         [
           {
@@ -139,10 +158,6 @@
       "namn": "Förtalsrisk",
       "steg": 4,
       "status": "Ensamansvar: på"
-    },
-    "misstag": {
-      "rattTraffad": 1,
-      "fangstMissad": 1
     },
     "info": [
       {

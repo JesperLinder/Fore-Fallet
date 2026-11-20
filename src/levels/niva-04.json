@@ -42,6 +42,41 @@
       "utseende": "stampelavtryck"
     },
     "brickor": {
+      "typer": {
+        "fel": {
+          "stil": "mork",
+          "skaBort": true,
+          "onHit": {
+            "effekt": "ta-bort"
+          },
+          "onPass": {
+            "matare": 50,
+            "text": "Bilen var inte säljarens"
+          },
+          "onPassDold": {
+            "matare": 25,
+            "text": "Du kollade inte registret"
+          }
+        },
+        "ratt": {
+          "stil": "ljus",
+          "smalTraff": 3,
+          "onHit": {
+            "effekt": "skaka",
+            "misstag": true,
+            "matare": 10,
+            "text": "Du tackade nej till en bra bil"
+          },
+          "onPass": {
+            "poang": 1,
+            "text": "Köpt!"
+          },
+          "onPassDold": {
+            "matare": 25,
+            "text": "Du kollade inte registret"
+          }
+        }
+      },
       "rader": [
         [
           {
@@ -130,31 +165,10 @@
       },
       "fastBredd": true
     },
-    "botten": {
-      "dold": {
-        "matare": 25,
-        "text": "Du kollade inte registret"
-      },
-      "fel": {
-        "matare": 50,
-        "text": "Bilen var inte säljarens"
-      },
-      "ratt": {
-        "poang": 1,
-        "text": "Köpt!"
-      }
-    },
     "matare": {
       "namn": "God tro",
       "steg": 100,
       "visning": "procent"
-    },
-    "misstag": {
-      "rattTraffad": 10,
-      "fangstMissad": 0
-    },
-    "misstagText": {
-      "rattTraffad": "Du tackade nej till en bra bil"
     },
     "infotext": "Annonssäljarna rullar in. Stämpla varje bil i bilregistret innan du köper. Ägaren i registret ska vara den som säljer.",
     "vinst": [

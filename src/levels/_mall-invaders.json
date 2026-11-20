@@ -49,6 +49,55 @@
       "utseende": "stampelavtryck"
     },
     "brickor": {
+      "typer": {
+        "fel": {
+          "stil": "mork",
+          "skaBort": true,
+          "onHit": {
+            "effekt": "ta-bort",
+            "ersattTyp": "ratt"
+          },
+          "onPass": {
+            "matare": 2,
+            "text": "Text när en fel-bricka släpps igenom"
+          },
+          "onPassDold": {
+            "matare": 1,
+            "text": "Text när en okänd bricka släpps igenom"
+          }
+        },
+        "ratt": {
+          "stil": "ljus",
+          "smalTraff": 3,
+          "onHit": {
+            "effekt": "skaka",
+            "misstag": true,
+            "matare": 1,
+            "text": "Valfri text när en rätt-bricka träffas"
+          },
+          "onPass": {
+            "poang": 1,
+            "text": "Text när en rätt-bricka släpps igenom"
+          },
+          "onPassDold": {
+            "matare": 1,
+            "text": "Text när en okänd bricka släpps igenom"
+          }
+        },
+        "fyllbar": {
+          "figur": "tub-egen",
+          "skaBort": true,
+          "onHit": {
+            "effekt": "fyll",
+            "poang": 10
+          },
+          "onPass": {
+            "poang": -5,
+            "text": "Valfri text när den passerar ofylld",
+            "raknas": "missad"
+          }
+        }
+      },
       "rader": [
         [
           {
@@ -103,7 +152,33 @@
       },
       "visaTomma": true,
       "blanda": false,
-      "fastBredd": false
+      "fastBredd": false,
+      "vagor": [
+        {
+          "text": "Valfri text när andra vågen börjar",
+          "rader": [
+            [
+              {
+                "etikett": "D",
+                "typ": "fyllbar"
+              },
+              {
+                "etikett": "E",
+                "typ": "ratt"
+              },
+              {
+                "etikett": "F",
+                "typ": "fyllbar"
+              }
+            ]
+          ],
+          "steg": {
+            "x": 3,
+            "ned": 14,
+            "intervall": 200
+          }
+        }
+      ]
     },
     "fangst": [
       {
@@ -139,7 +214,6 @@
       "visning": "steg"
     },
     "misstag": {
-      "rattTraffad": 1,
       "fangstMissad": 1
     },
     "info": [
@@ -168,23 +242,6 @@
     ],
     "slutrad": {
       "y": 420
-    },
-    "botten": {
-      "dold": {
-        "matare": 1,
-        "text": "Text när en okänd bricka släpps igenom"
-      },
-      "fel": {
-        "matare": 2,
-        "text": "Text när en fel-bricka släpps igenom"
-      },
-      "ratt": {
-        "poang": 1,
-        "text": "Text när en rätt-bricka släpps igenom"
-      }
-    },
-    "misstagText": {
-      "rattTraffad": "Valfri text när en rätt-bricka träffas"
     },
     "hot": {
       "utseende": "uppsagningsbrev",
@@ -229,6 +286,9 @@
         "namn": "Räknarens namn",
         "text": "{kvar} av {totalt}"
       }
+    },
+    "misstagText": {
+      "fangstMissad": "Valfri text när ett fångstobjekt missas"
     }
   },
   "forlust": {

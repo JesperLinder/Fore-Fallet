@@ -4,7 +4,8 @@
  */
 import { framsteg } from './progress';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst';
+type Tonljud = Exclude<Ljud, 'pssst'>;
 
 interface Ton {
   /** Frekvens i Hz vid start och slut (glidning). */
@@ -17,7 +18,7 @@ interface Ton {
   volym: number;
 }
 
-const LJUD: Record<Ljud, Ton[]> = {
+const LJUD: Record<Tonljud, Ton[]> = {
   skott: [{ fran: 880, till: 440, start: 0, langd: 0.07, form: 'square', volym: 0.05 }],
   traff: [{ fran: 520, till: 180, start: 0, langd: 0.12, form: 'triangle', volym: 0.14 }],
   fanga: [
@@ -61,6 +62,10 @@ export function spela(ljud: Ljud): void {
   // iOS startar ljudet pausat tills användaren rört skärmen; alla anrop kommer från tryck/spel.
   if (ctx.state === 'suspended') void ctx.resume();
   const nu = ctx.currentTime;
+  if (ljud === 'pssst') {
+    spelaBrus(ctx, nu);
+    return;
+  }
   for (const ton of LJUD[ljud]) {
     const osc = ctx.createOscillator();
     const forstarkning = ctx.createGain();
@@ -75,6 +80,27 @@ export function spela(ljud: Ljud): void {
     osc.start(t0);
     osc.stop(t0 + ton.langd + 0.02);
   }
+}
+
+/** Ett kort fräsande "pssst": vitt brus genom ett högpassfilter som tonar ut (kolsyra fylls på). */
+function spelaBrus(ctx: AudioContext, t0: number): void {
+  const langd = 0.35;
+  const buffert = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * langd), ctx.sampleRate);
+  const data = buffert.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const kalla = ctx.createBufferSource();
+  kalla.buffer = buffert;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.setValueAtTime(2500, t0);
+  filter.frequency.exponentialRampToValueAtTime(5000, t0 + langd);
+  const forstarkning = ctx.createGain();
+  forstarkning.gain.setValueAtTime(0.0001, t0);
+  forstarkning.gain.exponentialRampToValueAtTime(0.12, t0 + 0.02);
+  forstarkning.gain.exponentialRampToValueAtTime(0.0001, t0 + langd);
+  kalla.connect(filter).connect(forstarkning).connect(ctx.destination);
+  kalla.start(t0);
+  kalla.stop(t0 + langd);
 }
 
 export const ljud = {

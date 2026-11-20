@@ -91,7 +91,7 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | `resultat` | `"vinst"` eller `"halvvagsvinst"` (domslutet visar då rutorna Vunnet / Inte vunnet). Båda ger 0–3 stjärnor. |
 | `guldstjarna` | valfritt: `{ "krav": {…}, "text": "Alla kor kvar i hagen." }`. En extra guldstjärna för en särskild bedrift, med samma kravfält som `stjarnkrav`. Visas på domslutet och kartan men räknas inte i stjärnräknaren och påverkar inte upplåsningen. |
 | `stjarngranser` | poäng för 1, 2 och 3 stjärnor (slangbella) |
-| `stjarnkrav` | krav för 1, 2 och 3 stjärnor: `maxMisstag`, `tidKvarOver`, `minMatare`, `maxDekorForlorade` (invaders), `maxForsok`, `maxFallor` (hybrid) |
+| `stjarnkrav` | krav för 1, 2 och 3 stjärnor: `maxMisstag`, `tidKvarOver`, `minMatare`, `maxDekorForlorade`, `maxAntal` (invaders), `maxForsok`, `maxFallor` (hybrid) |
 | `tema` | `"mork"` för mörk bakgrund (ljusa rubriker) |
 | `bana.lager` | bakgrundens färglager uppifrån och ner |
 | `slangbella` | antal skott, kraft, friktion, vind/slice (valfritt `vind.variation` = slumpad per skott), `siktlinje` (andel av banan som visas, 0–1), spelplan, rubriker i resultatraden |
@@ -99,7 +99,7 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | `hybrid` | kastfysik, projektiler, mål, studsyta, fiender och faragräns (se nedan) |
 | `forlust` | rubrik (och valfria orsakstexter) på förlustskärmen |
 | `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` (valfritt `b`/`h`), `text` |
-| `domslut` | `rubrik`, `underrubrik` (valfri kursiv rad), `text` (valfri), `domskal` (3 st), `fylgiaruta` (lila ruta, bara Fylgia-mål), `lankTillFallet`, `utfall` per antal stjärnor, och `vunnet`/`inteVunnet` för halvvägsvinst |
+| `domslut` | `rubrik`, `underrubrik` (valfri kursiv rad), `text` (valfri), `domskal` (3 st), `fylgiaruta` (lila ruta, bara Fylgia-mål), `lankTillFallet`, `utfall` per antal stjärnor, och `vunnet`/`inteVunnet` för halvvägsvinst (utan `inteVunnet` visas bara Vunnet-rutan, i full bredd) |
 
 Objekt med `utseende` (t.ex. `"bil"`, `"golfboll"`) hämtar figuren från `src/mechanics/art.ts`.
 Behövs en helt ny figur är det enda stället som kräver kod. Alternativt kan den läggas som bild i `public/assets/`,
@@ -107,7 +107,10 @@ men det finns inget stöd för bildfiler i nivåformatet än.
 
 ### Invaders-nivåer
 
-Mekaniken styrs helt av blocket `invaders` i nivåfilen. I Löpsedeln byts varje bortskjuten fel-bokstav direkt mot rätt bokstav (`ersattning`), så raden blir KROG KUNG. Fallande fångstobjekt (`fangst`) finns kvar som valfri byggsten för andra nivåer. Mallen `src/levels/_mall-invaders.json` och förklaringen
+Mekaniken styrs helt av blocket `invaders` i nivåfilen. Brickorna har typer som nivåfilen själv definierar i
+`brickor.typer`: varje typ anger utseende, vad som händer vid träff (`onHit`) och när brickan når spelaren (`onPass`).
+Så kan en nivå vara "skjut bort det felaktiga" (Löpsedeln) eller tvärtom "skjut bara på det rätta" (Kolsyretuberna)
+utan ny kod. I Löpsedeln byts varje bortskjuten fel-bokstav direkt mot rätt bokstav (`ersattning`), så raden blir KROG KUNG. Fallande fångstobjekt (`fangst`) finns kvar som valfri byggsten för andra nivåer. Mallen `src/levels/_mall-invaders.json` och förklaringen
 `src/levels/_mall-invaders.md` beskriver varje fält. Så här ser nivå 2 (Löpsedeln) ut i förkortad form:
 
 ```json
@@ -117,6 +120,10 @@ Mekaniken styrs helt av blocket `invaders` i nivåfilen. I Löpsedeln byts varje
   "spelare": { "utseende": "textmarkor", "y": 716, "b": 30, "h": 48 },
   "skott": { "lage": "slapp", "intervall": 220, "fart": 1000 },
   "brickor": {
+    "typer": {
+      "fel": { "stil": "mork", "skaBort": true, "onHit": { "effekt": "ta-bort", "ersattTyp": "ratt" } },
+      "ratt": { "stil": "ljus", "smalTraff": 3, "onHit": { "effekt": "skaka", "misstag": true, "matare": 1 } }
+    },
     "rader": [
       [{ "etikett": "K", "typ": "ratt", "plats": 0 }, { "etikett": "N", "typ": "fel", "plats": 1, "ersattning": "R" }, …],
       [{ "etikett": "K", "typ": "ratt", "plats": 4 }, …]
@@ -128,7 +135,6 @@ Mekaniken styrs helt av blocket `invaders` i nivåfilen. I Löpsedeln byts varje
   "skydd": [{ "etikett": "RÄTTELSE", "x": 82, "y": 540, "b": 84, "h": 30, "talighet": 4 }, …],
   "tid": { "sekunder": 20, "etikett": "Pressläggning om" },
   "matare": { "namn": "Förtalsrisk", "steg": 4, "status": "Ensamansvar: på" },
-  "misstag": { "rattTraffad": 1, "fangstMissad": 1 },
   "info": [{ "etikett": "Rätt rubrik:", "varde": "KROGKUNG", "serif": true }, { "etikett": "Utgivare:", "varde": "DU" }],
   "instruktion": { "text": "Skjut bort fel bokstav – rätt dyker upp", "y": 402 },
   "vinst": ["fel-borta"],
@@ -140,7 +146,7 @@ Mekaniken styrs helt av blocket `invaders` i nivåfilen. I Löpsedeln byts varje
 
 **Reveal (nivå 4, Begagnade bilen):** en bricka med `"dold": { "etikett": "Ej kontrollerad" }` visas som okänd tills den
 träffas första gången. Då avslöjas typen och etiketten med en stämpelanimation och ett klick, och brickan ligger kvar.
-`botten` avgör vad som händer när en bricka når spelaren, per typ. I förkortad form:
+`onPass` avgör vad som händer när en bricka når spelaren, och `onPassDold` om den fortfarande är okänd. I förkortad form:
 
 ```json
 "stjarnkrav": { "tre": { "minMatare": 100 }, "tva": { "minMatare": 75 }, "en": {} },
@@ -148,19 +154,21 @@ träffas första gången. Då avslöjas typen och etiketten med en stämpelanima
   "spelare": { "utseende": "stampel", "y": 686, "b": 72, "h": 72, "etikett": "BIL-\nREGISTRET" },
   "skott": { "lage": "slapp", "intervall": 200, "fart": 1000, "utseende": "stampelavtryck" },
   "brickor": {
+    "typer": {
+      "fel": { "stil": "mork", "skaBort": true, "onHit": { "effekt": "ta-bort" },
+               "onPass": { "matare": 50, "text": "Bilen var inte säljarens" },
+               "onPassDold": { "matare": 25, "text": "Du kollade inte registret" } },
+      "ratt": { "stil": "ljus", "smalTraff": 3,
+                "onHit": { "effekt": "skaka", "misstag": true, "matare": 10, "text": "Du tackade nej till en bra bil" },
+                "onPass": { "poang": 1, "text": "Köpt!" },
+                "onPassDold": { "matare": 25, "text": "Du kollade inte registret" } }
+    },
     "rader": [[{ "etikett": "Säljare = ägare", "typ": "ratt", "dold": { "etikett": "Ej kontrollerad" } }, …], …],
     "blanda": true, "fastBredd": true, "ikon": "bilsiluett",
     "b": 104, "h": 72, "mellanrum": 12, "startY": 196, "steg": { "x": 4, "ned": 22, "intervall": 230 },
     "kant": { "vanster": 16, "hoger": 374 }
   },
-  "botten": {
-    "dold": { "matare": 25, "text": "Du kollade inte registret" },
-    "fel": { "matare": 50, "text": "Bilen var inte säljarens" },
-    "ratt": { "poang": 1, "text": "Köpt!" }
-  },
   "matare": { "namn": "God tro", "steg": 100, "visning": "procent" },
-  "misstag": { "rattTraffad": 10, "fangstMissad": 0 },
-  "misstagText": { "rattTraffad": "Du tackade nej till en bra bil" },
   "vinst": ["alla-klara"],
   "forlust": ["matare-full"]
 }
@@ -179,7 +187,7 @@ säga när tiden går ut, och guldstjärnan kräver att alla kor finns kvar (`ma
 "stjarnkrav": { "tre": { "maxMisstag": 0 }, "tva": { "maxMisstag": 2 }, "en": {} },
 "guldstjarna": { "krav": { "maxDekorForlorade": 0 }, "text": "Alla kor kvar i hagen." },
 "invaders": {
-  "brickor": { "rader": [[{ "etikett": "Ufo", "typ": "ratt" }, null, null], [null, null, { "etikett": "Ufo", "typ": "ratt" }]],
+  "brickor": { "typer": { "ratt": { "stil": "ljus" } }, "rader": [[{ "etikett": "Ufo", "typ": "ratt" }, null, null], [null, null, { "etikett": "Ufo", "typ": "ratt" }]],
                "figur": "ufo", "skottGenom": true, "steg": { "x": 3, "ned": 0, "intervall": 40 }, … },
   "hot": { "utseende": "uppsagningsbrev", "b": 26, "h": 32, "etikett": "Uppsägning i förtid", "start": "fran-fiende",
            "fart": 75, "intervall": 2600, "slutIntervall": 1100, "botten": { "matare": 20, "text": "Bolaget sa upp – utan rätt" } },
@@ -190,6 +198,35 @@ säga när tiden går ut, och guldstjärnan kräver att alla kor finns kvar (`ma
   "tid": { "sekunder": 45, "etikett": "Håll ut" },
   "matare": { "namn": "Försäkringen", "steg": 100, "visning": "kort" },
   "vinst": ["overlev"], "forlust": ["matare-full"]
+}
+```
+
+**Tvärtom och vågor (nivå 6, Kolsyretuberna):** här ska spelaren skjuta på de rätta brickorna (fylla tuber med eget
+märke) och låta de andra passera. `"effekt": "fyll"` ger en fyllnadsanimation och brickan lämnar uppåt, `raknas` räknar
+missade leveranser för stjärnkravet `maxAntal`, och `vagor` lägger till en andra, blandad och snabbare våg. Mätaren
+visas som räknaren "Intrång: 0" (`"visning": "antal"`). I förkortad form:
+
+```json
+"tema": "ljus",
+"stjarnkrav": { "tre": { "maxMisstag": 0, "maxAntal": { "missad": 1 } }, "tva": { "maxMisstag": 1 }, "en": {} },
+"invaders": {
+  "spelare": { "utseende": "munstycke", "y": 740, "b": 34, "h": 56 },
+  "skott": { "lage": "slapp", "intervall": 220, "fart": 900, "utseende": "gasbubbla" },
+  "brickor": {
+    "typer": {
+      "egen": { "figur": "tub-egen", "skaBort": true, "onHit": { "effekt": "fyll", "poang": 10 },
+                "onPass": { "poang": -5, "text": "Missad leverans", "raknas": "missad" } },
+      "annan": { "figur": "tub-annan", "smalTraff": 3, "onPass": {},
+                 "onHit": { "effekt": "skaka", "misstag": true, "matare": 1, "text": "Annans märke! Intrång." } }
+    },
+    "rader": [[{ "etikett": "Ditt", "typ": "egen" }, { "etikett": "Annans", "typ": "annan" }, …], […]],
+    "b": 40, "h": 66, "mellanrum": 14, "startY": 196, "steg": { "x": 4, "ned": 26, "intervall": 95 }, "fastBredd": true, …,
+    "vagor": [{ "text": "Andra vågen – titta noga!", "rader": […], "blanda": true, "mellanrum": 10,
+                "forskjutning": [0, 25], "steg": { "x": 4, "ned": 26, "intervall": 70 } }]
+  },
+  "infotext": "Tuberna marscherar in från grossisten. …",
+  "matare": { "namn": "Intrång", "steg": 3, "visning": "antal" },
+  "vinst": ["alla-klara"], "forlust": ["matare-full"]
 }
 ```
 
@@ -270,7 +307,7 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 
 ## Platshållare
 
-- **Nivå 6–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Nivå 7–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

@@ -64,6 +64,8 @@ export interface StjarnKrav {
   minMatare?: number;
   /** Högst så här många dekorfigurer förlorade (invaders, t.ex. 0 = alla kor kvar i hagen). */
   maxDekorForlorade?: number;
+  /** Högst så här många i namngivna räknare (invaders: onHit/onPass med "raknas"), t.ex. { "missad": 1 }. */
+  maxAntal?: Record<string, number>;
 }
 
 export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten';
@@ -262,24 +264,29 @@ export interface InvadersInstallningar {
     fart: number;
   };
   brickor: RutnatInstallningar<BrickData> & {
+    /**
+     * Bricktyperna. Varje bricka i "rader" anger en typ (nyckel här), och typen bestämmer hur brickan ser ut,
+     * vad som händer vid träff (onHit) och när den når spelaren (onPass).
+     */
+    typer: Record<string, BrickTyp>;
     /** Valfri figur (art.ts) på varje bricka, med etiketten i liten text under, t.ex. "bilsiluett". */
     ikon?: string;
     /** Rita bara den här figuren (art.ts), utan ruta och etikett, t.ex. "ufo". */
     figur?: string;
     /** Skotten passerar igenom brickorna (de kan inte skjutas ner), t.ex. ufon. */
     skottGenom?: boolean;
+    /**
+     * Valfria fler vågor. När alla brickor i en våg är klara (borta eller släppta igenom) kommer nästa.
+     * Fälten ersätter motsvarande fält i "brickor" (t.ex. rader, steg, mellanrum). text: pratbubbla vid start.
+     */
+    vagor?: (Partial<RutnatInstallningar<BrickData>> & { text?: string })[];
   };
   /** Fallande hot som ska skjutas ner innan de når botten (valfritt). */
   hot?: HotInstallningar;
   /** Bakgrundshändelser som spelaren inte kan påverka, med valfri räknare (valfritt). */
   dekor?: DekorInstallningar;
-  /**
-   * Vad som händer när en bricka når spelaren ("släpps igenom"), per typ. Anges detta försvinner brickan
-   * med regelns effekt i stället för att ge förlust; "dold" gäller brickor som inte avslöjats.
-   */
-  botten?: { dold?: BottenRegel; fel?: BottenRegel; ratt?: BottenRegel };
-  /** Valfria texter (pratbubbla) vid misstag. */
-  misstagText?: { rattTraffad?: string; fangstMissad?: string };
+  /** Valfri text (pratbubbla) när ett fångstobjekt missas. */
+  misstagText?: { fangstMissad?: string };
   /** Valfri ruta under rubriken med en längre text, t.ex. uppdraget. */
   infotext?: string;
   /** Saker som faller och ska fångas (valfritt). */
@@ -298,11 +305,12 @@ export interface InvadersInstallningar {
      * "steg" (standard): stapel i rutor längst ner som fylls vid misstag.
      * "procent": procent kvar uppe till höger (t.ex. "God tro 100 %"), sjunker vid misstag. Tar klockans plats.
      * "kort": ett kort under rubriken med en guldstapel som börjar full och krymper (t.ex. "Försäkringen").
+     * "antal": en räknare uppe till höger, t.ex. "Intrång: 0" (vinröd siffra). Tar klockans plats.
      */
-    visning?: 'steg' | 'procent' | 'kort';
+    visning?: 'steg' | 'procent' | 'kort' | 'antal';
   };
-  /** Hur många steg mätaren stiger per misstag av varje slag. */
-  misstag: { rattTraffad: number; fangstMissad: number };
+  /** Hur många steg mätaren stiger när ett fångstobjekt missas (bara nivåer med "fangst"). */
+  misstag?: { fangstMissad: number };
   /** Rutan under rubriken, t.ex. "Rätt rubrik: KROGKUNG". Första står till vänster, sista till höger. */
   info?: { etikett: string; varde: string; serif?: boolean }[];
   /** Kort instruktion mitt på planen som tonas bort efter några sekunder. */
@@ -344,10 +352,45 @@ export interface RutnatInstallningar<T> {
   fastBredd?: boolean;
 }
 
+/** En bricktyp i invaders: utseende och regler. Se _mall-invaders.md. */
+export interface BrickTyp {
+  /** "ljus": beige ruta med mörk text (grön med ikon). "mork" (standard): vinröd ruta med lila kant. */
+  stil?: 'ljus' | 'mork';
+  /** Figur (art.ts) i stället för ruta, med etiketten i liten text under, t.ex. "tub-egen". */
+  figur?: string;
+  /** Träffytan krymps så här många punkter på varje sida, så att skott som nästan går fri släpps igenom. */
+  smalTraff?: number;
+  /** Räknas i vinstvillkoret "fel-borta": alla brickor av den här typen ska vara borta. */
+  skaBort?: boolean;
+  /** Vid träff. Utelämnas = skottet stoppas, inget händer. */
+  onHit?: TraffRegel;
+  /** När brickan når spelaren. Utelämnas = brickan stannar kvar (och ger förlusten "botten" om den används). */
+  onPass?: BottenRegel;
+  /** Som onPass, men om brickan fortfarande är dold (reveal). Utelämnas = onPass. */
+  onPassDold?: BottenRegel;
+}
+
+/** Vad som händer när ett skott träffar en bricka. */
+export interface TraffRegel {
+  /** "ta-bort": brickan försvinner. "fyll": fylls (nivån stiger) och lämnar uppåt. "skaka": skakar, ligger kvar. */
+  effekt: 'ta-bort' | 'fyll' | 'skaka';
+  poang?: number;
+  /** Steg på mätaren. */
+  matare?: number;
+  /** Räknas som ett misstag (stjarnkrav.maxMisstag), med blink och skakning. */
+  misstag?: boolean;
+  /** Pratbubbla vid träffen, t.ex. "Annans märke! Intrång.". */
+  text?: string;
+  /** Räknas i en namngiven räknare, för stjarnkrav.maxAntal. */
+  raknas?: string;
+  /** Bara "ta-bort": brickans "ersattning" dyker upp på samma plats, som en bricka av den här typen. */
+  ersattTyp?: string;
+}
+
 export interface BrickData {
   etikett: string;
-  /** "fel" ska skjutas bort, "ratt" får inte skjutas. */
-  typ: 'fel' | 'ratt';
+  /** Bricktyp: en nyckel i brickor.typer, t.ex. "fel", "ratt" eller "egen". */
+  typ: string;
   /** Plats i slutraden (0 = först). För en fel-bricka med ersattning: ersättningens plats. */
   plats?: number;
   /** Bara för fel-brickor: rätt bokstav/text som dyker upp på samma ställe när brickan skjutits bort. */
@@ -421,6 +464,8 @@ export interface BottenRegel {
   poang?: number;
   /** Pratbubbla, t.ex. "Du kollade inte registret". */
   text?: string;
+  /** Räknas i en namngiven räknare, för stjarnkrav.maxAntal (t.ex. "missad"). */
+  raknas?: string;
 }
 
 export interface FangstData {

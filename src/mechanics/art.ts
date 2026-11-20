@@ -9,6 +9,33 @@ import { streckadLinje } from '../ui/shapes';
 /** f = valfri färg för figurer som kan färgas (t.ex. bilsiluett). */
 type Rita = (g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, f?: number) => void;
 
+/** Kolsyretubens kropp (cylindern under axeln), relativt figurens mitt. Delas av ritningen och fyllnaden. */
+function tubKropp(b: number, h: number) {
+  const kb = b * 0.7;
+  const topp = -h / 2 + h * 0.2;
+  return { x: -kb / 2, y: topp, b: kb, h: h / 2 - topp };
+}
+
+/** Stående kolsyretub med ventil och en abstrakt märkescirkel (inga riktiga varumärken). */
+function ritaTub(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, kropp: number, marke: number): void {
+  const k = tubKropp(b, h);
+  // Ventil: ratt, spindel och hals.
+  g.fillStyle(farg.morkgron, 1);
+  g.fillRoundedRect(x - b * 0.22, y - h / 2, b * 0.44, h * 0.05, 1.5);
+  g.fillRect(x - b * 0.06, y - h / 2 + h * 0.04, b * 0.12, h * 0.07);
+  g.fillRoundedRect(x - b * 0.17, y - h / 2 + h * 0.1, b * 0.34, h * 0.1, 2);
+  // Kropp med rundad axel.
+  g.fillStyle(kropp, 1).fillRoundedRect(x + k.x, y + k.y, k.b, k.h, { tl: k.b * 0.42, tr: k.b * 0.42, bl: 3, br: 3 });
+  g.fillStyle(marke, 1).fillCircle(x, y + k.y + k.h * 0.55, b * 0.17);
+}
+
+/** Där en figur kan fyllas (fyllnadsanimationen i invaders), relativt figurens mitt. undefined = hela brickan. */
+export function fyllnadsYta(namn: string, b: number, h: number): { x: number; y: number; b: number; h: number } | undefined {
+  if (!namn.startsWith('tub-')) return undefined;
+  const k = tubKropp(b, h);
+  return { x: k.x + 3, y: k.y + k.b * 0.3, b: k.b - 6, h: k.h - k.b * 0.3 - 3 };
+}
+
 const figurer: Record<string, Rita> = {
   golfboll(g, x, y) {
     g.fillStyle(farg.ljusbeige, 1).fillCircle(x, y, 7);
@@ -73,6 +100,38 @@ const figurer: Record<string, Rita> = {
   /** Litet stämpelavtryck (skott). */
   stampelavtryck(g, x, y) {
     g.lineStyle(2, farg.guld, 1).strokeRoundedRect(x - 8, y - 6, 16, 12, 3);
+  },
+
+  /** Kolsyretub med ditt märke: mörkgrön med guldcirkel. */
+  'tub-egen'(g, x, y, b = 40, h = 50) {
+    ritaTub(g, x, y, b, h, farg.morkgron, farg.guld);
+  },
+
+  /** Kolsyretub med annans märke: vinröd med lila cirkel. */
+  'tub-annan'(g, x, y, b = 40, h = 50) {
+    ritaTub(g, x, y, b, h, farg.vinrod, farg.lila);
+  },
+
+  /** Påfyllningsmunstycke (spelaren i Kolsyretuberna): handtag, pip uppåt och slang. */
+  munstycke(g, x, y, b = 34, h = 56) {
+    g.lineStyle(5, farg.gron, 1);
+    g.beginPath();
+    g.moveTo(x + b * 0.2, y + h / 2 - 4);
+    g.lineTo(x + b * 0.55, y + h / 2 + 10);
+    g.strokePath();
+    g.fillStyle(farg.morkgron, 1);
+    g.fillRoundedRect(x - b / 2, y + h * 0.02, b, h * 0.48, 7);
+    g.fillRoundedRect(x - b * 0.28, y - h * 0.18, b * 0.56, h * 0.24, 4);
+    g.fillRect(x - b * 0.1, y - h / 2, b * 0.2, h * 0.34);
+    g.fillStyle(farg.guld, 1).fillRect(x - b * 0.14, y - h / 2, b * 0.28, h * 0.05);
+    g.fillStyle(farg.beige, 1).fillRoundedRect(x - b * 0.3, y + h * 0.14, b * 0.6, h * 0.08, 2);
+  },
+
+  /** Liten gasbubbla i guld (skott). */
+  gasbubbla(g, x, y) {
+    g.fillStyle(farg.guld, 1).fillCircle(x, y, 5);
+    g.fillStyle(farg.ljusbeige, 0.8).fillCircle(x - 1.6, y - 1.8, 1.4);
+    g.lineStyle(1.2, farg.guld, 1).strokeCircle(x + 4, y + 7, 2.2);
   },
 
   /** Platt ufo i lila (inget känt filmufo). */

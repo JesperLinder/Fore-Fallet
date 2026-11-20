@@ -51,6 +51,11 @@
       "fart": 1000
     },
     "brickor": {
+      "typer": {
+        "ratt": {
+          "stil": "ljus"
+        }
+      },
       "rader": [
         [
           {
@@ -169,10 +174,6 @@
       "steg": 100,
       "visning": "kort"
     },
-    "misstag": {
-      "rattTraffad": 0,
-      "fangstMissad": 0
-    },
     "vinst": [
       "overlev"
     ],
@@ -190,7 +191,6 @@
     "rubrik": "Halvvägsvinst",
     "underrubrik": "Försäkringen räddad. Korna fortfarande försvunna. Det här är en riktig seger i advokatvärlden.",
     "vunnet": "Bolaget sa upp försäkringen i förtid utan rätt – och blir skadeståndsskyldigt.",
-    "inteVunnet": "Du borde ha anlitat Fylgia. Försök igen.",
     "domskal": [
       "Den som bryter ett avtal ska ersätta skadan – men i regel bara om hen varit oaktsam.",
       "Undantag: garanti, särskild utfästelse eller särskild lag.",

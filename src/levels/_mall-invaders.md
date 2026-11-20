@@ -17,13 +17,13 @@ Alla koordinater är i logiska punkter på en skärm som är 390 × 844 (x åt h
 | `tema` | `"mork"` ger ljusa rubriker på mörk bakgrund. `"ljus"` är standard. |
 | `uppdragstext`, `fylgiaTips` | Visas i rutan "Din fylgia viskar" innan spelaren trycker Starta. |
 | `resultat` | `"vinst"` eller `"halvvagsvinst"` (domslutet visar då rutorna Vunnet / Inte vunnet). Båda ger 0–3 stjärnor. |
-| `stjarnkrav` | Krav för `en`, `tva` och `tre` stjärnor. Nivån måste vara vunnen. `maxMisstag`: högst så många misstag. `tidKvarOver`: mer än så många sekunder kvar. `minMatare`: minst så många procent kvar på mätaren. `maxDekorForlorade`: högst så många dekorfigurer förlorade. Ett tomt krav `{}` = bara klarad. |
+| `stjarnkrav` | Krav för `en`, `tva` och `tre` stjärnor. Nivån måste vara vunnen. `maxMisstag`: högst så många misstag. `tidKvarOver`: mer än så många sekunder kvar. `minMatare`: minst så många procent kvar på mätaren. `maxDekorForlorade`: högst så många dekorfigurer förlorade. `maxAntal`: högst så många i namngivna räknare (`raknas` i `onHit`/`onPass`), t.ex. `{ "missad": 1 }`. Ett tomt krav `{}` = bara klarad. |
 | `guldstjarna` | Valfritt. `{ "krav": {…}, "text": "…" }` ger en extra guldstjärna för en särskild bedrift (samma kravfält som `stjarnkrav`). Den visas på domslutet (med `text`) och på kartan, men räknas inte i stjärnräknaren och påverkar inte upplåsningen. |
 | `bana.lager` | Bakgrunden. För en enfärgad bakgrund räcker `[{ "farg": "morkgron", "topp": 0 }]`. |
 | `objekt` | Används inte av invaders. Lämna `[]`. |
 | `forlust.rubrik` | Rubrik på förlustskärmen (t.ex. "Tryckt. Förtal."). |
 | `forlust.orsaker` | Valfritt. Egen text per orsak: `matare-full`, `tid-slut`, `botten`. Saknas texten används standardtexten i `src/config/strings.ts`. |
-| `domslut` | `rubrik`, `text` (valfri), `domskal` (exakt 3), `lankTillFallet`, `utfall` (valfri rad per antal stjärnor). |
+| `domslut` | `rubrik`, `text` (valfri), `domskal` (exakt 3), `lankTillFallet`, `utfall` (valfri rad per antal stjärnor). Halvvägsvinst: `vunnet` och valfritt `inteVunnet` (utan den visas bara Vunnet-rutan). |
 
 Nästa nivå låses upp när den här har minst en stjärna.
 
@@ -48,11 +48,12 @@ Nästa nivå låses upp när den här har minst en stjärna.
 ### `brickor`
 | Fält | Vad det gör |
 |---|---|
+| `typer` | Bricktyperna, se nedan. Varje bricka i `rader` anger en av dem i `typ`. |
 | `rader` | Rader uppifrån och ner. Varje bricka är `{ "etikett", "typ", "plats" }`, eller `null` för en tom plats. |
-| `typ` | `"fel"` ska skjutas bort. `"ratt"` får inte träffas: en träff är ett misstag och brickan blir kvar. |
-| `plats` | Valfritt. Brickans plats i slutraden vid vinst (0 = först). På en fel-bricka med `ersattning` gäller den ersättningen. |
-| `dold` | Valfritt (**reveal**). `{ "etikett": "Ej kontrollerad" }` gör brickan okänd: streckad beige kontur, guldfärgad ikon och den här etiketten. Första träffen avslöjar `typ` och `etikett` med en stämpelanimation, och brickan ligger kvar. Därefter gäller vanliga regler. |
-| `ersattning` | Valfritt, bara på fel-brickor. Rätt bokstav eller text som dyker upp på samma ställe när fel-brickan skjutits bort. Den nya brickan är en rätt-bricka. |
+| `typ` | En nyckel i `typer`, t.ex. `"fel"`, `"ratt"`, `"egen"` eller `"annan"`. Namnen väljer du själv. |
+| `plats` | Valfritt. Brickans plats i slutraden vid vinst (0 = först). På en bricka med `ersattning` gäller den ersättningen. |
+| `dold` | Valfritt (**reveal**). `{ "etikett": "Ej kontrollerad" }` gör brickan okänd: streckad beige kontur, guldfärgad ikon och den här etiketten. Första träffen avslöjar `typ` och `etikett` med en stämpelanimation, och brickan ligger kvar. Därefter gäller typens regler. |
+| `ersattning` | Valfritt. Text som dyker upp på samma ställe när brickan skjutits bort, om typens `onHit` har `ersattTyp` (den nya brickans typ). |
 | `b`, `h`, `mellanrum` | Brickstorlek och mellanrum. |
 | `forskjutning` | Valfritt. Sidförskjutning per rad, t.ex. `[0, 35]` för att skjuta rad 2 en halv bricka. Det ger luckor att skjuta igenom. |
 | `startY` | Översta radens överkant vid start. Rutnätet centreras i sidled mellan kanterna. |
@@ -63,9 +64,23 @@ Nästa nivå låses upp när den här har minst en stjärna.
 | `blanda` | Blandar brickornas platser varje gång nivån startar. |
 | `figur` | Rita bara en figur ur art.ts (t.ex. `"ufo"`), utan ruta och etikett. |
 | `skottGenom` | Skotten passerar brickorna, som alltså inte kan skjutas ner (t.ex. ufon som släpper hot). |
+| `vagor` | Valfritt. Fler vågor: en lista där varje våg ersätter valfria fält ovan (t.ex. `rader`, `steg`, `mellanrum`, `forskjutning`, `blanda`) och kan ha `text` (pratbubbla). Nästa våg kommer när alla brickor i den förra är borta eller har passerat. Vinstvillkoren `alla-klara` och `fel-borta` gäller först efter sista vågen. |
 | `fastBredd` | Rutnätet vänder vid kanten räknat på hela den ursprungliga bredden. Då kommer det ner i samma takt även när brickor försvunnit. Utan detta (som i klassisk invaders) går färre brickor längre i sidled och kommer ner långsammare. |
 
-Ett skott tar den första bricka det möter. Rätt-brickornas träffyta är 3 punkter smalare på varje sida än den syns, så att skott som nästan går fri släpps igenom.
+Ett skott tar den första bricka det möter.
+
+### `brickor.typer`: bricktyper med `onHit` och `onPass`
+Varje typ bestämmer utseende och vad som händer. Exempel: i Löpsedeln ska `fel` skjutas bort och `ratt` får inte
+träffas; i Kolsyretuberna är det tvärtom (`egen` ska fyllas, `annan` får passera).
+| Fält | Vad det gör |
+|---|---|
+| `stil` | `"mork"` (standard): vinröd ruta med lila kant. `"ljus"`: beige ruta med mörk text (grön om brickorna har `ikon`). |
+| `figur` | Valfri figur ur art.ts i stället för ruta, med etiketten i liten mörkgrön text under, t.ex. `"tub-egen"`. |
+| `smalTraff` | Valfritt. Träffytan krymps så många punkter per sida, så att skott som nästan går fri släpps igenom (bra för brickor som inte ska träffas). |
+| `skaBort` | Räknas i vinstvillkoret `fel-borta`: alla brickor av typen ska vara borta. |
+| `onHit` | Vid träff. `effekt`: `"ta-bort"` (försvinner), `"fyll"` (fylls med en stigande nivå, lämnar uppåt, fräsande ljud) eller `"skaka"` (ligger kvar). Dessutom valfritt `poang`, `matare` (steg på mätaren), `misstag: true` (räknas i `maxMisstag`, med blink och skakning; `matare` räknas alltid som misstag), `text` (pratbubbla), `raknas` (namn på en räknare, se `maxAntal`) och `ersattTyp` (med `"ta-bort"`: brickans `ersattning` dyker upp som en bricka av den typen). Utelämnas `onHit` stoppas skottet utan effekt. |
+| `onPass` | När brickan når spelaren: `poang`, `matare` (räknas som misstag), `text` och `raknas`. `{}` = brickan passerar och inget händer. Utelämnas `onPass` stannar brickan, och nivån förloras om `forlust` innehåller `"botten"`. Bubblan är vinröd vid mätarsteg, mörkgrön vid poängavdrag och annars guld. |
+| `onPassDold` | Som `onPass` men för en bricka som fortfarande är dold (reveal). Utelämnas = `onPass`. |
 
 ### `fangst` (valfritt)
 Saker som faller och ska fångas av spelaren.
@@ -93,14 +108,12 @@ Block som stoppar spelarens skott och slits ner.
 | Fält | Vad det gör |
 |---|---|
 | `tid` | Valfritt. `{ "sekunder", "etikett", "dold" }`. Med `dold: true` går klockan men visas inte. Klockan visas som MM:SS, t.ex. 00:45. Med `matare.visning: "kort"` står den i ett eget kort till höger. |
-| `matare` | `namn` (t.ex. "Förtalsrisk"), `steg` (antal steg innan mätaren är full), `status` (valfri text till höger), `visning`: `"steg"` (standard, rutor längst ner som fylls) eller `"procent"` (procent kvar uppe till höger, t.ex. "God tro 100 %", tar klockans plats) eller `"kort"` (kort under rubriken med en guldstapel som börjar full och krymper, t.ex. "Försäkringen", med `dekor.raknare` som ett kort bredvid). |
-| `botten` | Valfritt. Vad som händer när en bricka når spelaren ("släpps igenom"), per typ: `dold` (aldrig avslöjad), `fel` och `ratt`. Varje regel kan ha `matare` (steg på mätaren, räknas som misstag), `poang` och `text` (pratbubbla). Med `botten` försvinner brickan i stället för att ge förlust, så använd inte `"botten"` i `forlust` samtidigt. |
-| `misstagText` | Valfritt. Pratbubbla vid misstag: `rattTraffad` och `fangstMissad`. |
-| `infotext` | Valfritt. Längre text i en grön ruta under rubriken, t.ex. uppdraget. |
-| `misstag` | Hur många steg mätaren stiger per misstag: `rattTraffad` (en rätt-bricka träffas) och `fangstMissad` (ett fångstobjekt missas). |
+| `matare` | `namn` (t.ex. "Förtalsrisk"), `steg` (antal steg innan mätaren är full), `status` (valfri text till höger), `visning`: `"steg"` (standard, rutor längst ner som fylls) eller `"procent"` (procent kvar uppe till höger, t.ex. "God tro 100 %", tar klockans plats) eller `"kort"` (kort under rubriken med en guldstapel som börjar full och krymper, t.ex. "Försäkringen", med `dekor.raknare` som ett kort bredvid) eller `"antal"` (räknaren "Namn: 0" uppe till höger med vinröd siffra, t.ex. "Intrång: 0"; tar klockans plats). |
+| `infotext` | Valfritt. Längre text i en ruta under rubriken, t.ex. uppdraget. Grön på mörkt tema, ljusbeige på ljust. |
+| `misstag`, `misstagText` | Bara med `fangst`: `{ "fangstMissad": 1 }` steg på mätaren och valfri pratbubbla när ett fångstobjekt missas. |
 | `info` | Valfritt. Rutan under rubriken. Den första posten står till vänster, den sista till höger. `serif: true` sätter värdet i serif, som "KROGKUNG". |
 | `instruktion` | Valfritt. Kort text på planen (`text`, `y`) som tonas bort efter 6 sekunder. |
-| `vinst` | Alla villkor måste gälla: `"fel-borta"` (alla fel-brickor bortskjutna), `"alla-fangade"` (alla fångstobjekt fångade), `"alla-klara"` (varje bricka bortskjuten eller släppt igenom) och/eller `"overlev"` (tiden har gått ut utan förlust, kräver `tid`). |
+| `vinst` | Alla villkor måste gälla: `"fel-borta"` (alla brickor vars typ har `skaBort` är borta), `"alla-fangade"` (alla fångstobjekt fångade), `"alla-klara"` (varje bricka bortskjuten eller släppt igenom) och/eller `"overlev"` (tiden har gått ut utan förlust, kräver `tid`). |
 | `forlust` | Något av villkoren ger förlust: `"matare-full"`, `"tid-slut"`, `"botten"` (en bricka når spelaren). |
 | `slutrad` | Valfritt. `{ "y" }`. Vid vinst flyttas allt med `plats` till en rad på den höjden, t.ex. KROGKUNG. |
 

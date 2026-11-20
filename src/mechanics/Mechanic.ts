@@ -18,6 +18,8 @@ export interface MekanikResultat {
   matareKvar?: number;
   /** Antal dekorfigurer som försvunnit (invaders), för stjarnkrav.maxDekorForlorade. */
   dekorForlorade?: number;
+  /** Namngivna räknare (invaders: "raknas" i onHit/onPass), för stjarnkrav.maxAntal. */
+  antal?: Record<string, number>;
   /** Satt om nivån är förlorad. Då visas förlustskärmen i stället för domslutet. */
   forlust?: ForlustOrsak;
 }

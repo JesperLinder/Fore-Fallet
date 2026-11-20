@@ -4,5 +4,237 @@
   "titel": "Kolsyretuberna",
   "referens": "NJA 1988 s. 183",
   "mekanik": "invaders",
-  "fylgiaMal": false
+  "fylgiaMal": false,
+  "tema": "ljus",
+  "uppdragstext": "Du fyller kolsyretuber åt kunderna. Fyll bara dem som bär ditt eget märke – andras tuber låter du vara.",
+  "fylgiaTips": "Märket sitter på tuben, inte på gasen. Den som fyller på cylindrar med annans varumärke gör varumärkesintrång.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxMisstag": 0,
+      "maxAntal": {
+        "missad": 1
+      }
+    },
+    "tva": {
+      "maxMisstag": 1
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "beige",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "munstycke",
+      "y": 740,
+      "b": 34,
+      "h": 56
+    },
+    "skott": {
+      "lage": "slapp",
+      "intervall": 220,
+      "fart": 900,
+      "utseende": "gasbubbla"
+    },
+    "brickor": {
+      "typer": {
+        "egen": {
+          "figur": "tub-egen",
+          "skaBort": true,
+          "onHit": {
+            "effekt": "fyll",
+            "poang": 10
+          },
+          "onPass": {
+            "poang": -5,
+            "text": "Missad leverans",
+            "raknas": "missad"
+          }
+        },
+        "annan": {
+          "figur": "tub-annan",
+          "smalTraff": 3,
+          "onHit": {
+            "effekt": "skaka",
+            "misstag": true,
+            "matare": 1,
+            "text": "Annans märke! Intrång."
+          },
+          "onPass": {}
+        }
+      },
+      "rader": [
+        [
+          {
+            "etikett": "Ditt",
+            "typ": "egen"
+          },
+          {
+            "etikett": "Annans",
+            "typ": "annan"
+          },
+          {
+            "etikett": "Ditt",
+            "typ": "egen"
+          },
+          {
+            "etikett": "Ditt",
+            "typ": "egen"
+          },
+          {
+            "etikett": "Annans",
+            "typ": "annan"
+          },
+          {
+            "etikett": "Ditt",
+            "typ": "egen"
+          }
+        ],
+        [
+          {
+            "etikett": "Annans",
+            "typ": "annan"
+          },
+          {
+            "etikett": "Ditt",
+            "typ": "egen"
+          },
+          {
+            "etikett": "Annans",
+            "typ": "annan"
+          },
+          {
+            "etikett": "Ditt",
+            "typ": "egen"
+          },
+          {
+            "etikett": "Ditt",
+            "typ": "egen"
+          },
+          {
+            "etikett": "Annans",
+            "typ": "annan"
+          }
+        ]
+      ],
+      "b": 40,
+      "h": 66,
+      "mellanrum": 14,
+      "startY": 196,
+      "steg": {
+        "x": 4,
+        "ned": 26,
+        "intervall": 95
+      },
+      "kant": {
+        "vanster": 16,
+        "hoger": 374
+      },
+      "fastBredd": true,
+      "vagor": [
+        {
+          "text": "Andra vågen – titta noga!",
+          "rader": [
+            [
+              {
+                "etikett": "Annans",
+                "typ": "annan"
+              },
+              {
+                "etikett": "Ditt",
+                "typ": "egen"
+              },
+              {
+                "etikett": "Annans",
+                "typ": "annan"
+              },
+              {
+                "etikett": "Ditt",
+                "typ": "egen"
+              },
+              {
+                "etikett": "Annans",
+                "typ": "annan"
+              },
+              {
+                "etikett": "Ditt",
+                "typ": "egen"
+              }
+            ],
+            [
+              {
+                "etikett": "Ditt",
+                "typ": "egen"
+              },
+              {
+                "etikett": "Annans",
+                "typ": "annan"
+              },
+              {
+                "etikett": "Ditt",
+                "typ": "egen"
+              },
+              {
+                "etikett": "Annans",
+                "typ": "annan"
+              },
+              {
+                "etikett": "Ditt",
+                "typ": "egen"
+              },
+              {
+                "etikett": "Annans",
+                "typ": "annan"
+              }
+            ]
+          ],
+          "blanda": true,
+          "mellanrum": 10,
+          "forskjutning": [
+            0,
+            25
+          ],
+          "steg": {
+            "x": 4,
+            "ned": 26,
+            "intervall": 70
+          }
+        }
+      ]
+    },
+    "infotext": "Tuberna marscherar in från grossisten. Fyll bara dem som bär ditt märke. Andras märken lämnar du ifred.",
+    "matare": {
+      "namn": "Intrång",
+      "steg": 3,
+      "visning": "antal"
+    },
+    "vinst": [
+      "alla-klara"
+    ],
+    "forlust": [
+      "matare-full"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Stämd för intrång.",
+    "orsaker": {
+      "matare-full": "Märket sitter på tuben, inte på gasen."
+    }
+  },
+  "domslut": {
+    "rubrik": "Rent märke",
+    "domskal": [
+      "En grossist fyllde på kolsyra i cylindrar som bar en annan näringsidkares varumärke.",
+      "Det räckte för att det skulle vara varumärkesintrång.",
+      "Varumärket på förpackningen säger något om vem som står bakom innehållet – och det får man inte låna."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1988s183"
+  }
 }

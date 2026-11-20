@@ -1,6 +1,7 @@
 /**
  * Invaders-nivåns HUD: nedräkningen i sidhuvudet, inforutan under rubriken
- * och mätarraden längst ner (t.ex. "Förtalsrisk" i fyra steg).
+ * och mätaren (t.ex. "Förtalsrisk" i fyra steg längst ner, eller räknaren "Intrång: 0" uppe till höger).
+ * tema: "ljus" ger mörk text och ljusbeige inforuta på ljus bakgrund.
  */
 import Phaser from 'phaser';
 import { avstand, css, farg, radie } from '../../config/theme';
@@ -28,12 +29,12 @@ export interface InvadersHud {
   fangstPlats: (index: number) => Phaser.Math.Vector2;
 }
 
-export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar): InvadersHud {
+export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar, tema: 'ljus' | 'mork' = 'mork'): InvadersHud {
   const synligTid = inst.tid && !inst.tid.dold ? inst.tid : undefined;
   // Med korten (visning "kort") står klockan i ett eget kort, annars uppe till höger.
   let visaTid: InvadersHud['visaTid'] = synligTid && inst.matare.visning !== 'kort' ? byggTid(scene, synligTid) : () => {};
   if (inst.info?.length) byggInfo(scene, inst.info);
-  let tak = inst.infotext ? byggInfotext(scene, inst.infotext) : INFO_Y + INFO_H;
+  let tak = inst.infotext ? byggInfotext(scene, inst.infotext, tema) : INFO_Y + INFO_H;
   let visaRaknare: InvadersHud['visaRaknare'] = () => {};
   let matare;
   if (inst.matare.visning === 'kort') {
@@ -43,7 +44,8 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar): Invad
     visaTid = kort.visaTid;
     tak = kort.tak;
   } else {
-    matare = inst.matare.visning === 'procent' ? byggProcent(scene, inst.matare) : byggMatare(scene, inst.matare);
+    const v = inst.matare.visning;
+    matare = v === 'procent' ? byggProcent(scene, inst.matare) : v === 'antal' ? byggAntal(scene, inst.matare, tema) : byggMatare(scene, inst.matare);
   }
   return {
     tak,
@@ -92,12 +94,13 @@ function byggInfo(scene: Phaser.Scene, info: NonNullable<InvadersInstallningar['
 }
 
 /** Längre text i en grön ruta under rubriken. Returnerar rutans underkant. */
-function byggInfotext(scene: Phaser.Scene, innehall: string): number {
+function byggInfotext(scene: Phaser.Scene, innehall: string, tema: 'ljus' | 'mork'): number {
   const x0 = avstand.l;
   const b = BREDD - x0 * 2;
-  const t = skapaText(scene, x0 + 18, INFO_Y + 14, innehall, 'brod', 'ljusbeige', { bredd: b - 36, storlek: 14 }).setDepth(6);
+  const ljus = tema === 'ljus';
+  const t = skapaText(scene, x0 + 18, INFO_Y + 14, innehall, 'brod', ljus ? 'morkgron' : 'ljusbeige', { bredd: b - 36, storlek: 14 }).setDepth(6);
   const h = t.height + 28;
-  scene.add.graphics().fillStyle(farg.gron, 1).fillRoundedRect(x0, INFO_Y, b, h, radie.m).setDepth(5);
+  scene.add.graphics().fillStyle(ljus ? farg.ljusbeige : farg.gron, 1).fillRoundedRect(x0, INFO_Y, b, h, radie.m).setDepth(5);
   return INFO_Y + h;
 }
 
@@ -178,6 +181,24 @@ function byggProcent(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
       // En enda markering per misstag: lila en kort stund, sedan tillbaka till guld.
       varde.setColor(css('lila'));
       scene.time.delayedCall(450, () => varde.setColor(css('guld')));
+    },
+  };
+}
+
+/** Räknare uppe till höger, t.ex. "Intrång: 0", med siffran i vinrött. Visar antal steg (misstag). */
+function byggAntal(scene: Phaser.Scene, m: InvadersInstallningar['matare'], tema: 'ljus' | 'mork') {
+  const y = 57;
+  const varde = skapaText(scene, TID_HOGER, y, '0', 'titel', 'vinrod', { origo: [1, 0.5], storlek: 26 }).setDepth(30);
+  const etikett = skapaText(scene, 0, y + 1, `${m.namn}:`, 'rubrik', tema === 'ljus' ? 'morkgron' : 'ljusbeige', { origo: [1, 0.5], storlek: 18 }).setDepth(30);
+  const placera = () => etikett.setX(varde.x - varde.width - 6);
+  placera();
+  return {
+    visaMatare: (steg: number) => {
+      varde.setText(String(steg));
+      placera();
+    },
+    markeraMatare: () => {
+      scene.tweens.add({ targets: varde, scale: 1.35, duration: 120, yoyo: true });
     },
   };
 }

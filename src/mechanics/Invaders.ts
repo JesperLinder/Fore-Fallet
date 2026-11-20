@@ -1,7 +1,8 @@
 /**
  * Invaders-mekaniken. Spelaren flyttas i sidled längst ner och skjuter uppåt mot ett rutnät av brickor
- * som rör sig stegvis nedåt. "fel"-brickor ska skjutas bort, "ratt"-brickor får inte träffas.
- * Valfritt: fallande fångstobjekt, skydd, nedräkning. Allt nivåspecifikt kommer från nivåfilen ("invaders").
+ * som rör sig stegvis nedåt. Varje bricktyp i nivåfilen (brickor.typer) anger själv vad som händer vid
+ * träff (onHit) och när brickan når spelaren (onPass) – t.ex. ska bort, får inte träffas, ska fyllas.
+ * Valfritt: fler vågor, fallande fångstobjekt, skydd, hot, dekor, nedräkning. Allt kommer från nivåfilen.
  *
  * Styrning: dra var som helst för att flytta (relativt, så fingret inte skymmer), släpp för att skjuta.
  * Med skott.lage "auto" skjuter spelaren i stället hela tiden medan fingret är nere.
@@ -63,6 +64,11 @@ export class Invaders implements Mekanik {
   private sistaSkott = -Infinity;
   private sistaBlink = -Infinity;
   private klocka = 0;
+  /** Namngivna räknare ("raknas" i onHit/onPass), för stjarnkrav.maxAntal. */
+  private antal: Record<string, number> = {};
+  /** Index i brickor.vagor för nästa våg; vagByte = en ny våg är på väg in. */
+  private nastaVag = 0;
+  private vagByte = false;
 
   private fingerNere = false;
   private dragStartX = 0;
@@ -75,7 +81,7 @@ export class Invaders implements Mekanik {
     this.inst = this.niva.invaders;
     this.tidKvar = this.inst.tid?.sekunder ?? Infinity;
 
-    this.hud = byggHud(this.scene, this.inst);
+    this.hud = byggHud(this.scene, this.inst, this.niva.tema ?? 'ljus');
     this.rutnat = new Rutnat(this.scene, this.inst.brickor);
     const fiendePositioner = () => this.rutnat.brickor.filter((b) => b.levande).map((b) => this.rutnat.varldsMitt(b));
     if (this.inst.dekor) this.dekor = new Dekorhandelser(this.scene, this.inst.dekor, fiendePositioner, this.hud.visaRaknare);
@@ -187,6 +193,7 @@ export class Invaders implements Mekanik {
 
     this.rutnat.uppdatera(dt);
     this.slappIgenom();
+    this.kollaVag();
     this.dekor?.uppdatera(dt);
     this.flyttaHot(dt);
     this.flyttaSkott(dt);
@@ -233,20 +240,55 @@ export class Invaders implements Mekanik {
     if (this.inst.brickor.skottGenom) return false; // skotten passerar brickorna (t.ex. ufon)
     const bricka = this.rutnat.traff(x, y);
     if (!bricka) return false;
+    this.traffaBricka(bricka);
+    return true;
+  }
+
+  /** En träffad bricka: reveal om den är dold, annars enligt typens onHit. */
+  private traffaBricka(bricka: Bricka): void {
     if (bricka.data.dold) {
       // Reveal: första träffen avslöjar brickan, den ligger kvar.
       this.rutnat.avsloja(bricka);
       spela('stampel');
-    } else if (bricka.data.typ === 'fel') {
+      return;
+    }
+    const regel = this.rutnat.typ(bricka).onHit;
+    if (!regel) return;
+    const mitt = this.rutnat.varldsMitt(bricka);
+    if (regel.effekt === 'ta-bort') {
       this.rutnat.taBort(bricka);
-      this.rutnat.ersatt(bricka);
+      if (regel.ersattTyp) this.rutnat.ersatt(bricka, regel.ersattTyp);
       spela('traff');
+    } else if (regel.effekt === 'fyll') {
+      this.rutnat.fyll(bricka);
+      spela('pssst');
     } else {
       this.skakaBricka(bricka);
-      const mitt = this.rutnat.varldsMitt(bricka);
-      this.registreraMisstag(this.inst.misstag.rattTraffad, this.inst.misstagText?.rattTraffad, mitt.x, mitt.y + this.inst.brickor.h / 2 + 22);
     }
-    return true;
+    this.poang += regel.poang ?? 0;
+    this.rakna(regel.raknas);
+    const textY = mitt.y + this.inst.brickor.h / 2 + 22;
+    if (regel.misstag || regel.matare) this.registreraMisstag(regel.matare ?? 0, regel.text, mitt.x, textY);
+    else if (regel.text) this.popup(mitt.x, textY, regel.text, 'guld', 'morkgron');
+  }
+
+  private rakna(namn?: string): void {
+    if (namn) this.antal[namn] = (this.antal[namn] ?? 0) + 1;
+  }
+
+  /** När en våg är klar och det finns fler i brickor.vagor: nästa våg marscherar in. */
+  private kollaVag(): void {
+    const vagor = this.inst.brickor.vagor ?? [];
+    if (this.vagByte || this.nastaVag >= vagor.length || !this.rutnat.allaKlara()) return;
+    const vag = vagor[this.nastaVag++];
+    this.vagByte = true;
+    if (vag.text) this.popup(MITT_X, HOJD * 0.55, vag.text, 'morkgron', 'ljusbeige');
+    this.scene.time.delayedCall(700, () => {
+      if (this.klar) return;
+      const { text: _text, ...falt } = vag;
+      this.rutnat = new Rutnat(this.scene, { ...this.inst.brickor, ...falt });
+      this.vagByte = false;
+    });
   }
 
   private skakaBricka(b: Bricka): void {
@@ -262,7 +304,7 @@ export class Invaders implements Mekanik {
       const nara = Math.abs(f.obj.x - this.spelare.x) < sp.b / 2 + f.r && Math.abs(f.obj.y - this.spelare.y) < sp.h / 2 + f.r;
       if (nara) this.fanga(f);
       else if (f.obj.y - f.r > sp.y + sp.h / 2 + 8) {
-        this.registreraMisstag(this.inst.misstag.fangstMissad, this.inst.misstagText?.fangstMissad, f.obj.x, this.inst.spelare.y - 60);
+        this.registreraMisstag(this.inst.misstag?.fangstMissad ?? 0, this.inst.misstagText?.fangstMissad, f.obj.x, this.inst.spelare.y - 60);
         aterstall(this.scene, f);
       }
     }
@@ -291,28 +333,35 @@ export class Invaders implements Mekanik {
   // ---------- Misstag, vinst och förlust ----------
 
   /**
-   * Brickor som nått spelaren släpps igenom enligt nivåns "botten"-regler (om sådana finns).
-   * Passerar flera samtidigt visas varje text en gång, staplade under spelaren.
+   * Brickor som nått spelaren släpps igenom enligt typens onPass (onPassDold om brickan fortfarande är dold).
+   * Typer utan onPass stannar kvar. Passerar flera samtidigt visas varje text en gång, staplade under spelaren.
+   * Bubblans färg: vinröd vid misstag (mätaren), mörkgrön vid poängavdrag, annars guld.
    */
   private slappIgenom(): void {
-    const regler = this.inst.botten;
-    if (!regler) return;
     const sp = this.inst.spelare;
     const linje = sp.y - sp.h / 2;
-    const texter = new Map<string, boolean>(); // text -> är misstag
+    const texter = new Map<string, 'misstag' | 'avdrag' | 'bra'>();
+    const vikt = { bra: 0, avdrag: 1, misstag: 2 };
     for (const b of this.rutnat.brickor) {
       if (!b.levande) continue;
       if (this.rutnat.varldsMitt(b).y + this.inst.brickor.h / 2 < linje) continue;
-      const regel: BottenRegel | undefined = b.data.dold ? regler.dold : regler[b.data.typ];
-      this.rutnat.slappIgenom(b);
+      const typ = this.rutnat.typ(b);
+      const regel: BottenRegel | undefined = b.data.dold ? (typ.onPassDold ?? typ.onPass) : typ.onPass;
       if (!regel) continue;
+      this.rutnat.slappIgenom(b);
       this.poang += regel.poang ?? 0;
+      this.rakna(regel.raknas);
       if (regel.matare) this.registreraMisstag(regel.matare);
-      if (regel.text) texter.set(regel.text, (texter.get(regel.text) ?? false) || !!regel.matare);
+      if (!regel.text) continue;
+      const slag = regel.matare ? 'misstag' : (regel.poang ?? 0) < 0 ? 'avdrag' : 'bra';
+      const tidigare = texter.get(regel.text);
+      if (!tidigare || vikt[slag] > vikt[tidigare]) texter.set(regel.text, slag);
     }
     let y = sp.y + sp.h / 2 + 26;
-    for (const [text, arMisstag] of texter) {
-      this.popup(MITT_X, y, text, arMisstag ? 'vinrod' : 'guld', arMisstag ? 'ljusbeige' : 'morkgron');
+    for (const [text, slag] of texter) {
+      if (slag === 'misstag') this.popup(MITT_X, y, text, 'vinrod', 'ljusbeige');
+      else if (slag === 'avdrag') this.popup(MITT_X, y, text, 'morkgron', 'ljusbeige');
+      else this.popup(MITT_X, y, text, 'guld', 'morkgron');
       y += 34;
     }
   }
@@ -351,6 +400,10 @@ export class Invaders implements Mekanik {
     const v = this.inst.vinst;
     const felBorta = !v.includes('fel-borta') || this.rutnat.felKvar() === 0;
     const allaFangade = !v.includes('alla-fangade') || this.fangst.every((x) => x.fangad);
+    // Med fler vågor kvar är nivån inte klar än.
+    if (this.vagByte || this.nastaVag < (this.inst.brickor.vagor?.length ?? 0)) {
+      if (v.includes('alla-klara') || v.includes('fel-borta')) return;
+    }
     const allaKlara = !v.includes('alla-klara') || this.rutnat.allaKlara();
     const overlevt = !v.includes('overlev') || this.tidKvar <= 0;
     if (felBorta && allaFangade && allaKlara && overlevt) this.vinna();
@@ -361,7 +414,7 @@ export class Invaders implements Mekanik {
     this.avslutaStyrning();
     spela('misstag');
     this.scene.cameras.main.shake(260, 0.006);
-    this.kontext.avsluta({ poang: this.poang, skadestand: 0, nollstallt: true, misstag: this.misstag, tidKvar: this.tidKvar, matareKvar: this.matareKvar(), dekorForlorade: this.dekor?.forlorade(), forlust: orsak });
+    this.kontext.avsluta({ poang: this.poang, skadestand: 0, nollstallt: true, misstag: this.misstag, tidKvar: this.tidKvar, matareKvar: this.matareKvar(), dekorForlorade: this.dekor?.forlorade(), antal: this.antal, forlust: orsak });
   }
 
   private vinna(): void {
@@ -377,6 +430,7 @@ export class Invaders implements Mekanik {
         tidKvar: Math.max(0, this.tidKvar),
         matareKvar: this.matareKvar(),
         dekorForlorade: this.dekor?.forlorade(),
+        antal: this.antal,
       }),
     );
   }

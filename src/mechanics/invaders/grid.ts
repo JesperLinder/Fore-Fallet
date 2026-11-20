@@ -1,21 +1,31 @@
 /**
  * Brickornas rutnät i invaders: en Formation (common/formation.ts) med bokstavsbrickor.
- * Här finns det som är invaders-specifikt: hur brickorna ser ut, fel/rätt och ersättningar.
+ * Här finns det som är invaders-specifikt: hur brickorna ser ut (enligt sin typ i brickor.typer),
+ * reveal, ersättningar och fyllnadsanimationen.
  */
 import Phaser from 'phaser';
 import { farg, radie } from '../../config/theme';
-import type { BrickData, InvadersInstallningar } from '../../core/levelTypes';
+import type { BrickData, BrickTyp, InvadersInstallningar } from '../../core/levelTypes';
 import { skapaText } from '../../ui/text';
 import { Formation, type FormationsObjekt } from '../common/formation';
 import { streckadRam } from '../../ui/shapes';
-import { ritaFigur } from '../art';
-
-/** Hur mycket rätt-brickornas träffyta krymps på varje sida (punkter). */
-const FORLATANDE_KANT = 3;
+import { fyllnadsYta, ritaFigur } from '../art';
 
 export type Bricka = FormationsObjekt<BrickData>;
+type BrickInst = InvadersInstallningar['brickor'];
 
-function ritaBricka(scene: Phaser.Scene, data: BrickData, b: number, h: number, ikon?: string, figur?: string): Phaser.GameObjects.Container {
+/** Brickor med figur: figuren ritas så här högt ovanför mitten, med etiketten under. */
+const FIGUR_Y = -8;
+const ETIKETT_H = 16;
+
+export function brickTyp(inst: BrickInst, data: BrickData): BrickTyp {
+  const t = inst.typer[data.typ];
+  if (!t) console.warn(`Okänd bricktyp "${data.typ}" – lägg till den i brickor.typer`);
+  return t ?? {};
+}
+
+function ritaBricka(scene: Phaser.Scene, data: BrickData, b: number, h: number, inst: BrickInst): Phaser.GameObjects.Container {
+  const { ikon, figur } = inst;
   if (figur) {
     // Bara en figur, utan ruta och etikett (t.ex. ufon).
     const g = scene.add.graphics();
@@ -23,8 +33,15 @@ function ritaBricka(scene: Phaser.Scene, data: BrickData, b: number, h: number, 
     return scene.add.container(0, 0, [g]);
   }
   if (data.dold) return ritaDold(scene, data.dold.etikett, b, h, ikon);
-  const fel = data.typ === 'fel';
+  const typ = brickTyp(inst, data);
   const g = scene.add.graphics();
+  if (typ.figur) {
+    // Figur med etiketten i liten text under, t.ex. en kolsyretub märkt "Ditt".
+    ritaFigur(g, typ.figur, 0, FIGUR_Y, b, h - ETIKETT_H);
+    const t = skapaText(scene, 0, h / 2 - 6, data.etikett, 'knapp', 'morkgron', { origo: [0.5, 0.5], storlek: 11 });
+    return scene.add.container(0, 0, [g, t]);
+  }
+  const fel = (typ.stil ?? 'mork') === 'mork';
   if (ikon && !fel) {
     // Avslöjad rätt-bricka med ikon: grön, som "Säljare = ägare".
     g.fillStyle(farg.gron, 1).fillRoundedRect(-b / 2, -h / 2, b, h, radie.s);
@@ -65,8 +82,15 @@ function ikonOchText(
 }
 
 export class Rutnat extends Formation<BrickData> {
-  constructor(scene: Phaser.Scene, inst: InvadersInstallningar['brickor']) {
-    super(scene, inst, (s, d, b, h) => ritaBricka(s, d, b, h, inst.ikon, inst.figur));
+  constructor(
+    scene: Phaser.Scene,
+    private brickInst: BrickInst,
+  ) {
+    super(scene, brickInst, (s, d, b, h) => ritaBricka(s, d, b, h, brickInst));
+  }
+
+  typ(b: Bricka): BrickTyp {
+    return brickTyp(this.brickInst, b.data);
   }
 
   get brickor(): Bricka[] {
@@ -74,15 +98,16 @@ export class Rutnat extends Formation<BrickData> {
   }
 
   /**
-   * Brickan som täcker punkten, om någon. Rätt-brickornas träffyta är lite mindre än det som syns,
-   * så att ett skott som nästan går fri från en rätt-bricka får gå igenom.
+   * Brickan som täcker punkten, om någon. Typer med "smalTraff" har en lite mindre träffyta än det som syns
+   * (när de är avslöjade), så att ett skott som nästan går fri får gå igenom.
    */
   override traff(x: number, y: number): Bricka | undefined {
-    return super.traff(x, y, (d) => (d.typ === 'ratt' && !d.dold ? FORLATANDE_KANT : 0));
+    return super.traff(x, y, (d) => (d.dold ? 0 : (brickTyp(this.brickInst, d).smalTraff ?? 0)));
   }
 
+  /** Antal levande brickor vars typ har skaBort (vinstvillkoret "fel-borta"). */
   felKvar(): number {
-    return this.objekt.filter((b) => b.levande && b.data.typ === 'fel').length;
+    return this.objekt.filter((b) => b.levande && this.typ(b).skaBort).length;
   }
 
   /** Sant när varje bricka är bortskjuten eller släppt igenom. */
@@ -112,13 +137,46 @@ export class Rutnat extends Formation<BrickData> {
   }
 
   /**
-   * Byter en bortskjuten fel-bricka mot en rätt-bricka med etiketten i "ersattning", på samma plats.
-   * Den nya brickan får fel-brickans "plats" i slutraden och räknas som rätt (får inte skjutas).
+   * Fyllning: brickan lämnar formationen, en ljus nivå stiger i figuren och den åker sedan ut uppåt.
+   * Fyllnadsytan kommer från figuren (art.ts fyllnadsYta); figurer utan sådan fylls som hela brickan.
    */
-  ersatt(gammal: Bricka): Bricka | undefined {
+  fyll(b: Bricka): void {
+    b.levande = false;
+    const obj = this.lyftUt(b);
+    const typ = this.typ(b);
+    const yta = (typ.figur && fyllnadsYta(typ.figur, this.brickInst.b, this.brickInst.h - ETIKETT_H)) || {
+      x: -this.brickInst.b / 2,
+      y: -this.brickInst.h / 2,
+      b: this.brickInst.b,
+      h: this.brickInst.h,
+    };
+    const offset = typ.figur ? FIGUR_Y : 0;
+    const g = this.scene.add.graphics();
+    obj.add(g);
+    const niva = { t: 0 };
+    this.scene.tweens.add({
+      targets: niva,
+      t: 1,
+      duration: 380,
+      ease: 'Quad.easeOut',
+      onUpdate: () => {
+        const h = yta.h * niva.t;
+        g.clear().fillStyle(farg.ljusbeige, 0.7).fillRect(yta.x, offset + yta.y + yta.h - h, yta.b, h);
+      },
+      onComplete: () => {
+        this.scene.tweens.add({ targets: obj, y: obj.y - 260, alpha: 0, duration: 520, ease: 'Quad.easeIn', onComplete: () => obj.destroy() });
+      },
+    });
+  }
+
+  /**
+   * Byter en bortskjuten bricka mot en ny med etiketten i "ersattning" och typen typ, på samma plats.
+   * Den nya brickan får den gamlas "plats" i slutraden.
+   */
+  ersatt(gammal: Bricka, typ: string): Bricka | undefined {
     const etikett = gammal.data.ersattning;
     if (!etikett) return undefined;
-    const ny = this.lagg({ etikett, typ: 'ratt', plats: gammal.data.plats }, gammal.lx, gammal.ly);
+    const ny = this.lagg({ etikett, typ, plats: gammal.data.plats }, gammal.lx, gammal.ly);
     ny.obj.setScale(0.4).setAlpha(0);
     this.scene.tweens.add({ targets: ny.obj, scale: 1, alpha: 1, duration: 220, ease: 'Back.easeOut' });
     return ny;
