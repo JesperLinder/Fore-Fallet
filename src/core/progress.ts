@@ -9,6 +9,8 @@
  */
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import { skarmdumpslage } from '../debug/flaggor';
+import { skarmdumpFramsteg } from '../debug/Skarmdump';
 
 const NYCKEL = 'forefallet.framsteg.v1';
 const APP = Capacitor.isNativePlatform();
@@ -61,11 +63,19 @@ const cache: Framsteg = APP ? await laddaFranPreferences() : { stjarnor: {} };
 /** Skrivningar till Preferences i tur och ordning, så att den senaste alltid vinner. */
 let koa: Promise<unknown> = Promise.resolve();
 
+/** Skärmdumpsläget: påhittade framsteg som bara finns i minnet (de riktiga sparade framstegen rörs inte). */
+const minne: Framsteg | null = skarmdumpslage ? skarmdumpFramsteg() : null;
+
 function lasData(): Framsteg {
+  if (minne) return minne;
   return APP ? cache : (tolka(lasLokalt()) ?? { stjarnor: {} });
 }
 
 function skrivData(data: Framsteg): void {
+  if (minne) {
+    if (data !== minne) Object.assign(minne, data);
+    return;
+  }
   const json = JSON.stringify(data);
   if (APP) {
     if (data !== cache) {

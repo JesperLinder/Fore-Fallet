@@ -18,7 +18,8 @@ import { tipsPanel } from '../ui/TipPanel';
 import { Knapp, ikonKnapp, ritaPaus } from '../ui/Button';
 import { marke } from '../ui/Badge';
 import { ETIKETT_HOGER } from '../ui/HeaderCard';
-import { testlage } from '../debug/flaggor';
+import { skarmdumpslage, testlage } from '../debug/flaggor';
+import { skarmdumpRegi } from '../debug/Skarmdump';
 import { testknapparNiva } from '../debug/Testpanel';
 
 export interface LevelData {
@@ -74,6 +75,7 @@ export class LevelScene extends BasScen {
     this.game.events.on(Phaser.Core.Events.HIDDEN, iBakgrunden);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off(Phaser.Core.Events.HIDDEN, iBakgrunden));
     if (niva.mellanstopp) this.visaMellanstopp(niva.mellanstopp);
+    if (skarmdumpslage) skarmdumpRegi(this, niva.id, this.mekanik, text.niva.starta);
     if (testlage) {
       testknapparNiva(this, niva, (d) => { this.mekanik.pausa(true); this.bytTill('Verdict', d); }, (o) => { this.mekanik.pausa(true); this.visaForlust(o); });
     }

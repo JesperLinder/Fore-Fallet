@@ -9,16 +9,19 @@
     "build": "node scripts/kolla-platshallare.mjs && tsc --noEmit && vite build && node scripts/kolla-bygge.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "kolla-platshallare": "node scripts/kolla-platshallare.mjs"
+    "kolla-platshallare": "node scripts/kolla-platshallare.mjs",
+    "kolla-store": "node scripts/kolla-store.mjs",
+    "ikoner": "node scripts/skapa-ikoner.mjs && capacitor-assets generate --ios --iconBackgroundColor '#0F2827' --splashBackgroundColor '#0F2827' --splashBackgroundColorDark '#0F2827'"
   },
   "dependencies": {
-    "@capacitor/browser": "8.0.5",
     "@capacitor/core": "8.6.2",
     "@capacitor/haptics": "8.0.2",
+    "@capacitor/ios": "8.6.2",
     "@capacitor/preferences": "8.0.1",
     "phaser": "3.90.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "4.0.0",
     "@capacitor/cli": "8.6.2",
     "typescript": "5.9.3",
     "vite": "7.3.8"

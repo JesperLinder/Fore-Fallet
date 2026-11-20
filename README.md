@@ -39,6 +39,31 @@ Testläget styrs av en byggvariabel och finns bara i:
 Vanliga `npm run build`, som används för appen, tar bort all testkod (`src/debug/`). Sist i bygget kontrollerar
 `scripts/kolla-bygge.mjs` att ingen testkod följt med; annars avbryts bygget.
 
+## Skärmdumpsläge
+
+Lägg till `?screenshot=1` i adressen. Då gäller följande:
+
+- Inga testknappar syns.
+- Framstegen är påhittade och finns bara i minnet: alla tio nivåer är klarade, de flesta med tre stjärnor.
+  Dina riktiga sparade framsteg rörs inte. Kartan och säsongsskärmen ser därför färdigspelade ut.
+- Med `&niva=1`, `2`, `5`, `8` eller `10` startar nivån direkt, spelas några sekunder av sig själv och fryses
+  i ett snyggt läge. I konsolen står `SKÄRMDUMPSLÄGE: fryst` när bilden är klar. Exempel:
+  `http://localhost:5173/?screenshot=1&niva=8`.
+- Vill du frysa vid ett annat ögonblick, lägg till `&frys=…`. I nivå 1, 8 och 10 är det antal bildrutor efter
+  sista skottet (standard 27, 22 och 54); i nivå 2 och 5 millisekunder spelad tid efter "Starta" (standard 2600 och 6000).
+
+Skärmdumpsläget finns, precis som testläget, bara i utvecklingsläget och i webbtestbygget (GitHub Pages).
+Appbygget (`npm run build`) saknar det, och `scripts/kolla-bygge.mjs` kontrollerar det.
+
+**Skärmdumpar i App Store-storlek.** Apple kräver bilder för den största iPhone-skärmen (6,9 tum,
+1320 × 2868 pixlar). Färdiga bilder från de fem nivåerna ligger i `store/skarmdumpar/`. Ta nya så här i Chrome:
+
+1. Öppna till exempel `http://localhost:5173/?screenshot=1&niva=1`.
+2. Öppna utvecklarverktygen (Cmd+Alt+I) och slå på enhetsläget (Cmd+Shift+M).
+3. Välj **Dimensions: Edit…** och lägg till en enhet med bredd 440, höjd 956 och **Device pixel ratio** 3.
+4. Ladda om sidan och vänta tills `SKÄRMDUMPSLÄGE: fryst` står i konsolen.
+5. Öppna menyn med tre punkter i enhetsfältet och välj **Capture screenshot**. Bilden blir 1320 × 2868.
+
 ## Publicering på GitHub Pages
 
 Varje push till `main` bygger spelet (`npm run build`) och publicerar det automatiskt
@@ -59,6 +84,161 @@ Arbetsflödet kan också köras för hand där: välj "Publicera på GitHub Page
 
 **Base-sökväg:** lokalt och i Capacitor används relativ base (`./` i `vite.config.ts`).
 Pages-bygget sätter base till `/<repo-namn>/` med `--base`, så det fungerar även om repot byter namn.
+
+## Bygga för iOS
+
+iOS-projektet ligger i `ios/` (Capacitor 8). App-id: `se.fylgia.forefallet`, visningsnamn "Före fallet",
+bara porträttläge, bara iPhone (på iPad körs den som iPhone-app), statusraden dold. Det enda som behövs i
+Xcode är att välja vem som signerar appen. Här är hela vägen från kod till TestFlight, steg för steg.
+
+### Det här behöver du först (en gång)
+
+1. **En Mac** med den senaste versionen av macOS. iOS-appar kan bara byggas på en Mac.
+2. **Xcode**: installera det gratis från App Store på Macen (sök på "Xcode"; det är stort och tar en stund).
+   Öppna det en gång efter installationen och godkänn villkoren. Väljer Xcode att installera "iOS"-komponenter, gör det.
+3. **Node.js** version 20 eller senare: ladda ner "LTS" från nodejs.org och installera.
+4. **Ett konto i Apple Developer Program** för Fylgia (se "Det du måste göra själv" nedan). Ditt Apple-ID
+   måste vara med i Fylgias team där.
+5. **Logga in i Xcode**: menyn **Xcode → Settings… → Accounts**, tryck **+** längst ner till vänster,
+   välj **Apple ID** och logga in. Fylgias team ska nu synas i listan.
+6. **Hämta koden** och installera beroendena. Öppna programmet Terminal och skriv:
+
+```bash
+git clone https://github.com/jesperlinder/Fore-Fallet.git
+```
+
+```bash
+cd Fore-Fallet
+```
+
+```bash
+npm install
+```
+
+### Bygga och ladda upp (varje gång)
+
+Alla kommandon körs i Terminal, i mappen `Fore-Fallet`.
+
+**1. Bygg spelet.** Det gör ett produktionsbygge utan testläge och skärmdumpsläge:
+
+```bash
+npm run build
+```
+
+Det ska sluta med raden "Byggkontroll: produktionsbygget saknar testläge och skärmdumpsläge."
+
+**2. Kopiera bygget till iOS-projektet:**
+
+```bash
+npx cap sync ios
+```
+
+**3. Öppna projektet i Xcode:**
+
+```bash
+npx cap open ios
+```
+
+Första gången hämtar Xcode Capacitors paket. Vänta tills det står "Ready" högst upp i fönstret.
+
+**4. Välj team för signering** (bara första gången på en ny Mac):
+
+1. Klicka på den blå ikonen **App** högst upp i listan till vänster.
+2. I mitten: välj **App** under **TARGETS**, och sedan fliken **Signing & Capabilities**.
+3. Kryssa i **Automatically manage signing**.
+4. Välj Fylgias team i listan **Team**. **Bundle Identifier** ska vara `se.fylgia.forefallet`.
+   Får du ett rött felmeddelande om att id:t inte är tillgängligt: kontrollera att du valt rätt team.
+
+**5. Höj byggnumret.** Varje uppladdning måste ha ett nytt byggnummer. I samma vy, fliken **General**:
+öka **Build** med ett (1, 2, 3 …). **Version** (just nu 0.1.0) ändrar du bara när en ny version ska ut i App Store.
+
+**6. (Frivilligt) Prova på din egen iPhone.** Koppla in telefonen med sladd och lås upp den. Välj den i
+listan högst upp i mitten av Xcode-fönstret och tryck på ▶ (Run). Första gången måste du slå på
+**Utvecklarläge** i telefonen (Inställningar → Integritet och säkerhet → Utvecklarläge) och starta om den.
+
+**7. Arkivera.** Välj **Any iOS Device (arm64)** i listan högst upp i mitten. Välj sedan menyn
+**Product → Archive**. Det tar någon minut. När det är klart öppnas fönstret **Organizer** med arkivet överst.
+
+**8. Ladda upp till App Store Connect.** I Organizer: markera arkivet och tryck **Distribute App**.
+Välj **App Store Connect** och sedan **Upload** (eller **Distribute**). Behåll förvalen och tryck vidare tills
+uppladdningen startar. Kräver Xcode att appen först skapas i App Store Connect, gör det enligt steg 3 i
+"Det du måste göra själv" nedan och försök igen.
+
+**9. Vänta på bearbetningen.** Logga in på appstoreconnect.apple.com, öppna **Appar → Före fallet → TestFlight**.
+Bygget syns där efter 5–30 minuter, och du får ett mejl när det är klart. Frågan om kryptering är redan
+besvarad i appen (`ITSAppUsesNonExemptEncryption` = nej), så bygget blir testbart direkt.
+
+**10. Lägg till testare i TestFlight.**
+
+- **Interna testare** (personer i Fylgias team i App Store Connect, högst 100): fliken **TestFlight**,
+  **Intern testning** i vänsterspalten, tryck **+**, ge gruppen ett namn och lägg till personerna. De får ett mejl direkt.
+- **Externa testare** (vem som helst, med e-postadress eller en öppen länk): **Extern testning**, tryck **+**,
+  skapa en grupp, lägg till bygget och fyll i **Testinformation** (vad som ska testas och en e-postadress för
+  synpunkter). Första bygget granskas av Apple, oftast inom ett dygn.
+- Testarna installerar appen **TestFlight** från App Store och öppnar inbjudan i den.
+
+**När spelet ändras:** gör om steg 1–3, 5, 7 och 8. Steg 4 behövs bara en gång per Mac.
+
+### Det du måste göra själv (i den här ordningen)
+
+1. **Gå med i Apple Developer Program som organisation** (developer.apple.com/programs/enroll, 99 USD per år).
+   Det kräver ett **D-U-N-S-nummer** för Advokatfirman Fylgia (gratis, men kan ta upp till ett par veckor att få)
+   och att den som ansöker får teckna avtal för firman.
+2. **Bjud in de som ska bygga och testa** i App Store Connect under **Användare och åtkomst**.
+3. **Skapa appen i App Store Connect**: **Appar → + → Ny app**. Plattform iOS, namn "Före fallet",
+   primärt språk svenska, paket-id `se.fylgia.forefallet`, SKU till exempel `forefallet`. Finns inte paket-id:t
+   i listan: registrera det under **Certificates, Identifiers & Profiles → Identifiers** på developer.apple.com,
+   eller bygg en gång i Xcode med Fylgias team valt (då registreras det automatiskt).
+4. **Byt ut `[KONTAKT-E-POST]`** i `public/integritet.html` och pusha till `main`, så att policyn publiceras.
+5. **Bygg och ladda upp** enligt stegen ovan, och **bjud in interna testare** i TestFlight.
+6. **För externa testare**: fyll i testinformationen (beskrivning, e-post för synpunkter, kontaktuppgifter
+   för Apples granskning) och vänta på Apples betagranskning.
+7. **Inför App Store** (behövs inte för TestFlight): under **Appinformation** kategori, åldersgräns
+   (frågeformuläret), integritetspolicyns adress och **Supportadress** (krävs; en sida där man kan nå er).
+   Under **Appens integritet**: välj "Data samlas inte in". **Status som näringsidkare** (EU:s DSA) måste anges
+   för att appen ska finnas i EU; som företag syns då Fylgias adress, telefon och e-post i App Store.
+   Pris (gratis), länder, upphovsrätt, texterna i `store/beskrivning.md` och skärmdumparna i `store/skarmdumpar/`.
+
+### Ikon och startbild
+
+Källbilderna ligger i `assets/` och skapas av `scripts/skapa-ikoner.mjs`: mörkgrön bakgrund (#0F2827) med
+Fylgias lila fyruddiga stjärna, ingen text och ingen genomskinlighet. Alla storlekar i Xcode-projektet
+genereras med @capacitor/assets. Har något ändrats, kör:
+
+```bash
+npm run ikoner
+```
+
+```bash
+npx cap sync ios
+```
+
+### Inställningar i iOS-projektet
+
+- `ios/App/App/Info.plist`: visningsnamn, bara porträtt (`UISupportedInterfaceOrientations`), dold statusrad
+  (`UIStatusBarHidden`), ingen kryptering att deklarera (`ITSAppUsesNonExemptEncryption`), språk svenska.
+- `ios/App/App.xcodeproj`: app-id, version (`MARKETING_VERSION`) och byggnummer (`CURRENT_PROJECT_VERSION`),
+  bara iPhone (`TARGETED_DEVICE_FAMILY = 1`), lägsta iOS-version 15.
+- `capacitor.config.ts`: app-id, namn och mörkgrön bakgrund bakom webbvyn (ingen vit blinkning vid start).
+- **Externa länkar** (lagen.nu, domstol.se, karriärsidan) är vanliga länkar med `target="_blank"`. I appen
+  lämnar Capacitor över dem till systemet, så att de öppnas i Safari och inte inne i appen.
+
+## App Store-materialet
+
+I mappen `store/`:
+
+- `beskrivning.md`: namn, underrubrik, sökord och beskrivning, klara att klistra in. Kontrollera längderna med
+  `npm run kolla-store`.
+- `skarmdumpar/`: fem skärmdumpar i 1320 × 2868 (iPhone 6,9 tum) från nivå 1, 2, 5, 8 och 10.
+
+## Integritet
+
+Spelet samlar inte in några personuppgifter och har ingen spårning, analys eller reklam. Lägg inte till något
+sådant: då måste integritetsuppgifterna i App Store Connect och integritetspolicyn ändras.
+Integritetspolicyn (svenska och engelska) ligger i `public/integritet.html` och publiceras med spelet på
+**https://jesperlinder.github.io/Fore-Fallet/integritet.html**. Den adressen anges i App Store Connect och
+länkas från "Om spelet" (`lankar.integritet` i `src/config/links.ts`). Byt ut `[KONTAKT-E-POST]` mot en riktig
+adress innan appen skickas in; platshållarkontrollen påminner om det.
 
 ## Struktur
 
@@ -81,12 +261,17 @@ src/
   mechanics/common/       delat: formation.ts (marscherande rutnät), startPanel.ts (Starta-rutan)
   levels/                 en JSON-fil per nivå
   ui/                     knappar, text, stjärnor, paneler, märken, scroll
-  debug/                  testläget (?debug=1), finns bara i utvecklings-/webbtestbygget
+  debug/                  testläget (?debug=1) och skärmdumpsläget (?screenshot=1), finns bara i utvecklings-/webbtestbygget
   platform/haptics.ts     lätt vibration vid träff och misstag (Capacitor Haptics)
-  platform/openLink.ts    öppnar externa länkar (Capacitor Browser i appen, ny flik på webben)
+  platform/openLink.ts    öppnar externa länkar (telefonens webbläsare i appen, ny flik på webben)
 public/fonts/             typsnitten (woff2) med licenser (OFL-*.txt) och typsnitt.css
 public/assets/            Fylgias logotyp och symbol (SVG ur varumärkesmanualen)
-public/icon.svg           appikon/favicon, icon-1024.png är samma i 1024×1024 för iOS
+public/icon.svg           favicon för webben, icon-1024.png samma i 1024×1024 (hemskärmsikon på webben)
+public/integritet.html    integritetspolicyn (svenska och engelska)
+assets/                   källbilder för appikonen och startbilden (skapas av scripts/skapa-ikoner.mjs)
+ios/                      Xcode-projektet (Capacitor). ios/App/App/public kopieras från dist/ av cap sync
+store/                    App Store-texter och skärmdumpar
+scripts/                  kontroller (platshållare, bygget, store-texter) och ikongeneratorn
 ```
 
 ## Skärmarna
@@ -597,7 +782,8 @@ Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar
 ## Platshållartext
 
 Text inom hakparenteser, till exempel `[FYLLS I AV MÅLANSVARIG]`, räknas som platshållare. Den visas i vinrött på domslutet
-och ger en varning i webbläsarens konsol när spelet startar. Kontrollera alla nivåfiler och texterna i `src/config/` med:
+och ger en varning i webbläsarens konsol när spelet startar. Kontrollen går igenom alla nivåfiler, texterna i `src/config/`, HTML-sidorna i `public/` och texterna i `store/`.
+Enda tillåtna undantaget är `[KONTAKT-E-POST]` i `public/integritet.html`; för den skrivs bara en påminnelse ut. Kör:
 
 ```bash
 npm run kolla-platshallare
@@ -613,4 +799,4 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.
 - **Domslutstexterna** `domslut.text` och `utfall` för nivå 1 har jag skrivit själv. De bör granskas.
-- **Capacitor** är installerat och konfigurerat (`capacitor.config.ts`), men det finns ingen iOS-plattform. När det är dags: `npm run build && npx cap add ios`.
+- **Kontaktadressen** i integritetspolicyn (`public/integritet.html`) är `[KONTAKT-E-POST]`.

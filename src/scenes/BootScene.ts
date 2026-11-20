@@ -2,6 +2,8 @@
 import Phaser from 'phaser';
 import { typsnittAttLadda } from '../config/theme';
 import { laddaLogotyper } from '../ui/Logo';
+import { skarmdumpslage } from '../debug/flaggor';
+import { skarmdumpStart } from '../debug/Skarmdump';
 
 const MAX_VANTAN_MS = 3000;
 
@@ -22,6 +24,9 @@ export class BootScene extends Phaser.Scene {
     } catch {
       // Typsnitten ligger lokalt; skulle de ändå inte laddas används reservtypsnitten. Spelet fungerar ändå.
     }
-    this.scene.start('Title');
+    // Skärmdumpsläget med &niva=…: direkt till nivån (se debug/Skarmdump.ts).
+    const niva = skarmdumpslage ? skarmdumpStart() : undefined;
+    if (niva) this.scene.start('Level', { id: niva });
+    else this.scene.start('Title');
   }
 }

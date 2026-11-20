@@ -1,20 +1,12 @@
 /**
- * Externa länkar (t.ex. "Läs hela fallet").
- * På webben används en riktig <a>-länk som webbläsaren själv öppnar: Safari blockerar nya flikar
- * som öppnas från kod (window.open), men aldrig ett tryck på en riktig länk.
- * I iOS-appen fångas trycket och sidan visas i Capacitors Browser-plugin.
+ * Externa länkar (t.ex. "Läs hela fallet", lagen.nu, domstol.se, karriärsidan).
+ * En riktig <a>-länk med target="_blank" som användaren själv trycker på:
+ * - På webben öppnar webbläsaren en ny flik (Safari blockerar nya flikar från window.open, men aldrig ett tryck på en riktig länk).
+ * - I iOS-appen fångar Capacitor länken (WKWebView öppnar ett nytt fönster) och lämnar över den till systemet,
+ *   så att sidan öppnas i telefonens webbläsare (Safari) och inte inne i appen.
  */
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
-
 export function kopplaLank(a: HTMLAnchorElement, url: string): void {
   a.href = url;
   a.target = '_blank';
   a.rel = 'noopener';
-  if (Capacitor.isNativePlatform()) {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      void Browser.open({ url });
-    });
-  }
 }

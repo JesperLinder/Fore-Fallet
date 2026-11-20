@@ -1,10 +1,12 @@
-// Capacitor-konfiguration, förberedd för en framtida iOS-app. Kör `npx cap add ios` först när det är dags.
+// Capacitor-konfiguration för iOS-appen. Bygg: npm run build && npx cap sync ios (se README, "Bygga för iOS").
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'se.fylgia.forefallet',
   appName: 'Före fallet',
   webDir: 'dist',
+  // Mörkgrön bakom webbvyn, så att det inte blinkar vitt mellan startbilden och spelet.
+  backgroundColor: '#0F2827',
   ios: { contentInset: 'never' },
 };
 
