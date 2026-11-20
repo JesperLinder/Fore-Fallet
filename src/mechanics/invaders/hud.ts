@@ -22,17 +22,29 @@ export interface InvadersHud {
   visaMatare: (steg: number) => void;
   /** Kort markering av mätaren vid ett misstag. */
   markeraMatare: () => void;
+  /** Räknaren i kortet bredvid mätaren (visning "kort" + dekor.raknare). */
+  visaRaknare: (kvar: number, totalt: number) => void;
   /** Var fångade objekt parkeras (världskoordinater) – index 0, 1, 2 … */
   fangstPlats: (index: number) => Phaser.Math.Vector2;
 }
 
 export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar): InvadersHud {
-  const visaTid = inst.tid ? byggTid(scene, inst.tid) : () => {};
+  const visaTid = inst.tid && !inst.tid.dold ? byggTid(scene, inst.tid) : () => {};
   if (inst.info?.length) byggInfo(scene, inst.info);
-  const tak = inst.infotext ? byggInfotext(scene, inst.infotext) : INFO_Y + INFO_H;
-  const matare = inst.matare.visning === 'procent' ? byggProcent(scene, inst.matare) : byggMatare(scene, inst.matare);
+  let tak = inst.infotext ? byggInfotext(scene, inst.infotext) : INFO_Y + INFO_H;
+  let visaRaknare: InvadersHud['visaRaknare'] = () => {};
+  let matare;
+  if (inst.matare.visning === 'kort') {
+    const kort = byggKort(scene, inst.matare, inst.dekor?.raknare);
+    matare = kort;
+    visaRaknare = kort.visaRaknare;
+    tak = kort.tak;
+  } else {
+    matare = inst.matare.visning === 'procent' ? byggProcent(scene, inst.matare) : byggMatare(scene, inst.matare);
+  }
   return {
     tak,
+    visaRaknare,
     visaTid,
     ...matare,
     fangstPlats: (i) => new Phaser.Math.Vector2(BREDD - avstand.l - 14 - i * 30, MATARRAD_Y - 22),
@@ -82,6 +94,56 @@ function byggInfotext(scene: Phaser.Scene, innehall: string): number {
   const h = t.height + 28;
   scene.add.graphics().fillStyle(farg.gron, 1).fillRoundedRect(x0, INFO_Y, b, h, radie.m).setDepth(5);
   return INFO_Y + h;
+}
+
+/**
+ * Mätaren som ett kort under rubriken med en guldstapel som börjar full och krymper, och valfritt
+ * ett kort bredvid med en räknare (t.ex. "Kor i hagen: 8 av 8").
+ */
+function byggKort(
+  scene: Phaser.Scene,
+  m: InvadersInstallningar['matare'],
+  raknare?: { namn: string; text: string },
+) {
+  const x0 = avstand.l;
+  const mellan = 10;
+  const h = 56;
+  const helB = BREDD - x0 * 2;
+  const b = raknare ? (helB - mellan) / 2 : helB;
+  const g = scene.add.graphics().setDepth(5);
+  g.fillStyle(farg.gron, 1).fillRoundedRect(x0, INFO_Y, b, h, radie.m);
+  skapaText(scene, x0 + 14, INFO_Y + 12, m.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
+  const stapelB = b - 28;
+  const stapel = scene.add.graphics().setDepth(6);
+  let andel = 1;
+  const ritaStapel = (fyll: number) => {
+    stapel.clear();
+    stapel.fillStyle(farg.morkgron, 1).fillRoundedRect(x0 + 14, INFO_Y + 36, stapelB, 8, 4);
+    if (andel > 0) stapel.fillStyle(fyll, 1).fillRoundedRect(x0 + 14, INFO_Y + 36, Math.max(8, stapelB * andel), 8, 4);
+  };
+
+  let visaRaknare = (_kvar: number, _totalt: number) => {};
+  if (raknare) {
+    const rx = x0 + b + mellan;
+    g.fillStyle(farg.gron, 1).fillRoundedRect(rx, INFO_Y, b, h, radie.m);
+    skapaText(scene, rx + 14, INFO_Y + 12, raknare.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
+    const varde = skapaText(scene, rx + 14, INFO_Y + 28, '', 'rubrik', 'ljusbeige', { storlek: 18 }).setDepth(6);
+    visaRaknare = (kvar, totalt) => varde.setText(raknare.text.replace('{kvar}', String(kvar)).replace('{totalt}', String(totalt)));
+  }
+
+  return {
+    tak: INFO_Y + h,
+    visaRaknare,
+    visaMatare: (steg: number) => {
+      andel = Math.max(0, (m.steg - steg) / m.steg);
+      ritaStapel(farg.guld);
+    },
+    markeraMatare: () => {
+      // En enda markering per misstag: stapeln lila en kort stund.
+      ritaStapel(farg.lila);
+      scene.time.delayedCall(450, () => ritaStapel(farg.guld));
+    },
+  };
 }
 
 /** Mätare som procent kvar uppe till höger, t.ex. "God tro 100 %". Tar klockans plats. */

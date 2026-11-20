@@ -82,6 +82,10 @@ export interface Domslut {
   text?: string;
   domskal: [string, string, string];
   lankTillFallet: string;
+  /** Kursiv rad under stjärnorna, oavsett hur det gick (t.ex. för halvvägsvinst). */
+  underrubrik?: string;
+  /** Text i den lila Fylgia-rutan sist på domslutet. Visas bara för nivåer med fylgiaMal: true. */
+  fylgiaruta?: string;
   /** Kursiv rad som beror på hur det gick, nyckel = antal stjärnor ("0"–"3"). */
   utfall?: Partial<Record<'0' | '1' | '2' | '3', string>>;
   /** Bara för halvvägsvinst. */
@@ -251,7 +255,15 @@ export interface InvadersInstallningar {
   brickor: RutnatInstallningar<BrickData> & {
     /** Valfri figur (art.ts) på varje bricka, med etiketten i liten text under, t.ex. "bilsiluett". */
     ikon?: string;
+    /** Rita bara den här figuren (art.ts), utan ruta och etikett, t.ex. "ufo". */
+    figur?: string;
+    /** Skotten passerar igenom brickorna (de kan inte skjutas ner), t.ex. ufon. */
+    skottGenom?: boolean;
   };
+  /** Fallande hot som ska skjutas ner innan de når botten (valfritt). */
+  hot?: HotInstallningar;
+  /** Bakgrundshändelser som spelaren inte kan påverka, med valfri räknare (valfritt). */
+  dekor?: DekorInstallningar;
   /**
    * Vad som händer när en bricka når spelaren ("släpps igenom"), per typ. Anges detta försvinner brickan
    * med regelns effekt i stället för att ge förlust; "dold" gäller brickor som inte avslöjats.
@@ -265,8 +277,8 @@ export interface InvadersInstallningar {
   fangst?: FangstData[];
   /** Block som stoppar spelarens skott (valfritt). */
   skydd?: SkyddData[];
-  /** Nedräkning (valfritt). */
-  tid?: { sekunder: number; etikett: string };
+  /** Nedräkning (valfritt). dold: klockan går men visas inte. */
+  tid?: { sekunder: number; etikett: string; dold?: boolean };
   matare: {
     namn: string;
     /** Antal steg innan mätaren är full. */
@@ -276,8 +288,9 @@ export interface InvadersInstallningar {
     /**
      * "steg" (standard): stapel i rutor längst ner som fylls vid misstag.
      * "procent": procent kvar uppe till höger (t.ex. "God tro 100 %"), sjunker vid misstag. Tar klockans plats.
+     * "kort": ett kort under rubriken med en guldstapel som börjar full och krymper (t.ex. "Försäkringen").
      */
-    visning?: 'steg' | 'procent';
+    visning?: 'steg' | 'procent' | 'kort';
   };
   /** Hur många steg mätaren stiger per misstag av varje slag. */
   misstag: { rattTraffad: number; fangstMissad: number };
@@ -285,8 +298,11 @@ export interface InvadersInstallningar {
   info?: { etikett: string; varde: string; serif?: boolean }[];
   /** Kort instruktion mitt på planen som tonas bort efter några sekunder. */
   instruktion?: { text: string; y: number };
-  /** Alla villkor måste vara uppfyllda för vinst. "alla-klara" = varje bricka bortskjuten eller släppt igenom. */
-  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara')[];
+  /**
+   * Alla villkor måste vara uppfyllda för vinst. "alla-klara" = varje bricka bortskjuten eller släppt igenom.
+   * "overlev" = tiden har gått ut utan förlust (kräver "tid").
+   */
+  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara' | 'overlev')[];
   /** Något av villkoren ger förlust. */
   forlust: ForlustOrsak[];
   /** Vid vinst: brickor och fångstobjekt med "plats" flyttas till en rad på denna höjd. */
@@ -332,6 +348,56 @@ export interface BrickData {
    * (streckad kontur). Första träffen avslöjar "typ" och "etikett"; brickan förstörs inte.
    */
   dold?: { etikett: string };
+}
+
+/** Fallande hot: släpps uppifrån och ska skjutas ner innan de når spelaren. */
+export interface HotInstallningar {
+  /** Figur i art.ts, t.ex. "uppsagningsbrev". */
+  utseende: string;
+  /** Storlek (träffyta). */
+  b: number;
+  h: number;
+  /** Valfri etikett under hotet, t.ex. "Uppsägning i förtid". */
+  etikett?: string;
+  /** "forsta" (standard): etiketten visas bara på det första hotet. "alltid": på alla. */
+  visaEtikett?: 'forsta' | 'alltid';
+  /** "fran-fiende": släpps från en slumpvis fiende. "slumpvis-overst": slumpvis x på höjden y. */
+  start: 'fran-fiende' | 'slumpvis-overst';
+  /** Starthöjd för "slumpvis-overst". */
+  y?: number;
+  /** Fallhastighet (punkter per sekund). */
+  fart: number;
+  /** Tid mellan två hot (ms) i början. */
+  intervall: number;
+  /** Valfritt: tid mellan hot (ms) i slutet. Tempot ändras jämnt över nivåns tid (kräver "tid"). */
+  slutIntervall?: number;
+  /** Väntetid innan första hotet (ms). Standard: intervall. */
+  fordrojning?: number;
+  /** Vad som händer när ett hot når spelaren. */
+  botten: BottenRegel;
+}
+
+/** Bakgrundshändelser (rent visuellt) med valfri räknare. */
+export interface DekorInstallningar {
+  /** Figurerna som händelserna verkar på, t.ex. åtta kor i hagen. */
+  figurer: { utseende: string; x: number; y: number }[];
+  /** Händelse som upprepas: en slumpvis kvarvarande figur påverkas. Slutar när figurerna är slut. */
+  handelse: {
+    /** "lyft": figuren lyfts upp i en ljuskägla från närmaste fiende och försvinner. */
+    rorelse: 'lyft';
+    /** Tid mellan händelserna (ms). */
+    intervall: number;
+    /** Tid till första händelsen (ms). Standard: intervall. */
+    start?: number;
+    /** Hur länge en händelse pågår (ms). */
+    langd: number;
+    /** Valfri figur att växla med under händelsen, t.ex. "ko-sprattel" (sprattlande ben). */
+    vaxla?: string;
+    /** Valfritt ljud, t.ex. "muu". */
+    ljud?: 'muu';
+  };
+  /** Valfri räknare i ett kort bredvid mätaren. {kvar} och {totalt} byts mot siffror. */
+  raknare?: { namn: string; text: string };
 }
 
 /** Vad som händer när en bricka släpps igenom (når spelaren). */

@@ -10,7 +10,8 @@ import { arGodkand, arSpelbar, arUpplast, hamtaNiva, nastaNiva } from '../core/l
 import { spela } from '../core/sound';
 import type { Niva } from '../core/levelTypes';
 import { skapaText } from '../ui/text';
-import { streckadRam } from '../ui/shapes';
+import { fyllStjarna, streckadRam } from '../ui/shapes';
+import { arPlatshallare } from '../core/placeholders';
 import { stjarnRad } from '../ui/Stars';
 import { marke } from '../ui/Badge';
 import { Knapp } from '../ui/Button';
@@ -41,6 +42,7 @@ export class VerdictScene extends BasScen {
     let y = this.ritaHuvud(niva, data.stjarnor, halvvags);
     if (halvvags) y = this.ritaVunnetRutor(niva, y + avstand.xl);
     y = this.ritaDomskal(niva, y + avstand.l, halvvags);
+    if (niva.fylgiaMal && niva.domslut.fylgiaruta) y = this.ritaFylgiaruta(niva.domslut.fylgiaruta, y + avstand.l);
     y = this.ritaKnappar(niva, y + avstand.xl);
     this.scroll = new DragScroll(this, y + avstand.xxl);
   }
@@ -65,12 +67,13 @@ export class VerdictScene extends BasScen {
 
     const utfall = niva.domslut.utfall?.[String(Math.floor(stjarnor)) as '0' | '1' | '2' | '3'];
     let y = 178;
-    if (utfall) {
-      const t = skapaText(this, MITT_X, y, utfall, 'ingress', 'morkgron', { origo: [0.5, 0], bredd: INNER_B - 20, justering: 'center' });
+    for (const rad of [niva.domslut.underrubrik, utfall]) {
+      if (!rad) continue;
+      const t = skapaText(this, MITT_X, y, rad, 'ingress', ph(rad, 'morkgron'), { origo: [0.5, 0], bredd: INNER_B - 20, justering: 'center' });
       y += t.height + avstand.s;
     }
     if (!niva.domslut.text) return y;
-    const sammanfattning = skapaText(this, MITT_X, y, niva.domslut.text, 'brod', 'morkockra', {
+    const sammanfattning = skapaText(this, MITT_X, y, niva.domslut.text, 'brod', ph(niva.domslut.text, 'morkockra'), {
       origo: [0.5, 0],
       bredd: INNER_B - 20,
       justering: 'center',
@@ -78,21 +81,40 @@ export class VerdictScene extends BasScen {
     return y + sammanfattning.height;
   }
 
+  /** "Vunnet" (mörkgrön) och "Inte vunnet" (streckad) sida vid sida. "Inte vunnet" startar om nivån. */
   private ritaVunnetRutor(niva: Niva, y: number): number {
     const b = (INNER_B - avstand.m) / 2;
     const vunnet = this.ruta(X0, y, b, text.domslut.vunnet, niva.domslut.vunnet ?? '', 'guld', 'beige');
-    const inte = this.ruta(X0 + b + avstand.m, y, b, text.domslut.inteVunnet, niva.domslut.inteVunnet ?? '', 'vinrod', 'morkgron');
-    const h = Math.max(vunnet.h, inte.h);
+    const ix = X0 + b + avstand.m;
+    const inte = this.ruta(ix, y, b, text.domslut.inteVunnet, niva.domslut.inteVunnet ?? '', 'vinrod', 'morkgron');
+    // Liten "Försök igen" längst ner i rutan; hela rutan är tryckbar.
+    const forsok = skapaText(this, ix + 16, y + inte.h - 12, `${text.domslut.forsokIgen} ↻`, 'knapp', 'morkgron', { storlek: 13 });
+    const h = Math.max(vunnet.h, inte.h + forsok.height + 4);
+    forsok.setY(y + h - forsok.height - 14);
     const g = this.add.graphics().setDepth(-1);
     g.fillStyle(farg.morkgron, 1).fillRoundedRect(X0, y, b, h, radie.l);
-    streckadRam(g, X0 + b + avstand.m, y, b, h, radie.l, farg.morkgron);
+    streckadRam(g, ix, y, b, h, radie.l, farg.morkgron);
+    const yta = this.add.zone(ix + b / 2, y + h / 2, b, h).setInteractive({ useHandCursor: true });
+    yta.on('pointerup', () => {
+      if (!this.scroll?.arDrag()) this.bytTill('Level', { id: niva.id });
+    });
+    return y + h;
+  }
+
+  /** Lila ruta med Fylgias text, sist på domslutet (bara Fylgia-mål). */
+  private ritaFylgiaruta(innehall: string, y: number): number {
+    const t = skapaText(this, X0 + 62, y + 20, innehall, 'brod', ph(innehall, 'morkgron'), { bredd: INNER_B - 62 - 20, storlek: 14 });
+    const h = t.height + 40;
+    const g = this.add.graphics().setDepth(-1);
+    g.fillStyle(farg.lila, 1).fillRoundedRect(X0, y, INNER_B, h, radie.l);
+    fyllStjarna(g, X0 + 32, y + h / 2, 26, farg.morkgron);
     return y + h;
   }
 
   /** Text i en ruta (bakgrunden ritas av anroparen). Returnerar höjden. */
   private ruta(x: number, y: number, b: number, rubrik: string, innehall: string, rubrikFarg: FargNamn, textFarg: FargNamn) {
     skapaText(this, x + 16, y + 18, rubrik, 'overrubrik', rubrikFarg, { storlek: 11 });
-    const t = skapaText(this, x + 16, y + 40, innehall, 'brod', textFarg, { bredd: b - 32, storlek: 14 });
+    const t = skapaText(this, x + 16, y + 40, innehall, 'brod', ph(innehall, textFarg), { bredd: b - 32, storlek: 14 });
     return { h: t.height + 58 };
   }
 
@@ -106,7 +128,7 @@ export class VerdictScene extends BasScen {
     let ty = y + 52;
     niva.domslut.domskal.forEach((skal, i) => {
       skapaText(this, X0 + 20, ty - 2, String(i + 1), 'rubrik', nummerFarg, { storlek: 18 }).setDepth(1);
-      const t = skapaText(this, X0 + 42, ty, skal, 'brod', textFarg, { bredd: INNER_B - 66 }).setDepth(1);
+      const t = skapaText(this, X0 + 42, ty, skal, 'brod', ph(skal, textFarg), { bredd: INNER_B - 66 }).setDepth(1);
       ty += t.height + avstand.m;
     });
     const h = ty - y + avstand.s;
@@ -141,3 +163,8 @@ export class VerdictScene extends BasScen {
   }
 }
 
+
+/** Platshållartext inom hakparenteser visas i vinrött, så att den syns tydligt vid testning. */
+function ph(innehall: string, standard: FargNamn): FargNamn {
+  return arPlatshallare(innehall) ? 'vinrod' : standard;
+}

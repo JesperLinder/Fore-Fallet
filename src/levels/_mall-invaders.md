@@ -60,6 +60,8 @@ Nästa nivå låses upp när den här har minst en stjärna.
 | `visaTomma` | Ritar `null`-platser som streckade rutor. |
 | `ikon` | Valfri figur ur art.ts på varje bricka (t.ex. `"bilsiluett"`), med etiketten i liten text under. Okända brickor får ikonen i guld, avslöjade rätt-brickor blir gröna. |
 | `blanda` | Blandar brickornas platser varje gång nivån startar. |
+| `figur` | Rita bara en figur ur art.ts (t.ex. `"ufo"`), utan ruta och etikett. |
+| `skottGenom` | Skotten passerar brickorna, som alltså inte kan skjutas ner (t.ex. ufon som släpper hot). |
 | `fastBredd` | Rutnätet vänder vid kanten räknat på hela den ursprungliga bredden. Då kommer det ner i samma takt även när brickor försvunnit. Utan detta (som i klassisk invaders) går färre brickor längre i sidled och kommer ner långsammare. |
 
 Ett skott tar den första bricka det möter. Rätt-brickornas träffyta är 3 punkter smalare på varje sida än den syns, så att skott som nästan går fri släpps igenom.
@@ -89,14 +91,37 @@ Block som stoppar spelarens skott och slits ner.
 ### Övrigt
 | Fält | Vad det gör |
 |---|---|
-| `tid` | Valfritt. `{ "sekunder", "etikett" }`. Upp till 60 sekunder visas som 00:SS, längre tider som MM:SS. |
-| `matare` | `namn` (t.ex. "Förtalsrisk"), `steg` (antal steg innan mätaren är full), `status` (valfri text till höger), `visning`: `"steg"` (standard, rutor längst ner som fylls) eller `"procent"` (procent kvar uppe till höger, t.ex. "God tro 100 %", tar klockans plats). |
+| `tid` | Valfritt. `{ "sekunder", "etikett", "dold" }`. Med `dold: true` går klockan men visas inte. Upp till 60 sekunder visas som 00:SS, längre tider som MM:SS. |
+| `matare` | `namn` (t.ex. "Förtalsrisk"), `steg` (antal steg innan mätaren är full), `status` (valfri text till höger), `visning`: `"steg"` (standard, rutor längst ner som fylls) eller `"procent"` (procent kvar uppe till höger, t.ex. "God tro 100 %", tar klockans plats) eller `"kort"` (kort under rubriken med en guldstapel som börjar full och krymper, t.ex. "Försäkringen", med `dekor.raknare` som ett kort bredvid). |
 | `botten` | Valfritt. Vad som händer när en bricka når spelaren ("släpps igenom"), per typ: `dold` (aldrig avslöjad), `fel` och `ratt`. Varje regel kan ha `matare` (steg på mätaren, räknas som misstag), `poang` och `text` (pratbubbla). Med `botten` försvinner brickan i stället för att ge förlust, så använd inte `"botten"` i `forlust` samtidigt. |
 | `misstagText` | Valfritt. Pratbubbla vid misstag: `rattTraffad` och `fangstMissad`. |
 | `infotext` | Valfritt. Längre text i en grön ruta under rubriken, t.ex. uppdraget. |
 | `misstag` | Hur många steg mätaren stiger per misstag: `rattTraffad` (en rätt-bricka träffas) och `fangstMissad` (ett fångstobjekt missas). |
 | `info` | Valfritt. Rutan under rubriken. Den första posten står till vänster, den sista till höger. `serif: true` sätter värdet i serif, som "KROGKUNG". |
 | `instruktion` | Valfritt. Kort text på planen (`text`, `y`) som tonas bort efter 6 sekunder. |
-| `vinst` | Alla villkor måste gälla: `"fel-borta"` (alla fel-brickor bortskjutna), `"alla-fangade"` (alla fångstobjekt fångade) och/eller `"alla-klara"` (varje bricka bortskjuten eller släppt igenom). |
+| `vinst` | Alla villkor måste gälla: `"fel-borta"` (alla fel-brickor bortskjutna), `"alla-fangade"` (alla fångstobjekt fångade), `"alla-klara"` (varje bricka bortskjuten eller släppt igenom) och/eller `"overlev"` (tiden har gått ut utan förlust, kräver `tid`). |
 | `forlust` | Något av villkoren ger förlust: `"matare-full"`, `"tid-slut"`, `"botten"` (en bricka når spelaren). |
 | `slutrad` | Valfritt. `{ "y" }`. Vid vinst flyttas allt med `plats` till en rad på den höjden, t.ex. KROGKUNG. |
+
+### `hot` (valfritt): fallande hot
+Föremål som faller och ska skjutas ner innan de når spelaren. Det är motsatsen till fångstobjekt.
+| Fält | Vad det gör |
+|---|---|
+| `utseende`, `b`, `h` | Figur ur art.ts (t.ex. `"uppsagningsbrev"`) och storlek (träffyta). |
+| `etikett`, `visaEtikett` | Valfri pratbubbla under hotet. `"forsta"` (standard) visar den bara på det första hotet, `"alltid"` på alla. |
+| `start` | `"fran-fiende"`: släpps från en slumpvis fiende. `"slumpvis-overst"`: slumpvis x på höjden `y`. |
+| `fart` | Fallhastighet, i punkter per sekund. |
+| `intervall`, `slutIntervall` | Tid mellan hoten (ms) i början och i slutet. Tempot ändras jämnt över nivåns `tid`. |
+| `fordrojning` | Väntetid innan första hotet (ms). |
+| `botten` | Vad som händer när ett hot når spelaren: `matare` (steg, räknas som misstag), `poang` och `text`. |
+
+### `dekor` (valfritt): dekorhändelser
+Bakgrundsanimationer som spelaren inte kan påverka. De är rent visuella och har ingen kollision.
+| Fält | Vad det gör |
+|---|---|
+| `figurer` | Figurerna som händelserna verkar på: `{ "utseende", "x", "y" }`, t.ex. åtta kor. |
+| `handelse.rorelse` | `"lyft"`: en slumpvis kvarvarande figur lyfts upp i en ljuskägla från närmaste fiende och försvinner. |
+| `handelse.intervall`, `start`, `langd` | Tid mellan händelserna, tid till den första och hur länge en händelse pågår (ms). När figurerna är slut slutar händelserna, men nivån fortsätter. |
+| `handelse.vaxla` | Valfri figur att växla med under händelsen, t.ex. `"ko-sprattel"` (sprattlande ben). |
+| `handelse.ljud` | Valfritt ljud, t.ex. `"muu"`. |
+| `raknare` | Valfri räknare i ett kort bredvid mätaren (kräver `matare.visning: "kort"`). `text` med `{kvar}` och `{totalt}`, t.ex. `"{kvar} av {totalt}"`. |

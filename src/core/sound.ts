@@ -4,7 +4,7 @@
  */
 import { framsteg } from './progress';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu';
 
 interface Ton {
   /** Frekvens i Hz vid start och slut (glidning). */
@@ -28,6 +28,11 @@ const LJUD: Record<Ljud, Ton[]> = {
   stampel: [
     { fran: 1400, till: 500, start: 0, langd: 0.025, form: 'square', volym: 0.06 },
     { fran: 140, till: 70, start: 0.01, langd: 0.07, form: 'sine', volym: 0.2 },
+  ],
+  // Ett kort, löjligt "muu" som glider uppåt och tonas ut (kon lyfts).
+  muu: [
+    { fran: 150, till: 135, start: 0, langd: 0.22, form: 'sawtooth', volym: 0.05 },
+    { fran: 135, till: 330, start: 0.2, langd: 0.55, form: 'sawtooth', volym: 0.035 },
   ],
   misstag: [{ fran: 180, till: 90, start: 0, langd: 0.28, form: 'sawtooth', volym: 0.07 }],
   vinst: [

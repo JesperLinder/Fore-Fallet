@@ -4,5 +4,191 @@
   "titel": "De försvunna korna",
   "referens": "NJA 2020 s. 115",
   "mekanik": "invaders",
-  "fylgiaMal": true
+  "fylgiaMal": true,
+  "tema": "mork",
+  "uppdragstext": "Försäkringsbolaget vill säga upp försäkringen i förtid. Det har det inte rätt till. Skjut ner uppsägningarna.",
+  "fylgiaTips": "Skjut ner uppsägningsbreven – bolaget har inte rätt att säga upp i förtid. Korna? Dem kan ingen rädda.",
+  "resultat": "halvvagsvinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxMisstag": 0
+    },
+    "tva": {
+      "maxMisstag": 2
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      },
+      {
+        "farg": "gron",
+        "topp": 565,
+        "vag": 14
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "textmarkor",
+      "y": 716,
+      "b": 30,
+      "h": 48
+    },
+    "skott": {
+      "lage": "slapp",
+      "intervall": 200,
+      "fart": 1000
+    },
+    "brickor": {
+      "rader": [
+        [
+          {
+            "etikett": "Ufo",
+            "typ": "ratt"
+          },
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          {
+            "etikett": "Ufo",
+            "typ": "ratt"
+          }
+        ]
+      ],
+      "figur": "ufo",
+      "skottGenom": true,
+      "fastBredd": true,
+      "b": 80,
+      "h": 40,
+      "mellanrum": 10,
+      "startY": 168,
+      "steg": {
+        "x": 3,
+        "ned": 0,
+        "intervall": 40
+      },
+      "kant": {
+        "vanster": 16,
+        "hoger": 374
+      }
+    },
+    "hot": {
+      "utseende": "uppsagningsbrev",
+      "b": 26,
+      "h": 32,
+      "etikett": "Uppsägning i förtid",
+      "visaEtikett": "forsta",
+      "start": "fran-fiende",
+      "fart": 75,
+      "intervall": 2600,
+      "slutIntervall": 1100,
+      "fordrojning": 1800,
+      "botten": {
+        "matare": 20,
+        "text": "Bolaget sa upp – utan rätt"
+      }
+    },
+    "dekor": {
+      "figurer": [
+        {
+          "utseende": "ko",
+          "x": 55,
+          "y": 600
+        },
+        {
+          "utseende": "ko",
+          "x": 140,
+          "y": 600
+        },
+        {
+          "utseende": "ko",
+          "x": 225,
+          "y": 600
+        },
+        {
+          "utseende": "ko",
+          "x": 310,
+          "y": 600
+        },
+        {
+          "utseende": "ko",
+          "x": 95,
+          "y": 636
+        },
+        {
+          "utseende": "ko",
+          "x": 180,
+          "y": 636
+        },
+        {
+          "utseende": "ko",
+          "x": 265,
+          "y": 636
+        },
+        {
+          "utseende": "ko",
+          "x": 350,
+          "y": 636
+        }
+      ],
+      "handelse": {
+        "rorelse": "lyft",
+        "intervall": 7000,
+        "langd": 2600,
+        "vaxla": "ko-sprattel",
+        "ljud": "muu"
+      },
+      "raknare": {
+        "namn": "Kor i hagen",
+        "text": "{kvar} av {totalt}"
+      }
+    },
+    "tid": {
+      "sekunder": 45,
+      "etikett": "Kvar",
+      "dold": true
+    },
+    "matare": {
+      "namn": "Försäkringen",
+      "steg": 100,
+      "visning": "kort"
+    },
+    "misstag": {
+      "rattTraffad": 0,
+      "fangstMissad": 0
+    },
+    "vinst": [
+      "overlev"
+    ],
+    "forlust": [
+      "matare-full"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Uppsagd.",
+    "orsaker": {
+      "matare-full": "Försäkringen är borta. Och korna med."
+    }
+  },
+  "domslut": {
+    "rubrik": "Halvvägsvinst",
+    "underrubrik": "Försäkringen räddad. Korna fortfarande försvunna. Det här är en riktig seger i advokatvärlden.",
+    "vunnet": "Bolaget sa upp försäkringen i förtid utan rätt – och blir skadeståndsskyldigt.",
+    "inteVunnet": "Du borde ha anlitat Fylgia. Försök igen.",
+    "domskal": [
+      "Den som bryter ett avtal ska ersätta skadan – men i regel bara om hen varit oaktsam.",
+      "Undantag: garanti, särskild utfästelse eller särskild lag.",
+      "Här hade bolaget varit oaktsamt när det sa upp försäkringen. Alltså skadestånd."
+    ],
+    "fylgiaruta": "Fylgia var ombud i målet. Halvvägsvinster ger en halv stjärna extra – för att du lärde dig att läsa ett domslut på riktigt.",
+    "lankTillFallet": "https://lagen.nu/dom/nja/2020s115"
+  }
 }

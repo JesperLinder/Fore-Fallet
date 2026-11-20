@@ -98,7 +98,7 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | `hybrid` | kastfysik, projektiler, mål, studsyta, fiender och faragräns (se nedan) |
 | `forlust` | rubrik (och valfria orsakstexter) på förlustskärmen |
 | `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` (valfritt `b`/`h`), `text` |
-| `domslut` | `rubrik`, `text` (valfri), `domskal` (3 st), `lankTillFallet`, `utfall` per antal stjärnor, och `vunnet`/`inteVunnet` för halvvägsvinst |
+| `domslut` | `rubrik`, `underrubrik` (valfri kursiv rad), `text` (valfri), `domskal` (3 st), `fylgiaruta` (lila ruta, bara Fylgia-mål), `lankTillFallet`, `utfall` per antal stjärnor, och `vunnet`/`inteVunnet` för halvvägsvinst |
 
 Objekt med `utseende` (t.ex. `"bil"`, `"golfboll"`) hämtar figuren från `src/mechanics/art.ts`.
 Behövs en helt ny figur är det enda stället som kräver kod. Alternativt kan den läggas som bild i `public/assets/`,
@@ -165,6 +165,28 @@ träffas första gången. Då avslöjas typen och etiketten med en stämpelanima
 }
 ```
 
+**Fallande hot och dekorhändelser (nivå 5, De försvunna korna):** `hot` är föremål som faller och ska skjutas ner,
+till exempel uppsägningsbrev från ufona. `dekor` är bakgrundshändelser med en räknare, till exempel kor som lyfts upp
+var 7:e sekund. Ufona är brickor med `figur` och `skottGenom`, så skotten går igenom dem. Nivån vinns med
+`vinst: ["overlev"]`, det vill säga när tiden går ut. Alla fält beskrivs i `src/levels/_mall-invaders.md`. I förkortad form:
+
+```json
+"resultat": "halvvagsvinst",
+"stjarnkrav": { "tre": { "maxMisstag": 0 }, "tva": { "maxMisstag": 2 }, "en": {} },
+"invaders": {
+  "brickor": { "rader": [[{ "etikett": "Ufo", "typ": "ratt" }, null, null], [null, null, { "etikett": "Ufo", "typ": "ratt" }]],
+               "figur": "ufo", "skottGenom": true, "steg": { "x": 3, "ned": 0, "intervall": 40 }, … },
+  "hot": { "utseende": "uppsagningsbrev", "b": 26, "h": 32, "etikett": "Uppsägning i förtid", "start": "fran-fiende",
+           "fart": 75, "intervall": 2600, "slutIntervall": 1100, "botten": { "matare": 20, "text": "Bolaget sa upp – utan rätt" } },
+  "dekor": { "figurer": [{ "utseende": "ko", "x": 55, "y": 600 }, …],
+             "handelse": { "rorelse": "lyft", "intervall": 7000, "langd": 2600, "vaxla": "ko-sprattel", "ljud": "muu" },
+             "raknare": { "namn": "Kor i hagen", "text": "{kvar} av {totalt}" } },
+  "tid": { "sekunder": 45, "etikett": "Kvar", "dold": true },
+  "matare": { "namn": "Försäkringen", "steg": 100, "visning": "kort" },
+  "vinst": ["overlev"], "forlust": ["matare-full"]
+}
+```
+
 **Styrning:** spelaren drar var som helst på skärmen för att flytta markören i sidled, och släpper för att skjuta.
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
@@ -222,9 +244,21 @@ skjuta på: spelaren ska hinna före. Koden återanvänder delarna från de andr
 
 Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar det cirka 35 sekunder.
 
+## Platshållartext
+
+Text inom hakparenteser, till exempel `[FYLLS I AV MÅLANSVARIG]`, räknas som platshållare. Den visas i vinrött på domslutet
+och ger en varning i webbläsarens konsol när spelet startar. Kontrollera alla nivåfiler med:
+
+```bash
+npm run kolla-platshallare
+```
+
+Kontrollen körs också automatiskt vid varje `npm run build` (även i GitHub Pages-bygget) och skriver då ut varningar.
+Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om något hittas. Använd det inför App Store.
+
 ## Platshållare
 
-- **Nivå 5–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Nivå 6–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

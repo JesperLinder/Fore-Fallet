@@ -75,6 +75,32 @@ const figurer: Record<string, Rita> = {
     g.lineStyle(2, farg.guld, 1).strokeRoundedRect(x - 8, y - 6, 16, 12, 3);
   },
 
+  /** Platt ufo i lila (inget känt filmufo). */
+  ufo(g, x, y) {
+    g.fillStyle(farg.lila, 1);
+    g.fillEllipse(x, y - 6, 30, 22);
+    g.fillEllipse(x, y + 2, 76, 20);
+    g.fillStyle(farg.morkgron, 1);
+    for (const dx of [-20, 0, 20]) g.fillCircle(x + dx, y + 3, 2);
+  },
+
+  /** Uppsägningsbrev: beige papper med vinröda rader. */
+  uppsagningsbrev(g, x, y, b = 26, h = 32) {
+    g.fillStyle(farg.beige, 1).fillRect(x - b / 2, y - h / 2, b, h);
+    g.lineStyle(2, farg.vinrod, 1);
+    for (const [dy, l] of [[-8, 0.6], [-1, 0.6], [6, 0.4]] as const) g.lineBetween(x - b * 0.3, y + dy, x - b * 0.3 + b * l, y + dy);
+  },
+
+  /** Ko i profil, beige med mörka fläckar. */
+  ko(g, x, y) {
+    ritaKo(g, x, y, false);
+  },
+
+  /** Samma ko med sprattlande ben (växlas med "ko" när den lyfts). */
+  'ko-sprattel'(g, x, y) {
+    ritaKo(g, x, y, true);
+  },
+
   /** Hästsko i guld (öppningen nedåt). Hästen i Travstallet. */
   hastsko(g, x, y) {
     g.lineStyle(5, farg.guld, 1);
@@ -127,6 +153,22 @@ const figurer: Record<string, Rita> = {
     g.fillStyle(farg.morkgron, 1).fillCircle(x, y, 2.5);
   },
 };
+
+function ritaKo(g: Phaser.GameObjects.Graphics, x: number, y: number, sprattel: boolean): void {
+  g.fillStyle(farg.beige, 1);
+  // Ben: raka när kon står, utspretade när den sprattlar.
+  g.lineStyle(3, farg.beige, 1);
+  for (const dx of [-11, -5, 6, 12]) {
+    const ut = sprattel ? (dx < 0 ? -5 : 5) : 0;
+    g.lineBetween(x + dx, y + 6, x + dx + ut, y + 14);
+  }
+  g.fillRoundedRect(x - 16, y - 7, 32, 15, 5);
+  g.fillRoundedRect(x + 12, y - 12, 12, 11, 3);
+  g.fillStyle(farg.morkgron, 1);
+  g.fillCircle(x - 7, y - 1, 3.5);
+  g.fillCircle(x + 4, y + 2, 2.5);
+  g.fillCircle(x + 20, y - 8, 1.3);
+}
 
 /** Ritar en figur. Okända namn ritas som en tydlig platshållare så att felet syns. */
 export function ritaFigur(g: Phaser.GameObjects.Graphics, namn: string, x: number, y: number, b = 0, h = 0, f?: number): void {

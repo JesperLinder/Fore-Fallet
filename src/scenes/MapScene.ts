@@ -102,15 +102,24 @@ export class MapScene extends BasScen {
     const textFarg = lage === 'nasta' ? 'ljusbeige' : 'morkgron';
     const titel = skapaText(this, 72, 22, niva.titel, 'rubrik', textFarg, { origo: [0, 0.5], storlek: 19 });
     const typ = niva.etikett ?? text.mekanikNamn[niva.mekanik] ?? niva.mekanik;
-    kort.add([
-      titel,
-      skapaText(this, 72, 46, `${niva.referens} · ${typ}`, 'liten', textFarg, { origo: [0, 0.5] }),
-    ]);
-    if (niva.fylgiaMal) kort.add(marke(this, titel.x + titel.width + 8, 22, text.karta.fylgiaMal));
+    const referens = skapaText(this, 72, 46, `${niva.referens} · ${typ}`, 'liten', textFarg, { origo: [0, 0.5] });
+    kort.add([titel, referens]);
+    // Stjärnorna/"Spela" står mitt i höjdled, eller på titelraden om märket fått flytta ner.
+    let hogerY = KORT_H / 2;
+    if (niva.fylgiaMal) {
+      // Märket står efter titeln, eller efter referensraden om det annars krockar med stjärnorna/"Spela".
+      const m = marke(this, titel.x + titel.width + 8, 22, text.karta.fylgiaMal);
+      const hogerGrans = KORT_B - (lage === 'last' ? 16 : 76);
+      if (m.x + m.width > hogerGrans) {
+        m.setPosition(referens.x + referens.width + 8, 46);
+        hogerY = 22;
+      }
+      kort.add(m);
+    }
 
     // Höger sida: stjärnor eller "Spela".
     if (lage === 'klar') {
-      kort.add(stjarnRad(this, KORT_B - 40, cy, framsteg.stjarnor(niva.id) ?? 0, {
+      kort.add(stjarnRad(this, KORT_B - 40, hogerY, framsteg.stjarnor(niva.id) ?? 0, {
         storlek: 12,
         mellanrum: 2,
         fyllFarg: 'morkgron',
@@ -118,7 +127,7 @@ export class MapScene extends BasScen {
       }));
     }
     if (lage === 'nasta') {
-      kort.add(skapaText(this, KORT_B - 18, cy, text.karta.spela, 'overrubrik', 'guld', { origo: [1, 0.5] }));
+      kort.add(skapaText(this, KORT_B - 18, hogerY, text.karta.spela, 'overrubrik', 'guld', { origo: [1, 0.5] }));
     }
 
     kort.setSize(KORT_B, KORT_H);

@@ -123,7 +123,8 @@
     ],
     "tid": {
       "sekunder": 60,
-      "etikett": "Tid kvar"
+      "etikett": "Tid kvar",
+      "dold": false
     },
     "matare": {
       "namn": "Mätarens namn",
@@ -178,6 +179,47 @@
     },
     "misstagText": {
       "rattTraffad": "Valfri text när en rätt-bricka träffas"
+    },
+    "hot": {
+      "utseende": "uppsagningsbrev",
+      "b": 26,
+      "h": 32,
+      "etikett": "Etikett på första hotet",
+      "visaEtikett": "forsta",
+      "start": "fran-fiende",
+      "fart": 75,
+      "intervall": 2600,
+      "slutIntervall": 1100,
+      "fordrojning": 1800,
+      "botten": {
+        "matare": 1,
+        "text": "Text när ett hot når botten"
+      }
+    },
+    "dekor": {
+      "figurer": [
+        {
+          "utseende": "ko",
+          "x": 100,
+          "y": 600
+        },
+        {
+          "utseende": "ko",
+          "x": 200,
+          "y": 600
+        }
+      ],
+      "handelse": {
+        "rorelse": "lyft",
+        "intervall": 7000,
+        "langd": 2600,
+        "vaxla": "ko-sprattel",
+        "ljud": "muu"
+      },
+      "raknare": {
+        "namn": "Räknarens namn",
+        "text": "{kvar} av {totalt}"
+      }
     }
   },
   "forlust": {
@@ -199,6 +241,8 @@
       "1": "Valfri rad vid 1 stjärna.",
       "2": "… vid 2.",
       "3": "… vid 3."
-    }
+    },
+    "underrubrik": "Valfri kursiv rad under stjärnorna.",
+    "fylgiaruta": "Valfri text i den lila Fylgia-rutan (bara Fylgia-mål)."
   }
 }

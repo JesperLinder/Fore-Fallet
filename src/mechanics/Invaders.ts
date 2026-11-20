@@ -18,6 +18,8 @@ import { ritaFigur } from './art';
 import { Rutnat, type Bricka } from './invaders/grid';
 import { aterstall, fallSteg, skapaFangst, type Fangst } from './invaders/falling';
 import { byggHud, INFO_Y, type InvadersHud } from './invaders/hud';
+import { FallandeHot } from './invaders/threats';
+import { Dekorhandelser } from './invaders/decor';
 import { skapaText } from '../ui/text';
 import { streckadLinje } from '../ui/shapes';
 import { visaStart } from './common/startPanel';
@@ -46,6 +48,8 @@ export class Invaders implements Mekanik {
   private sikte: Phaser.GameObjects.Graphics;
   private blink: Phaser.GameObjects.Rectangle;
   private skott: (Phaser.GameObjects.Rectangle | Phaser.GameObjects.Graphics)[] = [];
+  private hot?: FallandeHot;
+  private dekor?: Dekorhandelser;
   private instruktion?: Phaser.GameObjects.Text;
 
   private startad = false;
@@ -73,6 +77,9 @@ export class Invaders implements Mekanik {
 
     this.hud = byggHud(this.scene, this.inst);
     this.rutnat = new Rutnat(this.scene, this.inst.brickor);
+    const fiendePositioner = () => this.rutnat.brickor.filter((b) => b.levande).map((b) => this.rutnat.varldsMitt(b));
+    if (this.inst.dekor) this.dekor = new Dekorhandelser(this.scene, this.inst.dekor, fiendePositioner, this.hud.visaRaknare);
+    if (this.inst.hot) this.hot = new FallandeHot(this.scene, this.inst.hot, fiendePositioner);
     this.skydd = (this.inst.skydd ?? []).map((d) => this.skapaSkydd(d));
     this.fangst = (this.inst.fangst ?? []).map((d) => skapaFangst(this.scene, d));
     this.ritaInstruktion();
@@ -180,6 +187,8 @@ export class Invaders implements Mekanik {
 
     this.rutnat.uppdatera(dt);
     this.slappIgenom();
+    this.dekor?.uppdatera(dt);
+    this.flyttaHot(dt);
     this.flyttaSkott(dt);
     this.flyttaFangst(dt);
     this.ritaSikte();
@@ -201,6 +210,10 @@ export class Invaders implements Mekanik {
 
   /** Hanterar träff mot skydd eller bricka. Returnerar true om skottet ska försvinna. */
   private skottTraffar(x: number, y: number): boolean {
+    if (this.hot?.traff(x, y)) {
+      spela('traff');
+      return true;
+    }
     const skydd = this.skydd.find(
       (s) => s.kvar > 0 && Math.abs(x - s.data.x) <= s.data.b / 2 && Math.abs(y - s.data.y) <= s.data.h / 2,
     );
@@ -210,6 +223,7 @@ export class Invaders implements Mekanik {
       if (skydd.kvar <= 0) skydd.obj.destroy();
       return true;
     }
+    if (this.inst.brickor.skottGenom) return false; // skotten passerar brickorna (t.ex. ufon)
     const bricka = this.rutnat.traff(x, y);
     if (!bricka) return false;
     if (bricka.data.dold) {
@@ -258,7 +272,8 @@ export class Invaders implements Mekanik {
   private ritaSikte(): void {
     this.sikte.clear();
     if (!this.fingerNere) return;
-    const topp = Math.max(this.rutnat.nedersta() + 8, this.hud.tak);
+    const brickTopp = this.inst.brickor.skottGenom ? 0 : this.rutnat.nedersta() + 8;
+    const topp = Math.max(brickTopp, (this.hot?.nedersta() ?? 0) + 8, this.hud.tak);
     const botten = this.spelare.y - this.inst.spelare.h / 2 - 10;
     if (botten <= topp) return;
     this.sikte.lineStyle(2, farg.guld, 0.9);
@@ -330,7 +345,8 @@ export class Invaders implements Mekanik {
     const felBorta = !v.includes('fel-borta') || this.rutnat.felKvar() === 0;
     const allaFangade = !v.includes('alla-fangade') || this.fangst.every((x) => x.fangad);
     const allaKlara = !v.includes('alla-klara') || this.rutnat.allaKlara();
-    if (felBorta && allaFangade && allaKlara) this.vinna();
+    const overlevt = !v.includes('overlev') || this.tidKvar <= 0;
+    if (felBorta && allaFangade && allaKlara && overlevt) this.vinna();
   }
 
   private forlora(orsak: ForlustOrsak): void {
@@ -393,7 +409,26 @@ export class Invaders implements Mekanik {
     return Math.max(0, ((this.inst.matare.steg - this.matarSteg) / this.inst.matare.steg) * 100);
   }
 
+  /** Fallande hot: släpp nya, flytta, och hantera dem som nått spelaren enligt hot.botten. */
+  private flyttaHot(dt: number): void {
+    if (!this.hot || !this.inst.hot) return;
+    const sp = this.inst.spelare;
+    const forlopp = this.inst.tid ? 1 - this.tidKvar / this.inst.tid.sekunder : 0;
+    const nadde = this.hot.uppdatera(dt, forlopp, sp.y - sp.h / 2);
+    if (nadde.length === 0) return;
+    const regel = this.inst.hot.botten;
+    for (let i = 0; i < nadde.length; i++) {
+      this.poang += regel.poang ?? 0;
+      if (regel.matare) this.registreraMisstag(regel.matare);
+    }
+    if (regel.text) {
+      const misstag = !!regel.matare;
+      this.popup(MITT_X, sp.y + sp.h / 2 + 26, regel.text, misstag ? 'vinrod' : 'guld', misstag ? 'ljusbeige' : 'morkgron');
+    }
+  }
+
   private avslutaStyrning(): void {
+    this.hot?.stoppa();
     this.fingerNere = false;
     this.sikte.clear();
     this.skott.forEach((s) => s.destroy());

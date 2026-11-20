@@ -15,7 +15,13 @@ const FORLATANDE_KANT = 3;
 
 export type Bricka = FormationsObjekt<BrickData>;
 
-function ritaBricka(scene: Phaser.Scene, data: BrickData, b: number, h: number, ikon?: string): Phaser.GameObjects.Container {
+function ritaBricka(scene: Phaser.Scene, data: BrickData, b: number, h: number, ikon?: string, figur?: string): Phaser.GameObjects.Container {
+  if (figur) {
+    // Bara en figur, utan ruta och etikett (t.ex. ufon).
+    const g = scene.add.graphics();
+    ritaFigur(g, figur, 0, 0);
+    return scene.add.container(0, 0, [g]);
+  }
   if (data.dold) return ritaDold(scene, data.dold.etikett, b, h, ikon);
   const fel = data.typ === 'fel';
   const g = scene.add.graphics();
@@ -60,7 +66,7 @@ function ikonOchText(
 
 export class Rutnat extends Formation<BrickData> {
   constructor(scene: Phaser.Scene, inst: InvadersInstallningar['brickor']) {
-    super(scene, inst, (s, d, b, h) => ritaBricka(s, d, b, h, inst.ikon));
+    super(scene, inst, (s, d, b, h) => ritaBricka(s, d, b, h, inst.ikon, inst.figur));
   }
 
   get brickor(): Bricka[] {

@@ -4,6 +4,7 @@
  */
 import type { Niva, NivaPlatshallare } from './levelTypes';
 import { framsteg } from './progress';
+import { hittaPlatshallare } from './placeholders';
 import { harMekanik } from '../mechanics/registry';
 
 // Filer som börjar med _ (t.ex. _mall-invaders.json) är mallar och läses inte in.
@@ -11,6 +12,11 @@ const moduler = import.meta.glob<NivaPlatshallare | Niva>(['../levels/*.json', '
   eager: true,
   import: 'default',
 });
+
+// Varna i konsolen för platshållartext inom hakparenteser, så att ingen följer med till App Store.
+for (const niva of Object.values(moduler)) {
+  for (const f of hittaPlatshallare(niva)) console.warn(`Platshållartext i nivån "${niva.id}": ${f.sokvag}: "${f.text}"`);
+}
 
 /** Alla nivåer, sorterade efter nummer. */
 export const allaNivaer: (NivaPlatshallare | Niva)[] = Object.values(moduler).sort(

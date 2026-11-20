@@ -65,6 +65,7 @@ export const text = {
     inteVunnet: 'Inte vunnet',
     lasFallet: 'Läs hela fallet',
     spelaIgen: 'Spela igen',
+    forsokIgen: 'Försök igen',
     nastaMal: (titel: string) => `Nästa mål: ${titel}`,
     tillKartan: 'Till rättsfallskartan',
     /** Visas när nästa mål är låst för att spelaren fått 0 stjärnor. */

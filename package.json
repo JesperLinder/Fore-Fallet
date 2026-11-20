@@ -6,9 +6,10 @@
   "description": "Före fallet – ett prejudikatspel från Advokatfirman Fylgia",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/kolla-platshallare.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "kolla-platshallare": "node scripts/kolla-platshallare.mjs"
   },
   "dependencies": {
     "@capacitor/browser": "8.0.5",
