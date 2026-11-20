@@ -15,7 +15,7 @@ export interface NivaPlatshallare {
   referens: string;
   mekanik: MekanikTyp;
   fylgiaMal?: boolean;
-  /** Valfri etikett på kartan i stället för mekanikens namn, t.ex. "Boss" eller "Final". */
+  /** Valfri etikett på kartan i stället för mekanikens namn, t.ex. "Boss" eller "Final". Låsta nivåer visar den till höger. */
   etikett?: string;
 }
 
@@ -49,6 +49,10 @@ export interface Niva extends NivaPlatshallare {
   /** Förlustskärmen, för mekaniker där man kan förlora. */
   forlust?: Forlust;
   domslut: Domslut;
+  /** Guldmärke efter nivåetiketten i rubriken, t.ex. "BOSS". */
+  rubrikmarke?: string;
+  /** Svart mellanstopp i en sekund innan nivån visas, t.ex. "BOSS – NJA 1997 s. 660". */
+  mellanstopp?: string;
 }
 
 export interface StjarnKrav {
@@ -217,6 +221,12 @@ export interface BlockObjekt extends BasObjekt {
   landningsljud?: 'klonk';
   /** Plattformen (id) blocket står på. Lämnar blocket plattformen räknas det som nedslaget. */
   plattform?: string;
+  /** Fast block som inte faller (t.ex. en boss). Kan göras rörligt av bogserläget. */
+  statisk?: boolean;
+  /** Studs (restitution, 0–1). Standard 0.05; högt värde får projektiler att studsa tillbaka. */
+  studs?: number;
+  /** Flyter: guppar upp och ner (hojd i punkter, period i ms) och står kvar på samma höjd när det dras. */
+  gupp?: { hojd: number; period: number };
 }
 
 /** Statisk plattform som block kan stå på (sidovy). x, y = mittpunkt. */
@@ -309,6 +319,60 @@ export interface SlangbellaInstallningar extends KastInstallningar {
   vinst?: string[];
   /** Block vars mittpunkt hamnar under den här linjen (y) räknas som nedslagna. */
   nedLinje?: number;
+  /**
+   * Valfritt: ett utseende och en etikett per skott i tur och ordning (t.ex. tre argument). svar = repliken
+   * som blocket "svarFran" ger när just det skottet träffar det. Antalet skott är fortfarande "antal".
+   */
+  projektiler?: { utseende?: string; etikett: string; svar?: string }[];
+  /** id på blocket som svarar på projektilernas "svar" (pratbubbla i 2,5 sekunder). */
+  svarFran?: string;
+  /** Sista repliken från samma block, efter det sista skottets svar. */
+  slutreplik?: string;
+  /** Bossmätare överst: namn, statustext och text som blinkar till vid varje träff. Den är alltid full. */
+  bossMatare?: { namn: string; status: string; blinkText: string };
+  /** Bakgrundsmusik under nivån (Web Audio), t.ex. "boss". */
+  musik?: 'boss';
+  /** Bogserläget: styr ett fordon och dra ett tungt block över en linje. Se BogseraInstallningar. */
+  bogsera?: BogseraInstallningar;
+}
+
+/**
+ * Bogserläget i slangbellan (sidovy): spelaren drar med fingret och fordonet (t.ex. en bogserbåt) följer efter.
+ * Fordonet kopplas med ett elastiskt rep till ett block (som då blir rörligt och mycket tungt). Vinst när blockets
+ * mittpunkt passerat gränsen; förlust (orsak "tid-slut") om tiden tar slut.
+ */
+export interface BogseraInstallningar {
+  /** När läget blir tillgängligt: "direkt" från start, "knapp" (knappen finns från start), eller "efter-skott" (när skotten är slut). */
+  aktivering: 'direkt' | 'knapp' | 'efter-skott';
+  /** Knappen: text och efter hur många skott den börjar pulsera (högst en puls per sekund). */
+  knapp?: { text: string; pulseraEfterSkott?: number };
+  fordon: {
+    utseende: string;
+    b: number;
+    h: number;
+    /** Var fordonet ligger innan läget startar, och var det kopplas (åker dit när läget startar). */
+    start: { x: number; y: number };
+    koppling: { x: number; y: number };
+    /** Högsta fart (punkter per fysiksteg). */
+    fart: number;
+    /** Hur högt och lågt fordonet får gå (y), t.ex. vattenytan. */
+    y: { min: number; max: number };
+  };
+  /** id på blocket som ska dras, dess massa och luftmotstånd (lågt = svårt att stoppa). */
+  objekt: string;
+  massa: number;
+  luft: number;
+  /** Repet: fästpunkt på blocket (relativt dess mitt), längd, styvhet (0–1, lågt = elastiskt) och dämpning. */
+  rep: { fast: { x: number; y: number }; langd: number; styvhet: number; dampning?: number };
+  /**
+   * Gränsen blocket ska passera: x, från y1 till y2, och etikett. matpunkt: "framkant" (standard, blockets
+   * högra kant passerar) eller "mitt" (blockets mittpunkt passerar).
+   */
+  grans: { x: number; y1: number; y2: number; etikett: string; matpunkt?: 'framkant' | 'mitt' };
+  /** Tidsgräns i sekunder från att läget startat. */
+  tid: number;
+  /** Vid vinst: utseenden blocket byter till i tur och ordning (t.ex. förvånad, nöjd) och en text. */
+  vinst: { text: string; utseenden?: string[] };
 }
 
 // ---------- Invaders ----------

@@ -28,7 +28,7 @@ export function tipsPanel(scene: Phaser.Scene, uppdrag: string, tips: string): P
 }
 
 /** Bara tipset, längst ner under spelet. Mörk ruta på ljust tema, ljus på mörkt. */
-export function spelTips(scene: Phaser.Scene, tips: string, tema: 'ljus' | 'mork'): Phaser.GameObjects.Container {
+export function spelTips(scene: Phaser.Scene, tips: string, tema: 'ljus' | 'mork', nedre: number = avstand.l): Phaser.GameObjects.Container {
   const marg = avstand.l;
   const inre = 50;
   const b = BREDD - marg * 2;
@@ -38,5 +38,5 @@ export function spelTips(scene: Phaser.Scene, tips: string, tema: 'ljus' | 'mork
   const g = scene.add.graphics();
   g.fillStyle(ljus ? farg.morkgron : farg.ljusbeige, 1).fillRoundedRect(0, 0, b, h, radie.l);
   fyllStjarna(g, 26, 30, 22, farg.lila);
-  return scene.add.container(marg, HOJD - h - marg, [g, brodtext]).setDepth(25);
+  return scene.add.container(marg, HOJD - h - nedre, [g, brodtext]).setDepth(25);
 }

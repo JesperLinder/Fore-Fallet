@@ -5,6 +5,8 @@
  *
  * Med sidovy och fysikblock (slingshot/blocks.ts) ska spelaren i stället slå ned block; nivån vinns
  * när "vinst"-villkoren gäller och förloras om skotten tar slut innan.
+ * Bossnivåer: bossmätare och repliker (slingshot/boss.ts) och bogserläget (slingshot/tow.ts), där nivån
+ * vinns genom att dra ett block över en gräns.
  */
 import Phaser from 'phaser';
 import type { FargNamn } from '../config/theme';
@@ -17,6 +19,9 @@ import { Fysikblock, type Block } from './slingshot/blocks';
 import { byggInfotext } from './invaders/hud';
 import { skapaText } from '../ui/text';
 import { spelTips } from '../ui/TipPanel';
+import { Boss } from './slingshot/boss';
+import { Bogsering } from './slingshot/tow';
+import { startaMusik, stoppaMusik } from '../core/sound';
 import { BREDD } from '../config/display';
 import { DJUP_KAST, Kastare, type KastSlut } from './slingshot/launcher';
 import { slumpaVind } from './slingshot/flight';
@@ -41,6 +46,11 @@ export class Slingshot implements Mekanik {
   /** Namngivna räknare (block med "raknas"), för stjarnkrav.minAntal/maxAntal. */
   private antal: Record<string, number> = {};
   private sistaPrassel = 0;
+  private boss?: Boss;
+  private bogsering?: Bogsering;
+  /** Vilket skott (index i projektiler) som ligger i slangbellan, och om det redan fått ett svar. */
+  private skottIndex = 0;
+  private svarat = false;
 
   private kvar: number;
   private poang = 0;
@@ -73,6 +83,15 @@ export class Slingshot implements Mekanik {
       this.block = new Fysikblock(this.scene, this.niva, this.inst.nedLinje ?? sidvy.mark, sidvy.mark, (b) => this.blockNed(b));
     }
     if (this.inst.raknare) this.visaRaknare = byggRaknare(this.scene, this.inst.raknare);
+    if (this.block && (this.inst.bossMatare || this.inst.svarFran)) this.boss = new Boss(this.scene, this.inst, this.block);
+    if (this.block && this.inst.bogsera) {
+      this.bogsering = new Bogsering(this.scene, this.inst.bogsera, this.block, {
+        vidStart: () => this.bogseraStart(),
+        vidVinst: () => this.bogseraVinst(),
+        vidForlust: () => this.bogseraForlust(),
+      });
+    }
+    if (this.inst.musik) startaMusik('boss');
     if (!hud) this.visaSkottko = byggSkottko(this.scene, this.bana.utslag, this.inst.projektil, this.inst.antal);
     if (this.inst.projektilNamn) {
       const { x, y } = this.bana.utslag;
@@ -83,7 +102,9 @@ export class Slingshot implements Mekanik {
     let tips = kontext.tips;
     if (this.inst.tipsUnderSpel) {
       kontext.tips.setVisible(false);
-      tips = spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'mork');
+      // Med en knapp längst ner (bogserläget) står tipset ovanför knappen.
+      const nedre = this.inst.bogsera?.knapp ? 16 + 52 + 12 : undefined;
+      tips = spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'mork', nedre);
     }
 
     this.landade = this.scene.add.graphics().setDepth(DJUP_KAST.landad);
@@ -93,17 +114,21 @@ export class Slingshot implements Mekanik {
       inst: this.inst,
       utslag: this.bana.utslag,
       tips,
-      kanSikta: () => !this.klar && this.kvar > 0,
-      utseende: () => this.inst.projektil,
+      kanSikta: () => !this.klar && this.kvar > 0 && !this.bogsering?.igang,
+      utseende: () => this.inst.projektiler?.[this.skottIndex]?.utseende ?? this.inst.projektil,
+      etikett: this.inst.projektiler ? () => this.inst.projektiler?.[this.skottIndex]?.etikett : undefined,
       vind: () => this.vind,
       markfriktion: (x, y) => this.bana.mal.find((m) => iMal(m, x, y))?.friktion ?? this.inst.friktion.mark,
       vidSkott: () => {
         this.traffatHinder = false;
+        this.svarat = false;
         this.kvar -= 1;
         this.uppdateraHud();
       },
       vidKollision: (_k, annan) => {
         if (this.block?.arBlock(annan)) this.traffaBlock(annan);
+        const svarar = this.inst.svarFran ? this.block?.hamta(this.inst.svarFran) : undefined;
+        if (svarar && svarar.kropp === annan && !this.svarat) this.svara();
         const hinder = this.bana.hinder.get(annan.id);
         if (hinder && !this.traffatHinder) this.traffaHinder(hinder);
       },
@@ -112,15 +137,70 @@ export class Slingshot implements Mekanik {
 
     this.uppdateraHud();
     this.laddaNasta();
+    if (this.inst.bogsera?.aktivering === 'direkt') this.bogsering?.starta();
   }
 
   pausa(pausad: boolean): void {
     this.kastare.pausa(pausad);
+    this.bogsering?.pausa(pausad);
+    if (!this.inst.musik) return;
+    if (pausad || this.klar) stoppaMusik();
+    else startaMusik(this.bogsering?.igang ? 'boss-ljus' : 'boss');
   }
 
   forstor(): void {
+    stoppaMusik();
     this.kastare.forstor();
     this.block?.forstor();
+    this.bogsering?.forstor();
+  }
+
+  // ---------- Boss och bogsering ----------
+
+  /** Skottet träffade blocket som svarar: mätaren blinkar och bossen svarar; efter sista skottet en slutreplik. */
+  private svara(): void {
+    this.svarat = true;
+    this.boss?.blinka();
+    const svar = this.inst.projektiler?.[this.skottIndex]?.svar;
+    if (svar) this.boss?.replik(svar);
+    const slut = this.inst.slutreplik;
+    if (this.kvar === 0 && slut) this.scene.time.delayedCall(2800, () => !this.klar && !this.bogsering?.igang && this.boss?.replik(slut));
+    this.kollaPuls();
+  }
+
+  /** Bogserknappen börjar pulsera när tillräckligt många skott är använda. */
+  private kollaPuls(): void {
+    const efter = this.inst.bogsera?.knapp?.pulseraEfterSkott;
+    if (efter !== undefined && this.inst.antal - this.kvar >= efter) this.bogsering?.pulsera();
+  }
+
+  private bogseraStart(): void {
+    this.kastare.dolj();
+    this.visaSkottko?.(0);
+    if (this.inst.musik) startaMusik('boss-ljus');
+  }
+
+  private bogseraVinst(): void {
+    this.klar = true;
+    const b = this.inst.bogsera!;
+    const id = b.objekt;
+    (b.vinst.utseenden ?? []).forEach((u, i) => this.scene.time.delayedCall(i * 700, () => this.block?.bytUtseende(id, u)));
+    spela('traff');
+    const last = this.block?.hamta(id);
+    const x = Phaser.Math.Clamp(last?.kropp.position.x ?? BREDD / 2, 130, BREDD - 130);
+    const y = (last?.kropp.position.y ?? 300) - (last?.data.h ?? 0) / 2 - 40;
+    const t = skapaText(this.scene, x, y, b.vinst.text, 'rubrik', 'ljusbeige', { origo: [0.5, 0.5], storlek: 22 }).setDepth(30).setAlpha(0);
+    this.scene.tweens.add({ targets: t, alpha: 1, duration: 250, delay: 400 });
+    this.scene.time.delayedCall(2600, () => {
+      stoppaMusik();
+      this.kontext.avsluta({ poang: 0, skadestand: 0, nollstallt: false, forsok: this.inst.antal - this.kvar });
+    });
+  }
+
+  private bogseraForlust(): void {
+    this.klar = true;
+    stoppaMusik();
+    this.kontext.avsluta({ poang: 0, skadestand: 0, nollstallt: true, forsok: this.inst.antal - this.kvar, forlust: 'tid-slut' });
   }
 
   // ---------- Fysikblock ----------
@@ -187,6 +267,16 @@ export class Slingshot implements Mekanik {
   }
 
   private avslutaSkott(x: number, y: number, orsak: KastSlut): void {
+    if (this.inst.bogsera) {
+      // Bossnivå: skotten avgör inget; nästa laddas, och när de är slut väntar bogserläget.
+      this.kollaPuls();
+      this.scene.time.delayedCall(900, () => {
+        if (this.klar || this.bogsering?.igang) return;
+        if (this.kvar > 0) this.laddaNasta();
+        else if (this.inst.bogsera?.aktivering === 'efter-skott') this.bogsering?.starta();
+      });
+      return;
+    }
     if (this.inst.vinst) {
       this.scene.time.delayedCall(400, () => this.efterBlockskott());
       return;
@@ -216,6 +306,7 @@ export class Slingshot implements Mekanik {
       this.vind = slumpaVind(this.inst.vind);
       this.visaVind?.(this.vind);
     }
+    this.skottIndex = this.inst.antal - this.kvar;
     this.visaSkottko?.(this.kvar);
     this.kastare.laddaNasta();
   }

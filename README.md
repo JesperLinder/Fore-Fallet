@@ -292,7 +292,58 @@ Nivå 7 (Elräkningen) i förkortad form:
 | `plattform` (objekt) | Fast plattform med `id`, mittpunkt `x`/`y`, `b`, `h`, `farg` och valfri `etikett` under. |
 | `raknare` | Rutan uppe till höger; `{kvar}` = block med `mal` som står kvar. |
 | `infotext`, `tipsUnderSpel` | Uppdraget i en ruta under rubriken, och bara tipset (kort ruta) längst ner. |
+| `statisk`, `studs`, `gupp` (block) | Fast block, studs (0–1) och flytande gupp (`hojd`, `period`). Se bossnivån nedan. |
 | `projektilNamn` | Text under slangbellan. Utan resultatrad (`hud`) visas kvarvarande skott som små projektiler bredvid slangbellan. |
+
+### Bossnivå och bogserläget (nivå 8, Flytdockan)
+
+Bossnivån bygger på slangbellan i sidovy med fysikblock. Bossen är ett fast block (`statisk`) som studsar tillbaka
+allt (`studs`) och guppar på vattnet (`gupp`). Nytt, och återanvändbart:
+
+- **Argument i tur och ordning:** `projektiler` ger varje skott ett eget utseende och en etikett, och `svar` är
+  repliken som blocket `svarFran` säger i en talbubbla när just det skottet träffar det. `slutreplik` kommer efter
+  sista skottets svar. Koden finns i `mechanics/slingshot/boss.ts`.
+- **Bossmätare:** `bossMatare` (namn, status, blinkText) är alltid full och blinkar till vid varje träff.
+- **Bogserläget** (`mechanics/slingshot/tow.ts`): spelaren drar med fingret och fordonet följer. När läget startar
+  åker fordonet till kopplingen, blocket `objekt` blir rörligt med massan `massa` (trögt att få igång) och lågt
+  luftmotstånd `luft` (svårt att stoppa), och de kopplas med ett elastiskt rep (Matter-constraint). Repet ritas som
+  en båge som sträcks ut. Vinst när blocket passerat `grans` (framkanten, eller mitten med `matpunkt: "mitt"`);
+  förlust (`tid-slut`) när `tid` sekunder gått. `aktivering`: `"direkt"`, `"knapp"` (knappen finns från start och
+  pulserar efter `pulseraEfterSkott` skott) eller `"efter-skott"`.
+- **Stjärnor:** `maxForsok` räknar använda skott, så `{ "maxForsok": 0 }` = vann utan att kasta något.
+- **Övrigt:** `musik: "boss"` (en tung basslinga som blir ljusare i bogserläget; följer ljud av/på), `rubrikmarke`
+  (guldmärke i rubriken, t.ex. "BOSS") och `mellanstopp` (svart skärm med en rad text i en sekund innan nivån).
+  Låsta nivåer med `etikett` visar den till höger på kartan ("BOSS", "FINAL").
+
+```json
+"rubrikmarke": "BOSS", "mellanstopp": "BOSS – NJA 1997 s. 660",
+"stjarnkrav": { "tre": { "maxForsok": 0 }, "tva": { "maxForsok": 1 }, "en": {} },
+"slangbella": {
+  "antal": 3, "projektil": "argument", "svarFran": "docka",
+  "projektiler": [{ "etikett": "Köpeavtalet!", "svar": "Ett avtal binder er två. Inte Finnbodas borgenärer." }, …],
+  "slutreplik": "Traditionsprincipen överges inte utan stöd av lag.",
+  "sidvy": { "gravitation": 1, "mark": 900, "radie": 9, "vikt": 0.004 },
+  "bossMatare": { "namn": "Traditionsprincipen", "status": "Fast förankrad", "blinkText": "Oförändrad" },
+  "musik": "boss", "tipsUnderSpel": true,
+  "bogsera": {
+    "aktivering": "knapp", "knapp": { "text": "Bogsera dockan", "pulseraEfterSkott": 3 },
+    "fordon": { "utseende": "bogserbat", "b": 56, "h": 30, "start": { "x": 34, "y": 428 }, "koppling": { "x": 310, "y": 470 },
+                "fart": 3.2, "y": { "min": 440, "max": 610 } },
+    "objekt": "docka", "massa": 1200, "luft": 0.015,
+    "rep": { "fast": { "x": 100, "y": 30 }, "langd": 60, "styvhet": 0.02, "dampning": 0.05 },
+    "grans": { "x": 330, "y1": 436, "y2": 590, "etikett": "VARVETS GRÄNS" },
+    "tid": 30,
+    "vinst": { "text": "Tradition! Nu är den din.", "utseenden": ["flytdocka-forvanad", "flytdocka-nojd"] }
+  }
+},
+"objekt": [
+  { "typ": "utslag", "x": 80, "y": 580 },
+  { "typ": "block", "id": "docka", "x": 150, "y": 395, "b": 200, "h": 120, "vikt": 0.01, "utseende": "flytdocka",
+    "statisk": true, "studs": 0.9, "gupp": { "hojd": 3, "period": 2600 } }
+]
+```
+
+Med massan 1200 tar en rak och bestämd bogsering cirka 11 sekunder av 30.
 
 ### Hybridnivåer
 
@@ -365,7 +416,7 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 
 ## Platshållare
 
-- **Nivå 8–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Nivå 9–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

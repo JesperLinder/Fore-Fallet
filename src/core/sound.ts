@@ -139,6 +139,56 @@ function spelaPrassel(ctx: AudioContext, t0: number): void {
   kalla.stop(t0 + langd);
 }
 
+// ---------- Musik ----------
+
+/** Musikslingor: basnoter (Hz) i tur och ordning, tid per not och klangfärg. "boss-ljus" är fas 2. */
+const SLINGOR = {
+  boss: { noter: [55, 55, 65.4, 49], takt: 0.42, form: 'sawtooth' as OscillatorType, volym: 0.07 },
+  'boss-ljus': { noter: [110, 130.8, 146.8, 130.8], takt: 0.32, form: 'triangle' as OscillatorType, volym: 0.08 },
+};
+export type Slinga = keyof typeof SLINGOR;
+
+let slinga: { namn: Slinga; timer: number; nasta: number; index: number } | null = null;
+
+/** Startar (eller byter till) en musikslinga. Tyst när ljudet är av; spelar vidare när det slås på igen. */
+export function startaMusik(namn: Slinga): void {
+  stoppaMusik();
+  const ctx = hamtaKontext();
+  if (!ctx) return;
+  slinga = { namn, timer: 0, nasta: ctx.currentTime + 0.05, index: 0 };
+  // Planerar noterna en bit framåt, så att takten håller även om sidan hackar.
+  slinga.timer = window.setInterval(() => {
+    if (!slinga) return;
+    const s = SLINGOR[slinga.namn];
+    while (slinga.nasta < ctx.currentTime + 0.3) {
+      if (framsteg.ljudPa() && ctx.state === 'running') spelaNot(ctx, s.noter[slinga.index % s.noter.length], slinga.nasta, s.takt, s.form, s.volym);
+      slinga.nasta += s.takt;
+      slinga.index += 1;
+    }
+  }, 100);
+}
+
+export function stoppaMusik(): void {
+  if (slinga) window.clearInterval(slinga.timer);
+  slinga = null;
+}
+
+function spelaNot(ctx: AudioContext, frekvens: number, t0: number, langd: number, form: OscillatorType, volym: number): void {
+  const osc = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const g = ctx.createGain();
+  osc.type = form;
+  osc.frequency.setValueAtTime(frekvens, t0);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(form === 'triangle' ? 1800 : 420, t0);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(volym, t0 + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + langd * 0.9);
+  osc.connect(filter).connect(g).connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + langd);
+}
+
 export const ljud = {
   arPa: () => framsteg.ljudPa(),
   sattPa: (pa: boolean) => framsteg.sattLjud(pa),

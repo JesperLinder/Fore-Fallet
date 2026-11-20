@@ -112,7 +112,7 @@ export class MapScene extends BasScen {
     if (niva.fylgiaMal) {
       // Märket står efter titeln, eller efter referensraden om det annars krockar med stjärnorna/"Spela".
       const m = marke(this, titel.x + titel.width + 8, 22, text.karta.fylgiaMal);
-      const hogerGrans = KORT_B - (lage === 'last' ? 16 : guld ? 92 : 76);
+      const hogerGrans = KORT_B - (lage === 'last' && !niva.etikett ? 16 : guld ? 92 : 76);
       if (m.x + m.width > hogerGrans) {
         m.setPosition(referens.x + referens.width + 8, 46);
         hogerY = 22;
@@ -135,6 +135,10 @@ export class MapScene extends BasScen {
     }
     if (lage === 'nasta') {
       kort.add(skapaText(this, KORT_B - 18, hogerY, text.karta.spela, 'overrubrik', 'guld', { origo: [1, 0.5] }));
+    }
+    // Låsta nivåer med etikett (t.ex. "Boss", "Final") visar den till höger, som i mockupen.
+    if (lage === 'last' && niva.etikett) {
+      kort.add(skapaText(this, KORT_B - 18, hogerY, niva.etikett.toUpperCase(), 'overrubrik', 'morkockra', { origo: [1, 0.5] }));
     }
 
     kort.setSize(KORT_B, KORT_H);

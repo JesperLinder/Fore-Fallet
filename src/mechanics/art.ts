@@ -24,6 +24,58 @@ function ritaTub(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number
   g.fillStyle(marke, 1).fillCircle(x, y + k.y + k.h / 2, k.b * 0.24);
 }
 
+type Min = 'arg' | 'forvanad' | 'nojd';
+
+/**
+ * Flytdockan (bossen): grön kropp med två torn, tre ljusa luckor, ögon och mun.
+ * min: "arg" (sammanbiten, ögonbryn nedåt), "forvanad" (runda ögon, öppen mun), "nojd" (glada ögon, leende).
+ */
+function ritaFlytdocka(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, min: Min): void {
+  const torn = h * 0.22;
+  const tornB = b * 0.15;
+  const topp = y - h / 2;
+  g.fillStyle(farg.gron, 1);
+  g.fillRect(x - b / 2, topp + torn, b, h - torn);
+  g.fillRect(x - b / 2, topp, tornB, torn + 1);
+  g.fillRect(x + b / 2 - tornB, topp, tornB, torn + 1);
+  // Luckor.
+  g.fillStyle(farg.beige, 1);
+  for (const dx of [-0.22, 0, 0.22]) g.fillRect(x + dx * b - b * 0.08, topp + torn + h * 0.16, b * 0.16, h * 0.06);
+  // Ögon.
+  const oy = y + h * 0.1;
+  const ox = b * 0.17;
+  const r = h * 0.07;
+  for (const sida of [-1, 1]) {
+    const cx = x + sida * ox;
+    if (min === 'nojd') {
+      g.lineStyle(3, farg.beige, 1);
+      g.beginPath();
+      g.arc(cx, oy + r * 0.4, r, Math.PI * 1.15, Math.PI * 1.85);
+      g.strokePath();
+      continue;
+    }
+    const rr = min === 'forvanad' ? r * 1.3 : r;
+    g.fillStyle(farg.ljusbeige, 1).fillCircle(cx, oy, rr);
+    g.fillStyle(farg.morkgron, 1).fillCircle(cx + (min === 'arg' ? -sida * rr * 0.25 : 0), oy + (min === 'arg' ? rr * 0.2 : 0), rr * (min === 'forvanad' ? 0.35 : 0.5));
+    if (min === 'arg') {
+      // Ögonbryn som lutar ned mot mitten.
+      g.lineStyle(3, farg.ljusbeige, 1).lineBetween(cx - sida * rr * 1.2, oy - rr * 1.9, cx + sida * rr * 0.9, oy - rr * 1.1);
+    }
+  }
+  // Mun.
+  const my = y + h * 0.32;
+  g.lineStyle(3, farg.beige, 1);
+  if (min === 'forvanad') {
+    g.strokeCircle(x, my, h * 0.05);
+  } else {
+    g.beginPath();
+    // Sammanbiten: båge nedåt. Nöjd: leende båge uppåt.
+    if (min === 'arg') g.arc(x, my + h * 0.12, b * 0.13, Math.PI * 1.2, Math.PI * 1.8);
+    else g.arc(x, my - h * 0.06, b * 0.12, Math.PI * 0.2, Math.PI * 0.8);
+    g.strokePath();
+  }
+}
+
 /** Där en figur kan fyllas (fyllnadsanimationen i invaders), relativt figurens mitt. undefined = hela brickan. */
 export function fyllnadsYta(namn: string, b: number, h: number): { x: number; y: number; b: number; h: number } | undefined {
   if (!namn.startsWith('tub-')) return undefined;
@@ -143,6 +195,40 @@ const figurer: Record<string, Rita> = {
   /** Ansvarsstjärnan: Fylgias fyruddiga stjärna i lila (projektil). */
   ansvarsstjarna(g, x, y) {
     fyllStjarna(g, x, y, 26, farg.lila);
+  },
+
+  /** Flytdockan (bossen) i tre sinnesstämningar. */
+  flytdocka(g, x, y, b = 220, h = 130) {
+    ritaFlytdocka(g, x, y, b, h, 'arg');
+  },
+  'flytdocka-forvanad'(g, x, y, b = 220, h = 130) {
+    ritaFlytdocka(g, x, y, b, h, 'forvanad');
+  },
+  'flytdocka-nojd'(g, x, y, b = 220, h = 130) {
+    ritaFlytdocka(g, x, y, b, h, 'nojd');
+  },
+
+  /** Liten beige bogserbåt med styrhytt (fören åt höger). */
+  bogserbat(g, x, y, b = 56, h = 30) {
+    g.fillStyle(farg.beige, 1);
+    g.fillPoints(
+      [
+        new Phaser.Math.Vector2(x - b / 2, y),
+        new Phaser.Math.Vector2(x + b / 2, y),
+        new Phaser.Math.Vector2(x + b * 0.36, y + h * 0.4),
+        new Phaser.Math.Vector2(x - b * 0.4, y + h * 0.4),
+      ],
+      true,
+    );
+    g.fillRect(x - b * 0.25, y - h * 0.45, b * 0.32, h * 0.45);
+    g.fillStyle(farg.morkgron, 1).fillRect(x - b * 0.19, y - h * 0.36, b * 0.2, h * 0.18);
+    g.fillStyle(farg.guld, 1).fillRect(x - b * 0.05, y - h * 0.7, b * 0.08, h * 0.25);
+  },
+
+  /** Argument: lila kula (projektil i Flytdockan). */
+  argument(g, x, y) {
+    g.fillStyle(farg.lila, 1).fillCircle(x, y, 9);
+    g.fillStyle(farg.ljusbeige, 0.5).fillCircle(x - 3, y - 3, 2.2);
   },
 
   /** Platt ufo i lila (inget känt filmufo). */

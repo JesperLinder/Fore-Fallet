@@ -3,6 +3,8 @@
  * Blocken är vanliga Matter-kroppar som staplas, välter och faller. De sover från start (ligger helt still)
  * och väcks alla på en gång när projektilen träffar något block, så att inget svävar kvar.
  * Ett block är nedslaget när det lämnat sin plattform, hamnat under nedLinje eller åkt utanför skärmen.
+ * Block kan också vara fasta ("statisk", t.ex. en boss), studsa ("studs") och flyta ("gupp": guppar och
+ * står kvar på samma höjd även när bogserläget gjort det rörligt).
  */
 import Phaser from 'phaser';
 import { farg } from '../../config/theme';
@@ -30,6 +32,7 @@ export interface Block {
   /** Landningsljudet har spelats. */
   landat: boolean;
   fas: number;
+  g: Phaser.GameObjects.Graphics;
 }
 
 export class Fysikblock {
@@ -55,7 +58,34 @@ export class Fysikblock {
     this.block = niva.objekt.filter((o): o is BlockObjekt => o.typ === 'block').map((d) => this.byggBlock(d));
 
     this.scene.matter.world.on('collisionstart', this.kollision, this);
+    this.scene.matter.world.on('afterupdate', this.flyt, this);
     this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.uppdatera, this);
+  }
+
+  hamta(id: string): Block | undefined {
+    return this.block.find((b) => b.data.id === id);
+  }
+
+  /** Ritar om blocket med ett annat utseende (t.ex. bossens ansiktsuttryck). */
+  bytUtseende(id: string, utseende: string): void {
+    const b = this.hamta(id);
+    if (!b) return;
+    b.g.clear();
+    ritaFigur(b.g, utseende, 0, 0, b.data.b, b.data.h);
+  }
+
+  /** Gör ett fast block rörligt med en viss massa och ett visst luftmotstånd (bogserläget). Sover aldrig. */
+  gorRorlig(id: string, massa: number, luft: number): MatterKropp | undefined {
+    const b = this.hamta(id);
+    if (!b) return undefined;
+    const Kropp = this.scene.matter.body;
+    Kropp.setStatic(b.kropp, false);
+    Kropp.setMass(b.kropp, massa);
+    Kropp.setInertia(b.kropp, Infinity);
+    b.kropp.frictionAir = luft;
+    b.kropp.sleepThreshold = Infinity;
+    Sovande.set(b.kropp, false);
+    return b.kropp;
   }
 
   /** Antal block med "mal" som står kvar. */
@@ -90,6 +120,7 @@ export class Fysikblock {
     this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.uppdatera, this);
     const varld = this.scene.matter.world as Phaser.Physics.Matter.World | null;
     varld?.off('collisionstart', this.kollision, this);
+    varld?.off('afterupdate', this.flyt, this);
   }
 
   // ---------- Bygg ----------
@@ -111,10 +142,11 @@ export class Fysikblock {
       friction: 0.4,
       frictionStatic: 0.6,
       frictionAir: d.papper ? PAPPER_LUFT : 0.01,
-      restitution: 0.05,
+      restitution: d.studs ?? 0.05,
+      isStatic: d.statisk ?? false,
     });
     // Sover tills något träffar det: ingen darrning eller glidning före första skottet.
-    Sovande.set(kropp, true);
+    if (!d.statisk) Sovande.set(kropp, true);
     const g = this.scene.add.graphics();
     ritaFigur(g, d.utseende, 0, 0, d.b, d.h);
     const delar: Phaser.GameObjects.GameObject[] = [g];
@@ -122,7 +154,7 @@ export class Fysikblock {
       delar.push(skapaText(this.scene, d.b / 2 - 8, d.h / 2 - 8, d.etikett, 'knapp', 'morkgron', { origo: [1, 1], storlek: 11 }));
     }
     const obj = this.scene.add.container(d.x, d.y, delar).setDepth(DJUP_BLOCK);
-    return { data: d, kropp, obj, ned: false, landat: false, fas: Math.random() * Math.PI * 2 };
+    return { data: d, kropp, obj, ned: false, landat: false, fas: Math.random() * Math.PI * 2, g };
   }
 
   // ---------- Varje bildruta ----------
@@ -141,6 +173,24 @@ export class Fysikblock {
       if (k.position.y > HOJD + 200 && b.obj.visible) {
         this.scene.matter.world.remove(k);
         b.obj.setVisible(false);
+      }
+    }
+  }
+
+  /**
+   * Flytande block (gupp): efter varje fysiksteg läggs blocket på sin höjd plus guppet, rakt och utan
+   * fart i höjdled. Fasta block flyttas bara; rörliga (bogserade) behåller sin fart i sidled.
+   */
+  private flyt(): void {
+    const Kropp = this.scene.matter.body;
+    for (const b of this.block) {
+      const gupp = b.data.gupp;
+      if (!gupp) continue;
+      const y = b.data.y + Math.sin((this.tid / gupp.period) * Math.PI * 2) * gupp.hojd;
+      Kropp.setPosition(b.kropp, { x: b.kropp.position.x, y });
+      if (!b.kropp.isStatic) {
+        Kropp.setVelocity(b.kropp, { x: b.kropp.velocity.x, y: 0 });
+        Kropp.setAngle(b.kropp, 0);
       }
     }
   }

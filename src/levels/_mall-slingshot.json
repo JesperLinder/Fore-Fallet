@@ -69,7 +69,81 @@
     "vinst": [
       "alla-block"
     ],
-    "nedLinje": 640
+    "nedLinje": 640,
+    "projektiler": [
+      {
+        "etikett": "Första skottet",
+        "svar": "Svar när första skottet träffar blocket svarFran"
+      },
+      {
+        "etikett": "Andra skottet",
+        "svar": "Svar på andra"
+      },
+      {
+        "etikett": "Tredje skottet",
+        "svar": "Svar på tredje"
+      }
+    ],
+    "svarFran": "boss",
+    "slutreplik": "Valfri sista replik",
+    "bossMatare": {
+      "namn": "Mätarens namn",
+      "status": "Statustext",
+      "blinkText": "Text vid träff"
+    },
+    "musik": "boss",
+    "bogsera": {
+      "aktivering": "knapp",
+      "knapp": {
+        "text": "Knappens text",
+        "pulseraEfterSkott": 3
+      },
+      "fordon": {
+        "utseende": "bogserbat",
+        "b": 56,
+        "h": 30,
+        "start": {
+          "x": 34,
+          "y": 428
+        },
+        "koppling": {
+          "x": 310,
+          "y": 470
+        },
+        "fart": 3.2,
+        "y": {
+          "min": 440,
+          "max": 610
+        }
+      },
+      "objekt": "boss",
+      "massa": 1200,
+      "luft": 0.015,
+      "rep": {
+        "fast": {
+          "x": 100,
+          "y": 30
+        },
+        "langd": 60,
+        "styvhet": 0.02,
+        "dampning": 0.05
+      },
+      "grans": {
+        "x": 330,
+        "y1": 436,
+        "y2": 590,
+        "etikett": "GRÄNSENS ETIKETT",
+        "matpunkt": "framkant"
+      },
+      "tid": 30,
+      "vinst": {
+        "text": "Text vid vinst",
+        "utseenden": [
+          "flytdocka-forvanad",
+          "flytdocka-nojd"
+        ]
+      }
+    }
   },
   "objekt": [
     {
@@ -127,6 +201,22 @@
       "plattform": "bord",
       "landningsljud": "klonk",
       "nedText": "Valfri text"
+    },
+    {
+      "typ": "block",
+      "id": "boss",
+      "x": 150,
+      "y": 395,
+      "b": 200,
+      "h": 120,
+      "vikt": 0.01,
+      "utseende": "flytdocka",
+      "statisk": true,
+      "studs": 0.9,
+      "gupp": {
+        "hojd": 3,
+        "period": 2600
+      }
     }
   ],
   "forlust": {
@@ -143,5 +233,7 @@
       "Domskäl 3."
     ],
     "lankTillFallet": "https://lagen.nu/dom/nja/AAAAsN"
-  }
+  },
+  "rubrikmarke": "Valfritt guldmärke i rubriken, t.ex. BOSS",
+  "mellanstopp": "Valfri text på svart skärm en sekund innan nivån"
 }

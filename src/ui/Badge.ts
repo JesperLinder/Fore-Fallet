@@ -36,3 +36,27 @@ export function pratbubbla(
   const g = scene.add.graphics().fillStyle(farg[bakgrund], 1).fillRoundedRect(-b / 2, -h / 2, b, h, h / 2);
   return scene.add.container(x, y, [g, t]);
 }
+
+/**
+ * Talbubbla för längre repliker (t.ex. bossen): radbruten text i en rundad ruta med en liten spets nedåt.
+ * (x, y) = spetsens ände; bubblan ritas ovanför.
+ */
+export function talbubbla(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  innehall: string,
+  bakgrund: FargNamn = 'ljusbeige',
+  textFarg: FargNamn = 'morkgron',
+  maxBredd = 260,
+): Phaser.GameObjects.Container {
+  const t = skapaText(scene, 0, 0, innehall, 'brod', textFarg, { origo: [0.5, 1], storlek: 14, bredd: maxBredd - 28, justering: 'center' });
+  const b = Math.min(maxBredd, t.width + 28);
+  const h = t.height + 20;
+  const spets = 10;
+  t.setY(-spets - 10);
+  const g = scene.add.graphics().fillStyle(farg[bakgrund], 1);
+  g.fillRoundedRect(-b / 2, -spets - h, b, h, 14);
+  g.fillTriangle(-8, -spets - 1, 8, -spets - 1, 0, 0);
+  return scene.add.container(x, y, [g, t]);
+}

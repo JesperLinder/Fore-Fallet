@@ -5,5 +5,179 @@
   "referens": "NJA 1997 s. 660",
   "mekanik": "slingshot",
   "fylgiaMal": false,
-  "etikett": "Boss"
+  "etikett": "Boss",
+  "rubrikmarke": "BOSS",
+  "mellanstopp": "BOSS – NJA 1997 s. 660",
+  "tema": "mork",
+  "uppdragstext": "Bossnivå. Du har köpt en flytdocka av Finnboda – men den ligger kvar vid deras varv och de hyr den av dig. Nu hotar konkurs. Gör dockan till din på riktigt.",
+  "fylgiaTips": "Avtal, hyresavtal och inskrivningar hjälper inte. Mot säljarens borgenärer räknas bara en sak: att dockan lämnat säljarens besittning.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxForsok": 0
+    },
+    "tva": {
+      "maxForsok": 1
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "vinrod",
+        "topp": 0
+      },
+      {
+        "farg": "morkgron",
+        "topp": 430,
+        "vag": 6
+      }
+    ]
+  },
+  "slangbella": {
+    "antal": 3,
+    "projektil": "argument",
+    "projektiler": [
+      {
+        "etikett": "Köpeavtalet!",
+        "svar": "Ett avtal binder er två. Inte Finnbodas borgenärer."
+      },
+      {
+        "etikett": "Hyresavtalet!",
+        "svar": "Jag ligger ju kvar här. Hos säljaren."
+      },
+      {
+        "etikett": "Inskrivningen!",
+        "svar": "Fint papper. Men jag har inte rört mig en meter."
+      }
+    ],
+    "svarFran": "docka",
+    "slutreplik": "Traditionsprincipen överges inte utan stöd av lag.",
+    "maxDrag": 105,
+    "kraft": 0.13,
+    "friktion": {
+      "luft": 0.004,
+      "mark": 0.09
+    },
+    "flygtid": {
+      "min": 22,
+      "max": 50
+    },
+    "siktlinje": 0.4,
+    "spelplan": {
+      "x": 0,
+      "y": 60,
+      "b": 390,
+      "h": 784
+    },
+    "sidvy": {
+      "gravitation": 1,
+      "mark": 900,
+      "radie": 9,
+      "vikt": 0.004
+    },
+    "bossMatare": {
+      "namn": "Traditionsprincipen",
+      "status": "Fast förankrad",
+      "blinkText": "Oförändrad"
+    },
+    "musik": "boss",
+    "tipsUnderSpel": true,
+    "bogsera": {
+      "aktivering": "knapp",
+      "knapp": {
+        "text": "Bogsera dockan",
+        "pulseraEfterSkott": 3
+      },
+      "fordon": {
+        "utseende": "bogserbat",
+        "b": 56,
+        "h": 30,
+        "start": {
+          "x": 34,
+          "y": 428
+        },
+        "koppling": {
+          "x": 310,
+          "y": 470
+        },
+        "fart": 3.2,
+        "y": {
+          "min": 440,
+          "max": 610
+        }
+      },
+      "objekt": "docka",
+      "massa": 1200,
+      "luft": 0.015,
+      "rep": {
+        "fast": {
+          "x": 100,
+          "y": 30
+        },
+        "langd": 60,
+        "styvhet": 0.02,
+        "dampning": 0.05
+      },
+      "grans": {
+        "x": 330,
+        "y1": 436,
+        "y2": 590,
+        "etikett": "VARVETS GRÄNS"
+      },
+      "tid": 30,
+      "vinst": {
+        "text": "Tradition! Nu är den din.",
+        "utseenden": [
+          "flytdocka-forvanad",
+          "flytdocka-nojd"
+        ]
+      }
+    }
+  },
+  "objekt": [
+    {
+      "typ": "text",
+      "x": 80,
+      "y": 318,
+      "text": "Finnbodas varv",
+      "farg": "beige"
+    },
+    {
+      "typ": "utslag",
+      "x": 80,
+      "y": 580
+    },
+    {
+      "typ": "block",
+      "id": "docka",
+      "x": 150,
+      "y": 395,
+      "b": 200,
+      "h": 120,
+      "vikt": 0.01,
+      "utseende": "flytdocka",
+      "statisk": true,
+      "studs": 0.9,
+      "gupp": {
+        "hojd": 3,
+        "period": 2600
+      }
+    }
+  ],
+  "forlust": {
+    "rubrik": "Kvar hos säljaren.",
+    "orsaker": {
+      "tid-slut": "Konkursboet tackar för dockan."
+    }
+  },
+  "domslut": {
+    "rubrik": "Bossen besegrad",
+    "domskal": [
+      "Finnboda sålde flytdockan men behöll den vid sitt varv och fortsatte använda den genom ett hyresavtal med köparen.",
+      "Ingen tradition, inget förfarande enligt lösöreköpslagen – och då inget skydd mot Finnbodas borgenärer i konkursen.",
+      "HD vägrade överge traditionsprincipen: den är så fast förankrad att den knappast kan överges utan stöd av lag."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1997s660"
+  }
 }

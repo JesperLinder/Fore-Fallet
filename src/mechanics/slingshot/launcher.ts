@@ -10,6 +10,7 @@ import { farg, type FargNamn } from '../../config/theme';
 import type { KastInstallningar, Niva } from '../../core/levelTypes';
 import { spela } from '../../core/sound';
 import { ritaFigur } from '../art';
+import { skapaText } from '../../ui/text';
 import { antalFlygsteg, forhandsvisning, forhandsvisningSida, hojd, nastaHastighet } from './flight';
 
 export type MatterKropp = MatterJS.BodyType;
@@ -44,6 +45,8 @@ export interface KastareVal {
   kanSikta: () => boolean;
   /** Figur ur art.ts för projektilen just nu. */
   utseende: () => string;
+  /** Valfri text som följer med projektilen, t.ex. "Köpeavtalet!". */
+  etikett?: () => string | undefined;
   /** Sidvind för det aktuella kastet. */
   vind: () => { x: number; y: number };
   /** Bromsning när projektilen rullar på marken vid (x, y). */
@@ -65,6 +68,7 @@ export class Kastare {
   private kast: Kast | null = null;
 
   private projektil: Phaser.GameObjects.Graphics;
+  private etikett?: Phaser.GameObjects.Text;
   private skugga: Phaser.GameObjects.Graphics;
   private band: Phaser.GameObjects.Graphics;
   private sikte: Phaser.GameObjects.Graphics;
@@ -78,6 +82,9 @@ export class Kastare {
     this.band = this.scene.add.graphics().setDepth(DJUP_KAST.band);
     this.skugga = this.scene.add.graphics().setDepth(DJUP_KAST.skugga);
     this.projektil = this.scene.add.graphics().setDepth(DJUP_KAST.projektil);
+    if (val.etikett) {
+      this.etikett = skapaText(this.scene, 0, 0, '', 'knapp', 'lila', { origo: [0.5, 1], storlek: 12 }).setDepth(DJUP_KAST.projektil);
+    }
     this.ritaProjektil();
     this.sikte = this.scene.add.graphics().setDepth(DJUP_KAST.sikte);
     this.kopplaInput();
@@ -94,6 +101,7 @@ export class Kastare {
     const { x, y } = this.val.utslag;
     this.ritaProjektil();
     this.projektil.setPosition(x, y).setScale(0).setVisible(true);
+    this.flyttaEtikett();
     this.scene.tweens.add({ targets: this.projektil, scale: 1, duration: 220, ease: 'Back.easeOut' });
     this.ritaBand(x, y);
   }
@@ -102,11 +110,19 @@ export class Kastare {
   ritaProjektil(): void {
     this.projektil.clear();
     ritaFigur(this.projektil, this.val.utseende(), 0, 0);
+    this.etikett?.setText(this.val.etikett?.() ?? '');
+    this.flyttaEtikett();
   }
 
   /** Döljer projektilen i slangbellan (t.ex. medan något annat händer). */
   dolj(): void {
     this.projektil.setVisible(false);
+    this.etikett?.setVisible(false);
+  }
+
+  /** Etiketten står strax ovanför projektilen och syns när projektilen syns. */
+  private flyttaEtikett(): void {
+    this.etikett?.setPosition(this.projektil.x, this.projektil.y - 14).setVisible(this.projektil.visible);
   }
 
   pausa(pausad: boolean): void {
@@ -152,6 +168,7 @@ export class Kastare {
     this.sikte.clear();
     this.ritaBand(this.val.utslag.x, this.val.utslag.y);
     if (!this.kast) this.projektil.setPosition(this.val.utslag.x, this.val.utslag.y);
+    this.flyttaEtikett();
     if (this.val.tips) this.scene.tweens.add({ targets: this.val.tips, alpha: 1, duration: 200 });
   }
 
@@ -159,6 +176,7 @@ export class Kastare {
     const { x, y } = this.val.utslag;
     const inst = this.val.inst;
     this.projektil.setPosition(x + this.drag.x, y + this.drag.y);
+    this.flyttaEtikett();
     this.ritaBand(x + this.drag.x, y + this.drag.y);
 
     this.sikte.clear();
@@ -271,6 +289,7 @@ export class Kastare {
   private ritaFlygning(k: Kast, x: number, y: number): void {
     if (this.val.inst.sidvy) {
       this.projektil.setPosition(x, y).setRotation(k.kropp.angle);
+      this.flyttaEtikett();
       if (k.steg % 4 === 0) this.spar.fillStyle(farg.guld, 1).fillCircle(x, y, 1.4);
       return;
     }
@@ -288,6 +307,7 @@ export class Kastare {
     this.kast = null;
     this.skugga.clear();
     this.projektil.setScale(1).setRotation(0).setVisible(false);
+    this.etikett?.setVisible(false);
     this.val.vidSlut(k, x, y, orsak);
   }
 

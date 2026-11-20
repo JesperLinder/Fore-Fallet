@@ -60,6 +60,14 @@ export class LevelScene extends BasScen {
     const tips = tipsPanel(this, niva.uppdragstext, niva.fylgiaTips);
     this.mekanik = skapaMekanik({ scene: this, niva, tips, avsluta: (r) => this.nivanKlar(r) });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.mekanik.forstor());
+    if (niva.mellanstopp) this.visaMellanstopp(niva.mellanstopp);
+  }
+
+  /** Svart skärm med en rad text i en sekund innan nivån visas (t.ex. "BOSS – NJA 1997 s. 660"). */
+  private visaMellanstopp(innehall: string): void {
+    const svart = this.add.rectangle(MITT_X, HOJD / 2, BREDD, HOJD, 0x000000, 1).setDepth(200).setInteractive();
+    const t = skapaText(this, MITT_X, HOJD / 2, innehall, 'overrubrik', 'guld', { origo: [0.5, 0.5], storlek: 16 }).setDepth(201);
+    this.tweens.add({ targets: [svart, t], alpha: 0, delay: 1000, duration: 350, onComplete: () => [svart, t].forEach((o) => o.destroy()) });
   }
 
   /** Banans bakgrund: lager med mjukt vågig överkant, från nivåfilens "bana". */
@@ -80,7 +88,9 @@ export class LevelScene extends BasScen {
     const n = this.niva;
     const mork = n.tema === 'mork';
     const over = skapaText(this, avstand.l, 22, text.niva.overrubrik(n.nummer, n.referens), 'overrubrik', mork ? 'guld' : 'morkockra');
-    if (n.fylgiaMal) marke(this, over.x + over.width + 8, over.y + over.height / 2, text.karta.fylgiaMal);
+    let x = over.x + over.width + 8;
+    if (n.rubrikmarke) x += marke(this, x, over.y + over.height / 2, n.rubrikmarke, 'guld', 'morkgron').width + 6;
+    if (n.fylgiaMal) marke(this, x, over.y + over.height / 2, text.karta.fylgiaMal);
     skapaText(this, avstand.l - 1, 38, n.titel, 'titel', mork ? 'ljusbeige' : 'morkgron', { storlek: 30 });
     ikonKnapp(this, BREDD - avstand.l - 24, 44, mork ? 'konturMork' : 'mork', ritaPaus, () => this.pausa(true)).setDepth(40);
   }
