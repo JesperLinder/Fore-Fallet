@@ -47,7 +47,7 @@
     "skott": {
       "lage": "slapp",
       "intervall": 220,
-      "fart": 900,
+      "fart": 1400,
       "utseende": "gasbubbla"
     },
     "brickor": {
@@ -55,6 +55,7 @@
         "egen": {
           "figur": "tub-egen",
           "etikettFarg": "morkgron",
+          "smalTraff": 7,
           "skaBort": true,
           "onHit": {
             "effekt": "fyll"
@@ -67,7 +68,7 @@
         "annan": {
           "figur": "tub-annan",
           "etikettFarg": "vinrod",
-          "smalTraff": 3,
+          "smalTraff": 7,
           "onHit": {
             "effekt": "skaka",
             "misstag": true,
@@ -133,7 +134,11 @@
       ],
       "b": 40,
       "h": 66,
-      "mellanrum": 16,
+      "mellanrum": 10,
+      "forskjutning": [
+        0,
+        25
+      ],
       "startY": 196,
       "steg": {
         "x": 4,
