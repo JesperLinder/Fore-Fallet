@@ -7,7 +7,7 @@ import { BasScen } from './BaseScene';
 import { avstand, farg, radie } from '../config/theme';
 import { BREDD, HOJD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
-import { arUpplast, hamtaNiva } from '../core/levels';
+import { arUpplast, hamtaNiva, kapitelFor, sattAktivtKapitel } from '../core/levels';
 import type { ForlustOrsak, Niva } from '../core/levelTypes';
 import { framsteg } from '../core/progress';
 import { beraknaGuld, beraknaStjarnor } from '../core/scoring';
@@ -59,6 +59,7 @@ export class LevelScene extends BasScen {
       return;
     }
     this.niva = niva;
+    sattAktivtKapitel(kapitelFor(niva.id));
     this.forberedKamera('ljusbeige');
     this.ritaBakgrund();
     const lager = niva.bana.lager;

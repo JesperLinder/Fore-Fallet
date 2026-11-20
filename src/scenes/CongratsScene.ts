@@ -1,5 +1,6 @@
 /**
- * Grattisskärmen: visas efter "Säsongen klar" första gången hela spelet är klarat, och kan nås igen från kartan.
+ * Grattisskärmen: visas efter "Säsongen klar" första gången det sista kapitlet är klarat (övriga kapitel får den
+ * kortare "Kapitel klart"), och kan nås igen från kartan. Vilket kapitel: { kapitel: id }.
  * Mörkgrön bakgrund, "Fylgia" överst, den lila stjärnan som skalas upp från noll och landar mjukt, en enda
  * omgång guldkonfetti (små fyruddiga stjärnor, ingen loop), rubrik, text och knapparna
  * "Sök jobb hos Fylgia" (öppnas i telefonens webbläsare) och "Tillbaka till kartan".
@@ -10,7 +11,7 @@ import { avstand, farg } from '../config/theme';
 import { BREDD, HOJD, MITT_X, ZOOM } from '../config/display';
 import { text } from '../config/strings';
 import { lankar } from '../config/links';
-import { maxTotalaStjarnor } from '../core/levels';
+import { aktivtKapitel, hamtaKapitel, maxTotalaStjarnor } from '../core/levels';
 import { framsteg } from '../core/progress';
 import { spela } from '../core/sound';
 import { skapaText } from '../ui/text';
@@ -28,9 +29,10 @@ export class CongratsScene extends BasScen {
     super('Grattis');
   }
 
-  create(): void {
+  create(data?: { kapitel?: string }): void {
+    const kapitel = hamtaKapitel(data?.kapitel ?? '') ?? aktivtKapitel();
     this.forberedKamera('morkgron');
-    framsteg.sattGrattisSett();
+    framsteg.sattKapitelKlartSett(kapitel.id);
 
     skapaText(this, MITT_X, 64, text.grattis.logotyp, 'rubrik', 'beige', { origo: [0.5, 0.5], storlek: 30 });
 
@@ -48,7 +50,7 @@ export class CongratsScene extends BasScen {
     skapaText(this, MITT_X, 530, text.grattis.text, 'brod', 'beige', { origo: [0.5, 0.5], bredd: 290, justering: 'center', storlek: 16 });
 
     lankKnapp(this, MITT_X, 640, text.grattis.sokJobb, { bredd: b, hojd: 56, variant: 'guld' }, lankar.sokJobb);
-    new Knapp(this, MITT_X, 708, text.grattis.tillKartan, { bredd: b, hojd: 56, variant: 'konturMork' }, () => this.bytTill('Map'));
+    new Knapp(this, MITT_X, 708, text.grattis.tillKartan, { bredd: b, hojd: 56, variant: 'konturMork' }, () => this.bytTill('Map', { kapitel: kapitel.id }));
 
     const total = framsteg.totalaStjarnor().toLocaleString('sv-SE', { maximumFractionDigits: 1 });
     skapaText(this, MITT_X, HOJD - 44, text.grattis.stjarnor(total, maxTotalaStjarnor()), 'liten', 'beige', { origo: [0.5, 0.5], storlek: 13 });

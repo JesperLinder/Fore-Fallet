@@ -1,9 +1,10 @@
-// Letar efter platshållartext inom hakparenteser (t.ex. "[FYLLS I AV MÅLANSVARIG]") i nivåfilerna,
+// Letar efter platshållartext inom hakparenteser (t.ex. "[FYLLS I AV MÅLANSVARIG]") i kapitel- och nivåfilerna,
 // i texterna i src/config/ (strings.ts, links.ts …), i HTML-sidorna i public/ och i App Store-materialet i store/.
 // Undantag: public/integritet.html får innehålla [KONTAKT-E-POST] – då skrivs bara en påminnelse ut.
 // Kör: npm run kolla-platshallare   (med --strikt avslutas det med fel om något hittas)
-// Mallar (filer som börjar med _) hoppas över.
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+// Varnar också för platshållarnivåer (nivåfiler utan domslut, t.ex. "Kommer snart") och för kapitelfiler som
+// inte stämmer med nivåfilerna i mappen. Mallar (filer som börjar med _) hoppas över.
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const PLATSHALLARE = /\[[^\]\n]+\]/;
@@ -19,10 +20,31 @@ function sok(varde, sokvag, fil) {
   }
 }
 
-// Nivåfilerna.
+// Kapitlen: src/levels/kapitel-N/kapitel.json och nivåfilerna i samma mapp.
 const NIVAER = 'src/levels';
-for (const fil of readdirSync(NIVAER).filter((f) => f.endsWith('.json') && !f.startsWith('_')).sort()) {
-  sok(JSON.parse(readFileSync(join(NIVAER, fil), 'utf8')), '', fil);
+const platshallarnivaer = [];
+for (const kmapp of readdirSync(NIVAER).filter((f) => statSync(join(NIVAER, f)).isDirectory()).sort()) {
+  const dir = join(NIVAER, kmapp);
+  const kfil = join(dir, 'kapitel.json');
+  if (!existsSync(kfil)) {
+    fynd.push(`${dir}: kapitel.json saknas`);
+    continue;
+  }
+  const kapitel = JSON.parse(readFileSync(kfil, 'utf8'));
+  sok(kapitel, '', `${kmapp}/kapitel.json`);
+  const ids = [];
+  for (const fil of readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 'kapitel.json' && !f.startsWith('_')).sort()) {
+    const niva = JSON.parse(readFileSync(join(dir, fil), 'utf8'));
+    ids.push(niva.id);
+    sok(niva, '', `${kmapp}/${fil}`);
+    if (!('domslut' in niva)) platshallarnivaer.push(`${kmapp}/${fil} ("${niva.id}", ${niva.titel})`);
+  }
+  for (const id of kapitel.nivaer ?? []) if (!ids.includes(id)) fynd.push(`${kmapp}/kapitel.json: nivån "${id}" har ingen nivåfil`);
+  for (const id of ids) if (!(kapitel.nivaer ?? []).includes(id)) fynd.push(`${kmapp}: nivåfilen "${id}" saknas i kapitel.json`);
+}
+if (platshallarnivaer.length) {
+  console.warn(`Platshållarkontroll: ${platshallarnivaer.length} platshållarnivåer (inte spelbara än):`);
+  for (const p of platshallarnivaer) console.warn('  ' + p);
 }
 
 // Textsträngarna i konfigurationen (allt inom '…', "…" eller `…`).
@@ -55,9 +77,12 @@ if (paminnelser.length) {
 }
 
 if (fynd.length === 0) {
-  console.log('Platshållarkontroll: inga platshållare i nivåfilerna, texterna, public/ eller store/.');
+  console.log('Platshållarkontroll: inga platshållare i kapitlen, nivåfilerna, texterna, public/ eller store/.');
 } else {
   console.warn(`Platshållarkontroll: ${fynd.length} platshållare hittades:`);
   for (const f of fynd) console.warn('  ' + f);
   if (process.argv.includes('--strikt')) process.exit(1);
+}
+if (platshallarnivaer.length && process.argv.includes('--strikt')) {
+  process.exit(1);
 }

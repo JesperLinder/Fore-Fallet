@@ -25,7 +25,7 @@ Rensa sparade framsteg: kör `localStorage.removeItem('forefallet.framsteg.v1')`
 Lägg till `?debug=1` i adressen, t.ex. `http://localhost:5173/?debug=1` eller
 `https://jesperlinder.github.io/Fore-Fallet/?debug=1`. Då gäller följande:
 
-- Alla nivåer är upplåsta, och "TESTLÄGE" står under logotypen på kartan.
+- Alla kapitel och alla spelbara nivåer är upplåsta, och "TESTLÄGE" står under logotypen på kartan.
 - Längst ner i varje nivå finns knapparna **Vinst 3★**, **Vinst 1★** och **Förlust**. I nivå 5 heter de
   **Halvvägsvinst 3★/1★**. Vinsterna sparas som vanliga resultat (3★ ger också guldstjärnan där den finns) och visar domslutet.
   Förlust visar nivåns förlustskärm.
@@ -44,7 +44,7 @@ Vanliga `npm run build`, som används för appen, tar bort all testkod (`src/deb
 Lägg till `?screenshot=1` i adressen. Då gäller följande:
 
 - Inga testknappar syns.
-- Framstegen är påhittade och finns bara i minnet: alla tio nivåer är klarade, de flesta med tre stjärnor.
+- Framstegen är påhittade och finns bara i minnet: alla tio nivåer i kapitel 1 är klarade, de flesta med tre stjärnor.
   Dina riktiga sparade framsteg rörs inte. Kartan och säsongsskärmen ser därför färdigspelade ut.
 - Med `&niva=1`, `2`, `5`, `8` eller `10` startar nivån direkt, spelas några sekunder av sig själv och fryses
   i ett snyggt läge. I konsolen står `SKÄRMDUMPSLÄGE: fryst` när bilden är klar. Exempel:
@@ -249,7 +249,7 @@ src/
   config/strings.ts       alla gemensamma texter (svenska)
   config/display.ts       logisk upplösning och pixeltäthet
   core/levelTypes.ts      nivåformatet (TypeScript-typer, dokumenterade)
-  core/levels.ts          läser in src/levels/*.json, upplåsning
+  core/levels.ts          läser in kapitlen och nivåerna i src/levels/, upplåsning av nivåer och kapitel
   core/progress.ts        sparar stjärnor och ljudval (ENDA stället som rör lagringen: Preferences i appen, localStorage på webben)
   core/sound.ts           all ljud: effekter och musik med Web Audio (inga ljudfiler), huvudvolym, upplåsning på iOS
   core/scoring.ts         poäng → stjärnor
@@ -259,7 +259,8 @@ src/
   mechanics/invaders/     brickornas rutnät, fallande objekt, HUD (tid, inforuta, mätare)
   mechanics/hybrid/       hybridens HUD: borgenärsrutan, valknappar, hur fiender ritas
   mechanics/common/       delat: formation.ts (marscherande rutnät), startPanel.ts (Starta-rutan)
-  levels/                 en JSON-fil per nivå
+  scenes/ChapterSelect…   kapitelvalet; ChapterDoneScene är "Kapitel klart"
+  levels/kapitel-N/       ett kapitel: kapitel.json och en JSON-fil per nivå
   ui/                     knappar, text, stjärnor, paneler, märken, scroll
   debug/                  testläget (?debug=1) och skärmdumpsläget (?screenshot=1), finns bara i utvecklings-/webbtestbygget
   platform/haptics.ts     lätt vibration vid träff och misstag (Capacitor Haptics)
@@ -277,19 +278,30 @@ scripts/                  kontroller (platshållare, bygget, store-texter) och i
 ## Skärmarna
 
 - **Startskärmen** (`TitleScene`) har två knappar:
-  - **Spela**: en ny spelare utan sparade resultat går direkt till nivå 1, andra till kartan.
+  - **Spela**: en ny spelare utan sparade resultat går direkt till nivå 1, andra till kapitelvalet.
   - **Om spelet**.
 
   Den lila stjärnan roterar ett varv på 20 sekunder.
+- **Kapitelvalet** (`ChapterSelectScene`) visar ett kort per kapitel med nummer, titel, undertitel, stjärnor
+  ("26,5 / 30") och status: Klart, Pågår eller Låst. Ett tryck öppnar kapitlets karta.
+- **Kartan** (`MapScene`) visar ett kapitel i taget, med kapitlets nummer, undertitel och titel överst och en
+  bakåtknapp till kapitelvalet. Stjärnräknaren uppe till höger gäller kapitlet.
 - **Om spelet** (`AboutScene`) visar:
   - spelets text och källor;
   - länken "Integritetspolicy" (`lankar.integritet`);
   - "Nollställ framsteg" med en bekräftelsefråga;
   - versionsnumret, som hämtas från `package.json` vid bygget (`__VERSION__` i `vite.config.ts`).
-- **Säsongen klar** (`SeasonScene`, efter domslutet i nivå 10) har två knappar:
+- **Säsongen klar** (`SeasonScene`, efter domslutet i kapitlets sista nivå) visar kapitlets nivåer och stjärnor
+  och har två knappar:
   - **Dela resultat**, som delar länken `lankar.dela`;
-  - **Fortsätt**, som leder till grattisskärmen första gången hela spelet är klarat och annars till kartan.
-- **Grattis** (`CongratsScene`) visas när alla tio nivåer har minst en stjärna (halvvägsvinst räknas).
+  - **Fortsätt**, som första gången kapitlet är klarat leder till Grattis (sista kapitlet) eller Kapitel klart
+    (övriga kapitel), och annars till kapitlets karta.
+
+  Efter det sista spelbara kapitlet står "Säsong N kommer" längst ner.
+- **Kapitel klart** (`ChapterDoneScene`): kapitlets stjärna i accentfärgen, kapitlets stjärnor och knappen
+  **Till nästa kapitel**. Kan nås igen från kartan via "Du klarade kapitlet".
+- **Grattis** (`CongratsScene`) visas när det sista spelbara kapitlet är klarat (alla nivåer minst en stjärna,
+  halvvägsvinst räknas).
   - Den kan också nås från kartan via knappen "Du klarade hela spelet" under listan.
   - Stjärnan skalas upp från noll, och 36 guldkonfettibitar faller en gång.
   - "Sök jobb hos Fylgia" öppnar `lankar.sokJobb` i telefonens webbläsare.
@@ -341,6 +353,16 @@ På webben (GitHub Pages) måste sidan förstås laddas en gång; appen har allt
   - Första gången flyttas eventuella gamla framsteg över från localStorage.
 - **På webben** används localStorage som förut (nyckeln `forefallet.framsteg.v1`).
 
+Framstegen sparas per kapitel (sparformat version 3):
+
+```json
+{ "version": 3, "kapitel": { "kapitel-1": { "stjarnor": { "golfbollen": 3 }, "guld": { "de-forsvunna-korna": true }, "klartSett": true } } }
+```
+
+Äldre sparningar (version 1 och 2, från tiden före kapitlen) migreras automatiskt första gången spelet startar
+(`migrera()` i `src/core/progress.ts`): alla stjärnor och guldstjärnor flyttas till kapitlet där nivån nu ligger,
+och "grattisskärmen visad" blir `klartSett` för kapitel 1. Ljudvalet följer med.
+
 ## Prestanda
 
 Uppmätt i Chromium i alla tio nivåer:
@@ -357,15 +379,75 @@ Uppmätt i Chromium i alla tio nivåer:
 - Antalet objekt är stabilt under spel; inga läckor hittades.
 - Nivå 2, 5 och 6 ritar mest (cirka 3 ms), nivå 7, 8 och 10 minst (cirka 1 ms).
 
-## Lägga till en nivå
+## Kapitel och nivåer
 
-1. Kopiera `src/levels/niva-01.json` till `src/levels/niva-NN.json` (eller fyll på en platshållare).
-2. Ändra `id` (unikt), `nummer`, `titel`, `referens`, texterna, `objekt` och `domslut`.
-3. Klart. Kartan läser in filen automatiskt och sorterar på `nummer`.
+Nivåerna är indelade i kapitel. Varje kapitel är en egen mapp i `src/levels/`:
+
+```
+src/levels/
+  kapitel-1/              "Klassikerna", de tio första nivåerna
+    kapitel.json          kapitelfilen
+    niva-01.json … niva-10.json
+  kapitel-2/              tio platshållarnivåer ("Kommer snart") tills riktiga nivåer finns
+  _mall-*.json            mallar för nya nivåer (läses inte in)
+```
+
+`kapitel.json` ser ut så här (se `KapitelFil` i `src/core/levelTypes.ts`):
+
+```json
+{
+  "id": "kapitel-1",
+  "nummer": 1,
+  "titel": "Klassikerna",
+  "undertitel": "Tio mål i Högsta domstolen",
+  "farg": "guld",
+  "nivaer": ["golfbollen", "lopsedeln", "travstallet"]
+}
+```
+
+| Fält | Betydelse |
+|---|---|
+| `id` | unikt id. Framstegen sparas per kapitel-id, så **byt aldrig id på ett kapitel som spelare redan spelat**. |
+| `nummer` | kapitlens ordning i kapitelvalet (1, 2, 3 …) |
+| `titel`, `undertitel` | visas i kapitelvalet och överst på kartan ("Kapitel 1 · Tio mål i Högsta domstolen") |
+| `farg` | accentfärg, en av profilfärgerna: `morkgron`, `gron`, `beige`, `ljusbeige`, `guld`, `morkockra`, `lila`, `vinrod`. Används för nummercirkeln i kapitelvalet och stjärnan på "Kapitel klart". Välj en ljus färg (`guld`, `lila`, `beige`): numret skrivs i mörkgrönt. |
+| `nivaer` | nivåernas `id` i spelordning. Nivånumret (1, 2, 3 …) räknas fram härifrån. |
+
+**Upplåsning:** kapitel 1 är alltid öppet. Ett kapitel låses upp när det föregående är klarat, det vill säga alla
+dess nivåer har minst en stjärna (halvvägsvinst räknas). Inom ett kapitel låses en nivå upp när den föregående har
+minst en stjärna (`STJARNOR_FOR_NASTA` i `src/core/levels.ts`). I testläget (`?debug=1`) är allt upplåst.
+
+**Efter ett kapitel:** sista nivån leder till "Säsongen klar" för kapitlet. Därifrån leder "Fortsätt" första gången till:
+
+- **Grattis** (med länken till karriärsidan) om det är det sista kapitlet som går att spela, alltså om inget senare
+  kapitel har någon spelbar nivå. Så länge kapitel 2 bara har platshållare gäller det kapitel 1.
+- **Kapitel klart** (kortare, med knappen "Till nästa kapitel") efter övriga kapitel.
+
+Båda kan nås igen från kapitlets karta, via knappen under listan.
+
+### Lägga till ett kapitel
+
+1. Skapa mappen `src/levels/kapitel-N/` (N = nästa nummer).
+2. Lägg en `kapitel.json` där med nytt `id` (till exempel `"kapitel-3"`), `nummer`, `titel`, `undertitel`, `farg`
+   och `nivaer`.
+3. Lägg nivåfilerna i samma mapp (se nedan). Till en början räcker platshållare:
+   `{ "id": "kapitel-3-niva-01", "titel": "Kommer snart", "mekanik": "slingshot" }`.
+4. Kör `npm run kolla-platshallare`. Den kontrollerar att varje id i `nivaer` har en nivåfil och tvärtom, och
+   varnar för platshållarnivåer och text inom hakparenteser.
+5. Klart. Kapitelvalet, kartan och skärmarna läser in kapitlet automatiskt; ingen kod behöver ändras.
+
+### Lägga till en nivå i ett kapitel
+
+1. Kopiera en befintlig nivå (t.ex. `src/levels/kapitel-1/niva-01.json`) eller en mall (`src/levels/_mall-*.json`)
+   till kapitlets mapp, eller fyll på en av platshållarna där. Filnamnet spelar ingen roll, men håll ordning med
+   `niva-01.json`, `niva-02.json` …
+2. Ändra `id` (unikt i hela spelet, aldrig samma som en annan nivå), `titel`, `referens`, texterna, `objekt` och `domslut`.
+   `nummer` behövs inte; numret kommer från ordningen i `kapitel.json` (står det ett annat nummer i filen varnar spelet i konsolen).
+3. Lägg till nivåns `id` på rätt plats i `nivaer` i `kapitel.json` (om den inte redan står där som platshållare).
+4. Kör `npm run kolla-platshallare` och prova nivån i testläget (`?debug=1`).
 
 En nivå räknas som spelbar när filen har `objekt` och `domslut` och mekaniken är byggd.
-Den låses upp när föregående nivå har minst en stjärna (`STJARNOR_FOR_NASTA` i `src/core/levels.ts`).
-Filer som börjar med `_` (mallar) läses inte in.
+Byt aldrig `id` på en nivå som spelare redan spelat: stjärnorna sparas per nivå-id.
 
 ### Nivåformatet i korthet
 
@@ -373,7 +455,7 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 
 | Fält | Betydelse |
 |---|---|
-| `id`, `nummer`, `titel`, `referens` | identitet och visning på kartan |
+| `id`, `titel`, `referens` | identitet och visning på kartan (`nummer` räknas fram ur `kapitel.json`) |
 | `mekanik` | `"slingshot"`, `"invaders"` eller `"hybrid"` |
 | `fylgiaMal` | visar märket "Fylgia-mål" |
 | `etikett` | valfri text på kartan i stället för mekaniknamnet ("Boss", "Final") |
@@ -782,7 +864,9 @@ Tiden till förlust styrs av `startY`, `steg` och `faraY`. Med värdena ovan tar
 ## Platshållartext
 
 Text inom hakparenteser, till exempel `[FYLLS I AV MÅLANSVARIG]`, räknas som platshållare. Den visas i vinrött på domslutet
-och ger en varning i webbläsarens konsol när spelet startar. Kontrollen går igenom alla nivåfiler, texterna i `src/config/`, HTML-sidorna i `public/` och texterna i `store/`.
+och ger en varning i webbläsarens konsol när spelet startar. Kontrollen går igenom alla kapitelfiler och nivåfiler, texterna i `src/config/`, HTML-sidorna i `public/` och texterna i `store/`.
+Den varnar också för **platshållarnivåer** (nivåfiler utan `domslut`, till exempel kapitel 2:s "Kommer snart") och för
+kapitelfiler där `nivaer` inte stämmer med nivåfilerna i mappen.
 Enda tillåtna undantaget är `[KONTAKT-E-POST]` i `public/integritet.html`; för den skrivs bara en påminnelse ut. Kör:
 
 ```bash
@@ -790,11 +874,12 @@ npm run kolla-platshallare
 ```
 
 Kontrollen körs också automatiskt vid varje `npm run build` (även i GitHub Pages-bygget) och skriver då ut varningar.
-Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om något hittas. Använd det inför App Store.
+Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om något hittas (även platshållarnivåer). Använd det inför App Store.
 
 ## Platshållare
 
-- **Alla tio nivåer är spelbara.** En platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`) syns låst på kartan; det går att använda för nästa säsongs nivåer.
+- **Kapitel 1: alla tio nivåer är spelbara.** **Kapitel 2** har titeln `[KAPITEL 2-TITEL]` och tio platshållarnivåer
+  ("Kommer snart", bara `id`, `titel` och `mekanik`), som syns låsta på kartan. Platshållarkontrollen varnar för dem.
 - **Typsnitt**: Newsreader och Instrument Sans (OFL), lokalt i `public/fonts/`. Byts mot ABC Arizona i `public/fonts/typsnitt.css` + `src/config/theme.ts`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

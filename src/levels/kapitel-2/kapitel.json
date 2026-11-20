@@ -1,0 +1,19 @@
+{
+  "id": "kapitel-2",
+  "nummer": 2,
+  "titel": "[KAPITEL 2-TITEL]",
+  "undertitel": "Tio nya mål",
+  "farg": "lila",
+  "nivaer": [
+    "kapitel-2-niva-01",
+    "kapitel-2-niva-02",
+    "kapitel-2-niva-03",
+    "kapitel-2-niva-04",
+    "kapitel-2-niva-05",
+    "kapitel-2-niva-06",
+    "kapitel-2-niva-07",
+    "kapitel-2-niva-08",
+    "kapitel-2-niva-09",
+    "kapitel-2-niva-10"
+  ]
+}

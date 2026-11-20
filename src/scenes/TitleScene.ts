@@ -42,11 +42,11 @@ export class TitleScene extends BasScen {
     new Knapp(this, MITT_X, 758, text.titel.omSpelet, { bredd: b, hojd: 56, variant: 'konturMork' }, () => this.bytTill('Om'));
   }
 
-  /** En ny spelare (inga sparade resultat) går direkt till första nivån, andra till kartan. */
+  /** En ny spelare (inga sparade resultat) går direkt till första nivån, andra till kapitelvalet. */
   private spela(): void {
     const ny = allaNivaer.every((n) => !framsteg.arKlar(n.id));
     if (ny) this.bytTill('Level', { id: allaNivaer[0].id });
-    else this.bytTill('Map');
+    else this.bytTill('Kapitel');
   }
 
   /** Den stora stjärnan med ringar runt, som i mockupen. */

@@ -1,7 +1,9 @@
 /**
- * Avslutningsskärmen för säsongen (efter domslutet i sista nivån): stor lila stjärna, totala stjärnor,
- * alla fall med stjärnor (tryck för att spela om), dela resultatet, "Fortsätt" och "Säsong 2 kommer".
- * "Fortsätt" leder till grattisskärmen första gången hela spelet är klarat, annars till kartan.
+ * Avslutningsskärmen för ett kapitel ("Säsongen klar", efter domslutet i kapitlets sista nivå): stor lila stjärna,
+ * kapitlets stjärnor, alla dess fall med stjärnor (tryck för att spela om), dela resultatet, "Fortsätt" och,
+ * efter det sista spelbara kapitlet, "Säsong N kommer". Vilket kapitel: { kapitel: id } när scenen startas.
+ * "Fortsätt" leder första gången kapitlet är klarat till grattisskärmen (efter det sista kapitlet) eller till
+ * "Kapitel klart" (efter övriga kapitel), annars till kapitlets karta.
  */
 import Phaser from 'phaser';
 import { BasScen } from './BaseScene';
@@ -9,7 +11,17 @@ import { avstand, farg, radie } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
 import { lankar } from '../config/links';
-import { allaNivaer, arUpplast, maxTotalaStjarnor, spelKlarat } from '../core/levels';
+import {
+  aktivtKapitel,
+  arKapitelKlarat,
+  arSistaKapitlet,
+  arUpplast,
+  hamtaKapitel,
+  kapitelMaxStjarnor,
+  kapitelStjarnor,
+  sattAktivtKapitel,
+  type Kapitel,
+} from '../core/levels';
 import { framsteg } from '../core/progress';
 import { skapaText } from '../ui/text';
 import { fyllStjarna } from '../ui/shapes';
@@ -24,31 +36,37 @@ const RAD_H = 48;
 
 export class SeasonScene extends BasScen {
   private scroll?: DragScroll;
+  private kapitel!: Kapitel;
 
   constructor() {
     super('Sasong');
   }
 
-  create(): void {
+  create(data?: { kapitel?: string }): void {
+    this.kapitel = hamtaKapitel(data?.kapitel ?? '') ?? aktivtKapitel();
+    sattAktivtKapitel(this.kapitel);
     this.forberedKamera('morkgron');
-    ikonKnapp(this, 46, 48, 'konturMork', ritaTillbaka, () => this.bytTill('Map'));
+    ikonKnapp(this, 46, 48, 'konturMork', ritaTillbaka, () => this.bytTill('Map', { kapitel: this.kapitel.id }));
 
     const g = this.add.graphics();
     fyllStjarna(g, MITT_X, 170, 150, farg.lila);
-    skapaText(this, MITT_X, 290, text.sasong.rubrik, 'jatte', 'ljusbeige', { origo: [0.5, 0.5], storlek: 46 });
-    const total = `${formatera(framsteg.totalaStjarnor())} / ${maxTotalaStjarnor()}`;
+    skapaText(this, MITT_X, 290, text.sasong.rubrik(this.kapitel.nummer), 'jatte', 'ljusbeige', { origo: [0.5, 0.5], storlek: 46 });
+    const total = `${formatera(kapitelStjarnor(this.kapitel))} / ${kapitelMaxStjarnor(this.kapitel)}`;
     skapaText(this, MITT_X, 340, total, 'rubrik', 'guld', { origo: [0.5, 0.5], storlek: 28 });
 
     let y = this.ritaLista(380);
     y = this.ritaDela(y + avstand.l);
     y = this.ritaFortsatt(y + avstand.m);
-    skapaText(this, MITT_X, y + 40, text.sasong.nasta, 'overrubrik', 'beige', { origo: [0.5, 0.5], storlek: 13 });
+    if (arSistaKapitlet(this.kapitel)) {
+      skapaText(this, MITT_X, y + 40, text.sasong.nasta(this.kapitel.nummer + 1), 'overrubrik', 'beige', { origo: [0.5, 0.5], storlek: 13 });
+    }
     this.scroll = new DragScroll(this, y + 80);
   }
 
   /** En rad per nivå: nummer, titel och stjärnor. Upplåsta nivåer går att spela om. */
   private ritaLista(y0: number): number {
-    allaNivaer.forEach((niva, i) => {
+    const nivaer = this.kapitel.nivaLista;
+    nivaer.forEach((niva, i) => {
       const y = y0 + i * (RAD_H + 6);
       const rad = this.add.container(X0, y);
       // Upplåsta rader är gröna kort; låsta bara en kontur (i stället för genomskinliga, som gav för låg kontrast).
@@ -71,7 +89,7 @@ export class SeasonScene extends BasScen {
         if (!this.scroll?.arDrag()) this.bytTill('Level', { id: niva.id });
       });
     });
-    return y0 + allaNivaer.length * (RAD_H + 6) - 6;
+    return y0 + nivaer.length * (RAD_H + 6) - 6;
   }
 
   /** "Dela resultat": telefonens delningsfunktion, annars kopiera till urklipp. Visas bara om dela-länken finns. */
@@ -85,7 +103,7 @@ export class SeasonScene extends BasScen {
   }
 
   private async dela(y: number): Promise<void> {
-    const delaText = text.sasong.delaText(formatera(framsteg.totalaStjarnor()), maxTotalaStjarnor());
+    const delaText = text.sasong.delaText(formatera(kapitelStjarnor(this.kapitel)), kapitelMaxStjarnor(this.kapitel));
     const nav = navigator as Navigator & { share?: (d: { text?: string; url?: string }) => Promise<void> };
     try {
       if (nav.share) {
@@ -100,12 +118,14 @@ export class SeasonScene extends BasScen {
     }
   }
 
-  /** "Fortsätt": grattisskärmen första gången hela spelet är klarat, annars kartan. */
+  /** "Fortsätt": grattis/"Kapitel klart" första gången kapitlet är klarat, annars kapitlets karta. */
   private ritaFortsatt(y: number): number {
     const h = 56;
-    new Knapp(this, MITT_X, y + h / 2, text.sasong.fortsatt, { bredd: INNER_B, hojd: h, variant: 'konturMork', kanTryckas: () => !this.scroll?.arDrag() }, () =>
-      this.bytTill(spelKlarat() && !framsteg.harSettGrattis() ? 'Grattis' : 'Map'),
-    );
+    const k = this.kapitel;
+    new Knapp(this, MITT_X, y + h / 2, text.sasong.fortsatt, { bredd: INNER_B, hojd: h, variant: 'konturMork', kanTryckas: () => !this.scroll?.arDrag() }, () => {
+      if (arKapitelKlarat(k) && !framsteg.harSettKapitelKlart(k.id)) this.bytTill(arSistaKapitlet(k) ? 'Grattis' : 'KapitelKlart', { kapitel: k.id });
+      else this.bytTill('Map', { kapitel: k.id });
+    });
     return y + h;
   }
 }

@@ -1,18 +1,36 @@
 /**
- * Nivåformatet. Varje fil i src/levels/ följer antingen NivaPlatshallare (låst nivå som bara syns på kartan)
- * eller Niva (fullständig, spelbar nivå). En ny nivå ska aldrig kräva ny kod – bara en ny fil.
+ * Nivåformatet. Nivåerna ligger i kapitelmappar, src/levels/kapitel-N/, med en kapitelfil (kapitel.json,
+ * se KapitelFil) och en fil per nivå. Varje nivåfil följer antingen NivaPlatshallare (låst nivå som bara syns
+ * på kartan) eller Niva (fullständig, spelbar nivå). En ny nivå ska aldrig kräva ny kod – bara en ny fil.
  */
 import type { FargNamn } from '../config/theme';
 
 export type MekanikTyp = 'slingshot' | 'invaders' | 'hybrid';
 export type Resultat = 'vinst' | 'halvvagsvinst';
 
-/** Minsta möjliga nivåfil: räcker för att synas (låst) på kartan. */
+/** Kapitelfilen, src/levels/kapitel-N/kapitel.json. */
+export interface KapitelFil {
+  /** Unikt id, t.ex. "kapitel-1". Framstegen sparas per kapitel-id – byt det aldrig när spelet är ute. */
+  id: string;
+  /** Kapitlens ordning (1, 2, 3 …). */
+  nummer: number;
+  titel: string;
+  undertitel: string;
+  /** Kapitlets accentfärg, en av profilfärgerna (t.ex. "guld" eller "lila"). */
+  farg: FargNamn;
+  /** Nivåernas id i spelordning. Varje nivåfil i mappen ska finnas med här. */
+  nivaer: string[];
+}
+
+/**
+ * Minsta möjliga nivåfil: räcker för att synas (låst) på kartan. Bara id, titel och mekanik krävs.
+ * Nivånumret räknas fram ur ordningen i kapitelfilen (ett "nummer" i filen används bara för kontroll).
+ */
 export interface NivaPlatshallare {
   id: string;
   nummer: number;
   titel: string;
-  referens: string;
+  referens?: string;
   mekanik: MekanikTyp;
   fylgiaMal?: boolean;
   /** Valfri etikett på kartan i stället för mekanikens namn, t.ex. "Boss" eller "Final". Låsta nivåer visar den till höger. */
@@ -21,6 +39,7 @@ export interface NivaPlatshallare {
 
 /** En fullständig, spelbar nivå. */
 export interface Niva extends NivaPlatshallare {
+  referens: string;
   fylgiaMal: boolean;
   uppdragstext: string;
   fylgiaTips: string;

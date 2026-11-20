@@ -8,7 +8,7 @@ import { BasScen } from './BaseScene';
 import { avstand, farg, radie, type FargNamn } from '../config/theme';
 import { BREDD, HOJD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
-import { arGodkand, arSpelbar, arUpplast, hamtaNiva, nastaNiva } from '../core/levels';
+import { arGodkand, arSpelbar, arUpplast, hamtaNiva, kapitelFor, nastaNiva } from '../core/levels';
 import { spela } from '../core/sound';
 import type { Niva } from '../core/levelTypes';
 import { skapaText } from '../ui/text';
@@ -220,8 +220,8 @@ export class VerdictScene extends BasScen {
     new Knapp(this, MITT_X, ny, etikett, { bredd: INNER_B, hojd: 56, variant: 'mork', kanTryckas: tryck }, () => {
       if (behoverStjarna) this.bytTill('Level', { id: niva.id });
       else if (nasta && arUpplast(nasta)) this.bytTill('Level', { id: nasta.id });
-      else if (!nasta) this.bytTill('Sasong');
-      else this.bytTill('Map');
+      else if (!nasta) this.bytTill('Sasong', { kapitel: kapitelFor(niva.id)?.id });
+      else this.bytTill('Map', { kapitel: kapitelFor(niva.id)?.id });
     });
     return ny + 29;
   }

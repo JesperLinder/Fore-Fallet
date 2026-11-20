@@ -1,5 +1,6 @@
 /**
- * Alla gemensamma texter i spelet. Nivåspecifik text ligger i nivåfilerna (src/levels/*.json).
+ * Alla gemensamma texter i spelet. Nivåspecifik text ligger i nivåfilerna (src/levels/kapitel-N/*.json)
+ * och kapitlens titlar i kapitelfilerna (src/levels/kapitel-N/kapitel.json).
  * Scenerna hämtar text härifrån – ingen svensk text hårdkodas i scenkoden.
  */
 export const text = {
@@ -38,9 +39,27 @@ export const text = {
     kartknapp: 'Du klarade hela spelet',
   },
 
+  /** Kapitelvalet, mellan startskärmen och kartan. */
+  kapitel: {
+    overrubrik: 'Före fallet',
+    rubrik: 'Välj kapitel',
+    nummer: (nr: number) => `Kapitel ${nr}`,
+    status: { klart: 'Klart', pagar: 'Pågår', last: 'Låst' },
+  },
+
+  /** Den kortare skärmen efter ett kapitel som inte är det sista. */
+  kapitelKlart: {
+    rubrik: 'Kapitel klart',
+    stjarnor: (antal: string, max: number) => `${antal} / ${max} stjärnor`,
+    nasta: (nr: number, titel: string) => `Nu väntar kapitel ${nr}: ${titel}`,
+    tillNasta: 'Till nästa kapitel',
+    /** Den lilla knappen på kartan när kapitlet är klarat. */
+    kartknapp: 'Du klarade kapitlet',
+  },
+
   karta: {
-    overrubrik: 'Säsong 1 · tio mål i Högsta domstolen',
-    rubrik: 'Rättsfallskartan',
+    /** Överst på kartan: "Kapitel 1 · Tio mål i Högsta domstolen", och under den kapitlets titel. */
+    overrubrik: (nr: number, undertitel: string) => `Kapitel ${nr} · ${undertitel}`,
     spela: 'Spela',
     fylgiaMal: 'Fylgia-mål',
     info: 'Fylgia-målen spelas som de gick i verkligheten. Ibland vinner man allt, ibland halva. Så ser advokatlivet ut.',
@@ -112,15 +131,16 @@ export const text = {
     },
   },
 
-  /** Avslutningsskärmen efter sista nivån. */
+  /** Avslutningsskärmen efter ett kapitels sista nivå ("Säsongen klar"). */
   sasong: {
-    rubrik: 'Säsong 1 klar',
+    rubrik: (nr: number) => `Säsong ${nr} klar`,
     delaKnapp: 'Dela resultat',
     kopierat: 'Kopierat!',
     delaText: (stjarnor: string, max: number) =>
       `Jag klarade Före fallet med ${stjarnor} av ${max} stjärnor. Klarar du dig bättre i Högsta domstolen?`,
     fortsatt: 'Fortsätt',
-    nasta: 'Säsong 2 kommer',
+    /** Visas efter det sista spelbara kapitlet. */
+    nasta: (nr: number) => `Säsong ${nr} kommer`,
   },
 
   /** Formaterar kronor med svenskt tusentalsavstånd: 25000 -> "25 000 kr". */

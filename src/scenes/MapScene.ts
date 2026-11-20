@@ -1,13 +1,24 @@
 /**
- * Rättsfallskartan: listan med alla nivåer. Läser nivåerna från src/levels/ och visar
- * avklarade (med stjärnor), nästa spelbara (mörkt kort) och låsta (streckade) nivåer.
+ * Rättsfallskartan: ett kapitel i taget. Överst kapitlets nummer, undertitel och titel och en bakåtknapp till
+ * kapitelvalet; sedan kapitlets nivåer: avklarade (med stjärnor), nästa spelbara (mörkt kort) och låsta (streckade).
+ * Vilket kapitel: { kapitel: id } när scenen startas, annars det som senast visades.
  */
 import Phaser from 'phaser';
 import { BasScen } from './BaseScene';
 import { avstand, farg, radie } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
-import { allaNivaer, arUpplast, maxTotalaStjarnor, spelKlarat } from '../core/levels';
+import {
+  aktivtKapitel,
+  arKapitelKlarat,
+  arSistaKapitlet,
+  arUpplast,
+  hamtaKapitel,
+  kapitelMaxStjarnor,
+  kapitelStjarnor,
+  sattAktivtKapitel,
+  type Kapitel,
+} from '../core/levels';
 import type { Niva, NivaPlatshallare } from '../core/levelTypes';
 import { framsteg } from '../core/progress';
 import { skapaText } from '../ui/text';
@@ -29,36 +40,44 @@ const KORT_B = BREDD - avstand.sida * 2;
 
 type KortLage = 'klar' | 'nasta' | 'last';
 
+export interface KartData {
+  kapitel?: string;
+}
+
 export class MapScene extends BasScen {
   private scroll!: DragScroll;
+  private kapitel!: Kapitel;
 
   constructor() {
     super('Map');
   }
 
-  create(): void {
+  create(data?: KartData): void {
+    this.kapitel = hamtaKapitel(data?.kapitel ?? '') ?? aktivtKapitel();
+    sattAktivtKapitel(this.kapitel);
     this.forberedKamera('beige');
     this.ritaSidhuvud();
 
     let y = LISTA_Y;
-    allaNivaer.forEach((niva) => {
+    this.kapitel.nivaLista.forEach((niva) => {
       this.ritaKort(niva, y);
       y += KORT_H + KORT_MELLANRUM;
     });
     y = this.ritaInforuta(y + 40);
-    if (spelKlarat()) y = this.ritaGrattisknapp(y + avstand.m);
+    if (arKapitelKlarat(this.kapitel)) y = this.ritaGrattisknapp(y + avstand.m);
     if (testlage) y = testknapparKarta(this, y + avstand.l, () => this.scene.restart());
 
     this.scroll = new DragScroll(this, y + avstand.xxl);
   }
 
   private ritaSidhuvud(): void {
-    ikonKnapp(this, 46, 48, 'konturLjus', ritaTillbaka, () => this.bytTill('Title'));
+    ikonKnapp(this, 46, 48, 'konturLjus', ritaTillbaka, () => this.bytTill('Kapitel'));
     this.ritaLjudknapp();
     logotyp(this, MITT_X, 48, 24, 'morkgron');
 
-    // Stjärnräknare uppe till höger.
-    const raknare = skapaText(this, 0, 0, `${formateraStjarnor(framsteg.totalaStjarnor())} / ${maxTotalaStjarnor()}`, 'knapp', 'ljusbeige', {
+    // Stjärnräknare uppe till höger (kapitlets stjärnor).
+    const k = this.kapitel;
+    const raknare = skapaText(this, 0, 0, `${formateraStjarnor(kapitelStjarnor(k))} / ${kapitelMaxStjarnor(k)}`, 'knapp', 'ljusbeige', {
       origo: [0, 0.5],
       storlek: 15,
     });
@@ -68,8 +87,8 @@ export class MapScene extends BasScen {
     fyllStjarna(g, x + 20, 48, 14, farg.lila);
     raknare.setPosition(x + 32, 48).setDepth(1);
 
-    skapaText(this, KORT_X, 96, text.karta.overrubrik, 'overrubrik', 'morkockra');
-    skapaText(this, KORT_X - 2, 112, text.karta.rubrik, 'titel', 'morkgron');
+    skapaText(this, KORT_X, 96, text.karta.overrubrik(k.nummer, k.undertitel), 'overrubrik', 'morkockra');
+    skapaText(this, KORT_X - 2, 112, k.titel, 'titel', 'morkgron');
   }
 
   /** Ljud av/på. Valet sparas och gäller i hela spelet. */
@@ -106,7 +125,7 @@ export class MapScene extends BasScen {
     const textFarg = lage === 'nasta' ? 'ljusbeige' : 'morkgron';
     const titel = skapaText(this, 72, 22, niva.titel, 'rubrik', textFarg, { origo: [0, 0.5], storlek: 19 });
     const typ = niva.etikett ?? text.mekanikNamn[niva.mekanik] ?? niva.mekanik;
-    const referens = skapaText(this, 72, 46, `${niva.referens} · ${typ}`, 'liten', textFarg, { origo: [0, 0.5] });
+    const referens = skapaText(this, 72, 46, niva.referens ? `${niva.referens} · ${typ}` : typ, 'liten', textFarg, { origo: [0, 0.5] });
     kort.add([titel, referens]);
     // Stjärnorna/"Spela" står mitt i höjdled, eller på titelraden om märket fått flytta ner.
     let hogerY = KORT_H / 2;
@@ -158,11 +177,15 @@ export class MapScene extends BasScen {
     });
   }
 
-  /** Liten knapp till grattisskärmen, när hela spelet är klarat. */
+  /**
+   * Liten knapp när kapitlet är klarat: till grattisskärmen efter det sista kapitlet, annars till "Kapitel klart".
+   */
   private ritaGrattisknapp(y: number): number {
     const h = 44;
-    const k = new Knapp(this, MITT_X, y + h / 2, text.grattis.kartknapp, { bredd: KORT_B, hojd: h, variant: 'konturLjus', kanTryckas: () => !this.scroll.arDrag() }, () =>
-      this.bytTill('Grattis'),
+    const sista = arSistaKapitlet(this.kapitel);
+    const etikett = sista ? text.grattis.kartknapp : text.kapitelKlart.kartknapp;
+    const k = new Knapp(this, MITT_X, y + h / 2, etikett, { bredd: KORT_B, hojd: h, variant: 'konturLjus', kanTryckas: () => !this.scroll.arDrag() }, () =>
+      this.bytTill(sista ? 'Grattis' : 'KapitelKlart', { kapitel: this.kapitel.id }),
     );
     const g = this.add.graphics();
     fyllStjarna(g, 0, 0, 16, farg.lila);

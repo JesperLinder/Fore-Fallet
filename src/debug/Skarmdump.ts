@@ -1,7 +1,7 @@
 /**
  * Skärmdumpsläget (?screenshot=1, bara i utvecklings-/testbygget, se flaggor.ts).
  * - Inga testknappar.
- * - Påhittade framsteg som bara finns i minnet: alla tio nivåer klarade, så kartan och säsongsskärmen ser
+ * - Påhittade framsteg som bara finns i minnet: alla tio nivåer i kapitel 1 klarade, så kartan och säsongsskärmen ser
  *   färdigspelade ut och nivåernas förklaringar i steg hoppas över. De riktiga sparade framstegen rörs inte.
  * - Med &niva=1, 2, 5, 8 eller 10 startar nivån direkt, spelas en kort stund av sig själv och fryses i ett
  *   snyggt läge (efter några sekunder). Inget extra syns på skärmen; i konsolen står "SKÄRMDUMPSLÄGE: fryst"
@@ -19,25 +19,33 @@ const NIVAER: Record<string, string> = {
   '10': 'fastighetsforum',
 };
 
-/** Framstegen i skärmdumpsläget: alla nivåer klarade, de flesta med tre stjärnor. */
-export function skarmdumpFramsteg(): { stjarnor: Record<string, number>; guld: Record<string, true>; ljud: boolean; grattisSett: boolean; version: number } {
+/** Framstegen i skärmdumpsläget: alla nivåer i kapitel 1 klarade, de flesta med tre stjärnor. */
+export function skarmdumpFramsteg(): {
+  version: number;
+  ljud: boolean;
+  kapitel: Record<string, { stjarnor: Record<string, number>; guld: Record<string, true>; klartSett: boolean }>;
+} {
   return {
-    stjarnor: {
-      golfbollen: 3,
-      lopsedeln: 3,
-      travstallet: 2,
-      'begagnade-bilen': 3,
-      'de-forsvunna-korna': 3,
-      kolsyretuberna: 2,
-      elrakningen: 3,
-      flytdockan: 3,
-      dubbelstraffet: 3,
-      fastighetsforum: 3,
-    },
-    guld: { golfbollen: true, elrakningen: true },
+    version: 3,
     ljud: false,
-    grattisSett: true,
-    version: 2,
+    kapitel: {
+      'kapitel-1': {
+        stjarnor: {
+          golfbollen: 3,
+          lopsedeln: 3,
+          travstallet: 2,
+          'begagnade-bilen': 3,
+          'de-forsvunna-korna': 3,
+          kolsyretuberna: 2,
+          elrakningen: 3,
+          flytdockan: 3,
+          dubbelstraffet: 3,
+          fastighetsforum: 3,
+        },
+        guld: { golfbollen: true, elrakningen: true },
+        klartSett: true,
+      },
+    },
   };
 }
 
