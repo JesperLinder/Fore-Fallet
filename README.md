@@ -70,8 +70,8 @@ src/
   config/display.ts       logisk upplösning och pixeltäthet
   core/levelTypes.ts      nivåformatet (TypeScript-typer, dokumenterade)
   core/levels.ts          läser in src/levels/*.json, upplåsning
-  core/progress.ts        sparar stjärnor och ljudval (ENDA stället som rör localStorage)
-  core/sound.ts           ljudeffekter med Web Audio (inga ljudfiler)
+  core/progress.ts        sparar stjärnor och ljudval (ENDA stället som rör lagringen: Preferences i appen, localStorage på webben)
+  core/sound.ts           all ljud: effekter och musik med Web Audio (inga ljudfiler), huvudvolym, upplåsning på iOS
   core/scoring.ts         poäng → stjärnor
   scenes/                 Boot, Title, Map, Level, Verdict (+ BaseScene)
   mechanics/              Slingshot.ts, Invaders.ts, Hybrid.ts, registry.ts, art.ts (figurer)
@@ -84,6 +84,7 @@ src/
   debug/                  testläget (?debug=1), finns bara i utvecklings-/webbtestbygget
   platform/haptics.ts     lätt vibration vid träff och misstag (Capacitor Haptics)
   platform/openLink.ts    öppnar externa länkar (Capacitor Browser i appen, ny flik på webben)
+public/fonts/             typsnitten (woff2) med licenser (OFL-*.txt) och typsnitt.css
 public/assets/            Fylgias logotyp och symbol (SVG ur varumärkesmanualen)
 public/icon.svg           appikon/favicon, icon-1024.png är samma i 1024×1024 för iOS
 ```
@@ -103,6 +104,52 @@ public/icon.svg           appikon/favicon, icon-1024.png är samma i 1024×1024 
 - **Haptik**: lätt vibration vid träff och misstag (`src/platform/haptics.ts`, Capacitor Haptics). Ljudknappen styr
   båda: ljud av betyder också vibration av. På webben används `navigator.vibrate` där det finns, annars händer inget.
 - **Scenbyten** tonar ut och in (`bytTill` i `BaseScene`), även "Börja om".
+
+## Ljud
+
+Allt ljud finns i `src/core/sound.ts`, som skapar effekterna och musiken med Web Audio. Det finns inga ljudfiler.
+
+- **Huvudvolym**: `HUVUDVOLYM` (0,8). Efter den sitter en mjuk begränsare, så att många ljud samtidigt inte spräcks.
+- **Utjämning**: `UTJAMNING` har en faktor per ljud. Alla effekter ligger inom ±1 dB från samma mål.
+  - Skottet ligger 3 dB lägre med flit, eftersom det hörs ofta.
+  - Musiken ligger cirka 5 dB under effekterna.
+  - Mätt som medelvärdet av K-vägd ljudstyrka (ITU BS.1770) och samma mätning med högpass 180 Hz, som en telefonhögtalare.
+  - Måttet är det starkaste 100 ms-fönstret. Mät om ett nytt ljud med `renderaLjud` i en OfflineAudioContext.
+- **iOS** spelar bara ljud som startats i ett tryck. `main.ts` låser upp ljudet vid första tryck, direkt i
+  webbläsarens händelse, så att det fungerar redan från startskärmens "Spela".
+- **Bakgrunden**: när appen går i bakgrunden tystnas ljudet. Det startar igen vid nästa tryck.
+- **Ljud av** på kartan stänger av både ljud och vibration.
+
+## Offline
+
+Spelet fungerar helt utan internet: typsnitten ligger i `public/fonts/` och allt annat finns i bygget.
+De enda externa adresserna är länkarna som spelaren själv trycker på (domstolsavgörandena och karriärsidan).
+På webben (GitHub Pages) måste sidan förstås laddas en gång; appen har allt inbyggt.
+
+## Lagring av framsteg
+
+`src/core/progress.ts` är den enda modulen som läser och skriver framstegen:
+
+- **I appen** används Capacitor Preferences, eftersom iOS kan rensa localStorage i en webbvy.
+  - Datan läses in när spelet startar och sparas vid varje ändring.
+  - Första gången flyttas eventuella gamla framsteg över från localStorage.
+- **På webben** används localStorage som förut (nyckeln `forefallet.framsteg.v1`).
+
+## Prestanda
+
+Uppmätt i Chromium i alla tio nivåer:
+
+| Mätning | Resultat |
+|---|---|
+| Logik och fysik per bildruta | under 2 ms |
+| Ritning per bildruta (JavaScript-delen) | 1–3 ms |
+| Med processorn strypt 4 gånger ("äldre telefon") | cirka 4–13 ms, inom 16,7 ms för 60 bilder/s |
+| Fysikkroppar | högst 9 (nivå 10) |
+
+- Inga nivåer har partikeleffekter.
+- Skott, fallande objekt, block och kastade föremål tas bort när de lämnar skärmen eller är klara.
+- Antalet objekt är stabilt under spel; inga läckor hittades.
+- Nivå 2, 5 och 6 ritar mest (cirka 3 ms), nivå 7, 8 och 10 minst (cirka 1 ms).
 
 ## Lägga till en nivå
 
@@ -541,7 +588,7 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 ## Platshållare
 
 - **Alla tio nivåer är spelbara.** En platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`) syns låst på kartan; det går att använda för nästa säsongs nivåer.
-- **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
+- **Typsnitt**: Newsreader och Instrument Sans (OFL), lokalt i `public/fonts/`. Byts mot ABC Arizona i `public/fonts/typsnitt.css` + `src/config/theme.ts`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.
 - **Domslutstexterna** `domslut.text` och `utfall` för nivå 1 har jag skrivit själv. De bör granskas.

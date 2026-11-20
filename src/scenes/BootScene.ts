@@ -20,7 +20,7 @@ export class BootScene extends Phaser.Scene {
     try {
       await Promise.race([laddning, timeout]);
     } catch {
-      // Utan nätverk används reservtypsnitten. Spelet fungerar ändå.
+      // Typsnitten ligger lokalt; skulle de ändå inte laddas används reservtypsnitten. Spelet fungerar ändå.
     }
     this.scene.start('Title');
   }

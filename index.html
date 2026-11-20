@@ -9,13 +9,9 @@
     <title>Före fallet</title>
     <link rel="icon" type="image/svg+xml" href="./icon.svg" />
     <link rel="apple-touch-icon" href="./icon-1024.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Typsnitt: byts mot ABC Arizona senare. Ändra då även src/config/theme.ts. -->
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap"
-    />
+    <!-- Typsnitten ligger lokalt (public/fonts/), så att spelet fungerar utan internet. Byts mot ABC Arizona senare:
+         ändra då public/fonts/typsnitt.css och src/config/theme.ts. -->
+    <link rel="stylesheet" href="./fonts/typsnitt.css" />
     <style>
       html, body { margin: 0; height: 100%; background: #0F2827; overflow: hidden; }
       body { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }

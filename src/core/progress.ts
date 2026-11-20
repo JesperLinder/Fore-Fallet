@@ -1,9 +1,17 @@
 /**
  * Spelarens framsteg (bästa antal stjärnor per nivå, tagna guldstjärnor) och inställningar (ljud av/på).
- * Det här är den ENDA modulen som rör lagringen. Vill vi byta localStorage mot t.ex.
- * Capacitor Preferences eller en server räcker det att ändra lasData/skrivData här.
+ * Det här är den ENDA modulen som rör lagringen:
+ * - i iOS-appen: Capacitor Preferences (iOS kan rensa localStorage i en webbvy)
+ * - på webben: localStorage, som tidigare
+ * På webben läses och skrivs localStorage direkt, precis som förut. I appen läses Preferences in en gång när
+ * modulen laddas (top-level await) och hålls sedan i minnet; varje ändring skrivs direkt till Preferences.
+ * Resten av spelet ser bara de synkrona funktionerna i `framsteg`.
  */
+import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
+
 const NYCKEL = 'forefallet.framsteg.v1';
+const APP = Capacitor.isNativePlatform();
 
 interface Framsteg {
   stjarnor: Record<string, number>;
@@ -15,19 +23,58 @@ interface Framsteg {
   version?: number;
 }
 
-function lasData(): Framsteg {
+function tolka(radata: string | null | undefined): Framsteg | null {
   try {
-    const radata = window.localStorage.getItem(NYCKEL);
     const data = radata ? (JSON.parse(radata) as Framsteg) : null;
-    return data && typeof data.stjarnor === 'object' ? data : { stjarnor: {} };
+    return data && typeof data.stjarnor === 'object' && data.stjarnor ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function lasLokalt(): string | null {
+  try {
+    return window.localStorage.getItem(NYCKEL);
+  } catch {
+    return null;
+  }
+}
+
+async function laddaFranPreferences(): Promise<Framsteg> {
+  try {
+    const { value } = await Preferences.get({ key: NYCKEL });
+    const sparat = tolka(value);
+    if (sparat) return sparat;
+    // Första starten med Preferences: flytta över det som eventuellt finns i webbvyns localStorage.
+    const gammalt = tolka(lasLokalt());
+    if (gammalt) void Preferences.set({ key: NYCKEL, value: JSON.stringify(gammalt) });
+    return gammalt ?? { stjarnor: {} };
   } catch {
     return { stjarnor: {} };
   }
 }
 
+/** Appens data i minnet (används inte på webben). */
+const cache: Framsteg = APP ? await laddaFranPreferences() : { stjarnor: {} };
+/** Skrivningar till Preferences i tur och ordning, så att den senaste alltid vinner. */
+let koa: Promise<unknown> = Promise.resolve();
+
+function lasData(): Framsteg {
+  return APP ? cache : (tolka(lasLokalt()) ?? { stjarnor: {} });
+}
+
 function skrivData(data: Framsteg): void {
+  const json = JSON.stringify(data);
+  if (APP) {
+    if (data !== cache) {
+      for (const k of Object.keys(cache) as (keyof Framsteg)[]) delete cache[k];
+      Object.assign(cache, data);
+    }
+    koa = koa.then(() => Preferences.set({ key: NYCKEL, value: json })).catch(() => {});
+    return;
+  }
   try {
-    window.localStorage.setItem(NYCKEL, JSON.stringify(data));
+    window.localStorage.setItem(NYCKEL, json);
   } catch {
     // Privat läge eller full lagring – spelet fungerar ändå, framstegen sparas bara inte.
   }

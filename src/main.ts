@@ -8,6 +8,7 @@ import { MapScene } from './scenes/MapScene';
 import { LevelScene } from './scenes/LevelScene';
 import { VerdictScene } from './scenes/VerdictScene';
 import { SeasonScene } from './scenes/SeasonScene';
+import { laasUppLjud, ljudTillstand, pausaLjud } from './core/sound';
 
 const spel = new Phaser.Game({
   type: Phaser.AUTO,
@@ -27,5 +28,15 @@ const spel = new Phaser.Game({
   scene: [BootScene, TitleScene, MapScene, LevelScene, VerdictScene, SeasonScene],
 });
 
+// iOS släpper bara fram ljud som startas inne i ett tryck. Lås upp vid första (och varje) tryck – direkt i
+// webbläsarens händelse, före Phaser – så att ljudet fungerar redan från startskärmens "Spela".
+for (const typ of ['touchend', 'pointerup', 'click', 'keydown']) {
+  document.addEventListener(typ, laasUppLjud, { capture: true, passive: true });
+}
+// Appen i bakgrunden: tysta ljudet. Det startar igen vid nästa tryck (t.ex. "Fortsätt" i pausmenyn).
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) pausaLjud(true);
+});
+
 // I utvecklingsläge: gör spelet nåbart från konsolen för felsökning.
-if (import.meta.env.DEV) (window as unknown as { spel: Phaser.Game }).spel = spel;
+if (import.meta.env.DEV) Object.assign(window, { spel, ljudTillstand });
