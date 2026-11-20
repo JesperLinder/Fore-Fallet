@@ -1,6 +1,6 @@
 /**
  * Invaders-nivåns HUD: nedräkningen i sidhuvudet, inforutan under rubriken
- * och mätaren (t.ex. "Förtalsrisk" i fyra steg längst ner, eller räknaren "Intrång: 0" uppe till höger).
+ * och mätaren (t.ex. "Förtalsrisk" i fyra steg längst ner, eller räknaren INTRÅNG uppe till höger).
  * tema: "ljus" ger mörk text och ljusbeige inforuta på ljus bakgrund.
  */
 import Phaser from 'phaser';
@@ -185,20 +185,14 @@ function byggProcent(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
   };
 }
 
-/** Räknare uppe till höger, t.ex. "Intrång: 0", med siffran i vinrött. Visar antal steg (misstag). */
+/** Räknare uppe till höger: namnet ("INTRÅNG") över en stor vinröd siffra. Visar antal steg (misstag). */
 function byggAntal(scene: Phaser.Scene, m: InvadersInstallningar['matare'], tema: 'ljus' | 'mork') {
-  const y = 57;
-  const varde = skapaText(scene, TID_HOGER, y, '0', 'titel', 'vinrod', { origo: [1, 0.5], storlek: 26 }).setDepth(30);
-  const etikett = skapaText(scene, 0, y + 1, `${m.namn}:`, 'rubrik', tema === 'ljus' ? 'morkgron' : 'ljusbeige', { origo: [1, 0.5], storlek: 18 }).setDepth(30);
-  const placera = () => etikett.setX(varde.x - varde.width - 6);
-  placera();
+  skapaText(scene, TID_HOGER, 40, m.namn, 'overrubrik', tema === 'ljus' ? 'morkgron' : 'ljusbeige', { origo: [1, 0], storlek: 10 }).setDepth(30);
+  const varde = skapaText(scene, TID_HOGER, 52, '0', 'titel', 'vinrod', { origo: [1, 0], storlek: 28 }).setDepth(30);
   return {
-    visaMatare: (steg: number) => {
-      varde.setText(String(steg));
-      placera();
-    },
+    visaMatare: (steg: number) => varde.setText(String(steg)),
     markeraMatare: () => {
-      scene.tweens.add({ targets: varde, scale: 1.35, duration: 120, yoyo: true });
+      scene.tweens.add({ targets: varde, scale: 1.3, duration: 120, yoyo: true });
     },
   };
 }

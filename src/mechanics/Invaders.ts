@@ -24,6 +24,7 @@ import { Dekorhandelser } from './invaders/decor';
 import { skapaText } from '../ui/text';
 import { streckadLinje } from '../ui/shapes';
 import { visaStart } from './common/startPanel';
+import { spelTips } from '../ui/TipPanel';
 
 const SKOTT_B = 5;
 const SKOTT_H = 14;
@@ -105,7 +106,13 @@ export class Invaders implements Mekanik {
 
     this.hud.visaTid(this.tidKvar);
     this.hud.visaMatare(0);
-    visaStart(this.scene, this.kontext.tips, () => (this.startad = true));
+    visaStart(this.scene, this.kontext.tips, () => {
+      this.startad = true;
+      if (this.inst.tipsUnderSpel) {
+        const t = spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'ljus').setAlpha(0);
+        this.scene.tweens.add({ targets: t, alpha: 1, duration: 300 });
+      }
+    });
 
     this.scene.input.on('pointerdown', this.ner, this);
     this.scene.input.on('pointermove', this.flytta, this);
@@ -335,7 +342,7 @@ export class Invaders implements Mekanik {
   /**
    * Brickor som nått spelaren släpps igenom enligt typens onPass (onPassDold om brickan fortfarande är dold).
    * Typer utan onPass stannar kvar. Passerar flera samtidigt visas varje text en gång, staplade under spelaren.
-   * Bubblans färg: vinröd vid misstag (mätaren), mörkgrön vid poängavdrag, annars guld.
+   * Bubblans färg: vinröd vid misstag (mätaren), mörkgrön vid poängavdrag eller räknad passage, annars guld.
    */
   private slappIgenom(): void {
     const sp = this.inst.spelare;
@@ -353,7 +360,7 @@ export class Invaders implements Mekanik {
       this.rakna(regel.raknas);
       if (regel.matare) this.registreraMisstag(regel.matare);
       if (!regel.text) continue;
-      const slag = regel.matare ? 'misstag' : (regel.poang ?? 0) < 0 ? 'avdrag' : 'bra';
+      const slag = regel.matare ? 'misstag' : (regel.poang ?? 0) < 0 || regel.raknas ? 'avdrag' : 'bra';
       const tidigare = texter.get(regel.text);
       if (!tidigare || vikt[slag] > vikt[tidigare]) texter.set(regel.text, slag);
     }

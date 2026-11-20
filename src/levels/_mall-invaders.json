@@ -88,14 +88,13 @@
           "figur": "tub-egen",
           "skaBort": true,
           "onHit": {
-            "effekt": "fyll",
-            "poang": 10
+            "effekt": "fyll"
           },
           "onPass": {
-            "poang": -5,
             "text": "Valfri text när den passerar ofylld",
             "raknas": "missad"
-          }
+          },
+          "etikettFarg": "morkgron"
         }
       },
       "rader": [

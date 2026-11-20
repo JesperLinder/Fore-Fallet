@@ -204,27 +204,30 @@ säga när tiden går ut, och guldstjärnan kräver att alla kor finns kvar (`ma
 **Tvärtom och vågor (nivå 6, Kolsyretuberna):** här ska spelaren skjuta på de rätta brickorna (fylla tuber med eget
 märke) och låta de andra passera. `"effekt": "fyll"` ger en fyllnadsanimation och brickan lämnar uppåt, `raknas` räknar
 missade leveranser för stjärnkravet `maxAntal`, och `vagor` lägger till en andra, blandad och snabbare våg. Mätaren
-visas som räknaren "Intrång: 0" (`"visning": "antal"`). I förkortad form:
+visas som räknaren INTRÅNG med vinröd siffra (`"visning": "antal"`), och `tipsUnderSpel` visar Fylgia-tipset längst ner
+under spelet. Nivån har inga poäng. I förkortad form:
 
 ```json
 "tema": "ljus",
-"stjarnkrav": { "tre": { "maxMisstag": 0, "maxAntal": { "missad": 1 } }, "tva": { "maxMisstag": 1 }, "en": {} },
+"stjarnkrav": { "tre": { "maxMisstag": 0, "maxAntal": { "missad": 1 } }, "tva": { "maxMisstag": 1, "maxAntal": { "missad": 3 } },
+                "en": { "maxAntal": { "missad": 6 } } },
 "invaders": {
-  "spelare": { "utseende": "munstycke", "y": 740, "b": 34, "h": 56 },
+  "spelare": { "utseende": "munstycke", "y": 640, "b": 42, "h": 52 },
   "skott": { "lage": "slapp", "intervall": 220, "fart": 900, "utseende": "gasbubbla" },
   "brickor": {
     "typer": {
-      "egen": { "figur": "tub-egen", "skaBort": true, "onHit": { "effekt": "fyll", "poang": 10 },
-                "onPass": { "poang": -5, "text": "Missad leverans", "raknas": "missad" } },
-      "annan": { "figur": "tub-annan", "smalTraff": 3, "onPass": {},
+      "egen": { "figur": "tub-egen", "etikettFarg": "morkgron", "skaBort": true, "onHit": { "effekt": "fyll" },
+                "onPass": { "text": "Missad leverans", "raknas": "missad" } },
+      "annan": { "figur": "tub-annan", "etikettFarg": "vinrod", "smalTraff": 3, "onPass": {},
                  "onHit": { "effekt": "skaka", "misstag": true, "matare": 1, "text": "Annans märke! Intrång." } }
     },
     "rader": [[{ "etikett": "Ditt", "typ": "egen" }, { "etikett": "Annans", "typ": "annan" }, …], […]],
-    "b": 40, "h": 66, "mellanrum": 14, "startY": 196, "steg": { "x": 4, "ned": 26, "intervall": 95 }, "fastBredd": true, …,
+    "b": 40, "h": 66, "mellanrum": 16, "startY": 196, "steg": { "x": 4, "ned": 26, "intervall": 125 }, "fastBredd": true, …,
     "vagor": [{ "text": "Andra vågen – titta noga!", "rader": […], "blanda": true, "mellanrum": 10,
-                "forskjutning": [0, 25], "steg": { "x": 4, "ned": 26, "intervall": 70 } }]
+                "forskjutning": [0, 25], "steg": { "x": 4, "ned": 26, "intervall": 92 } }]
   },
   "infotext": "Tuberna marscherar in från grossisten. …",
+  "tipsUnderSpel": true,
   "matare": { "namn": "Intrång", "steg": 3, "visning": "antal" },
   "vinst": ["alla-klara"], "forlust": ["matare-full"]
 }

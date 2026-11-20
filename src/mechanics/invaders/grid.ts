@@ -38,7 +38,7 @@ function ritaBricka(scene: Phaser.Scene, data: BrickData, b: number, h: number, 
   if (typ.figur) {
     // Figur med etiketten i liten text under, t.ex. en kolsyretub märkt "Ditt".
     ritaFigur(g, typ.figur, 0, FIGUR_Y, b, h - ETIKETT_H);
-    const t = skapaText(scene, 0, h / 2 - 6, data.etikett, 'knapp', 'morkgron', { origo: [0.5, 0.5], storlek: 11 });
+    const t = skapaText(scene, 0, h / 2 - 6, data.etikett, 'knapp', typ.etikettFarg ?? 'morkgron', { origo: [0.5, 0.5], storlek: 11 });
     return scene.add.container(0, 0, [g, t]);
   }
   const fel = (typ.stil ?? 'mork') === 'mork';

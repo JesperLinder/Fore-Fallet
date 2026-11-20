@@ -17,9 +17,16 @@
       }
     },
     "tva": {
-      "maxMisstag": 1
+      "maxMisstag": 1,
+      "maxAntal": {
+        "missad": 3
+      }
     },
-    "en": {}
+    "en": {
+      "maxAntal": {
+        "missad": 6
+      }
+    }
   },
   "bana": {
     "lager": [
@@ -33,9 +40,9 @@
   "invaders": {
     "spelare": {
       "utseende": "munstycke",
-      "y": 740,
-      "b": 34,
-      "h": 56
+      "y": 640,
+      "b": 42,
+      "h": 52
     },
     "skott": {
       "lage": "slapp",
@@ -47,19 +54,19 @@
       "typer": {
         "egen": {
           "figur": "tub-egen",
+          "etikettFarg": "morkgron",
           "skaBort": true,
           "onHit": {
-            "effekt": "fyll",
-            "poang": 10
+            "effekt": "fyll"
           },
           "onPass": {
-            "poang": -5,
             "text": "Missad leverans",
             "raknas": "missad"
           }
         },
         "annan": {
           "figur": "tub-annan",
+          "etikettFarg": "vinrod",
           "smalTraff": 3,
           "onHit": {
             "effekt": "skaka",
@@ -126,12 +133,12 @@
       ],
       "b": 40,
       "h": 66,
-      "mellanrum": 14,
+      "mellanrum": 16,
       "startY": 196,
       "steg": {
         "x": 4,
         "ned": 26,
-        "intervall": 95
+        "intervall": 125
       },
       "kant": {
         "vanster": 16,
@@ -204,12 +211,13 @@
           "steg": {
             "x": 4,
             "ned": 26,
-            "intervall": 70
+            "intervall": 92
           }
         }
       ]
     },
     "infotext": "Tuberna marscherar in från grossisten. Fyll bara dem som bär ditt märke. Andras märken lämnar du ifred.",
+    "tipsUnderSpel": true,
     "matare": {
       "namn": "Intrång",
       "steg": 3,

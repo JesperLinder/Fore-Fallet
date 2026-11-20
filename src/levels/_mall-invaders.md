@@ -75,11 +75,12 @@ träffas; i Kolsyretuberna är det tvärtom (`egen` ska fyllas, `annan` får pas
 | Fält | Vad det gör |
 |---|---|
 | `stil` | `"mork"` (standard): vinröd ruta med lila kant. `"ljus"`: beige ruta med mörk text (grön om brickorna har `ikon`). |
-| `figur` | Valfri figur ur art.ts i stället för ruta, med etiketten i liten mörkgrön text under, t.ex. `"tub-egen"`. |
+| `figur` | Valfri figur ur art.ts i stället för ruta, med etiketten i liten text under, t.ex. `"tub-egen"`. |
+| `etikettFarg` | Färg på etiketten under figuren, t.ex. `"vinrod"`. Standard: `"morkgron"`. |
 | `smalTraff` | Valfritt. Träffytan krymps så många punkter per sida, så att skott som nästan går fri släpps igenom (bra för brickor som inte ska träffas). |
 | `skaBort` | Räknas i vinstvillkoret `fel-borta`: alla brickor av typen ska vara borta. |
 | `onHit` | Vid träff. `effekt`: `"ta-bort"` (försvinner), `"fyll"` (fylls med en stigande nivå, lämnar uppåt, fräsande ljud) eller `"skaka"` (ligger kvar). Dessutom valfritt `poang`, `matare` (steg på mätaren), `misstag: true` (räknas i `maxMisstag`, med blink och skakning; `matare` räknas alltid som misstag), `text` (pratbubbla), `raknas` (namn på en räknare, se `maxAntal`) och `ersattTyp` (med `"ta-bort"`: brickans `ersattning` dyker upp som en bricka av den typen). Utelämnas `onHit` stoppas skottet utan effekt. |
-| `onPass` | När brickan når spelaren: `poang`, `matare` (räknas som misstag), `text` och `raknas`. `{}` = brickan passerar och inget händer. Utelämnas `onPass` stannar brickan, och nivån förloras om `forlust` innehåller `"botten"`. Bubblan är vinröd vid mätarsteg, mörkgrön vid poängavdrag och annars guld. |
+| `onPass` | När brickan når spelaren: `poang`, `matare` (räknas som misstag), `text` och `raknas`. `{}` = brickan passerar och inget händer. Utelämnas `onPass` stannar brickan, och nivån förloras om `forlust` innehåller `"botten"`. Bubblan är vinröd vid mätarsteg, mörkgrön vid poängavdrag eller när passagen räknas (`raknas`), och annars guld. |
 | `onPassDold` | Som `onPass` men för en bricka som fortfarande är dold (reveal). Utelämnas = `onPass`. |
 
 ### `fangst` (valfritt)
@@ -108,8 +109,9 @@ Block som stoppar spelarens skott och slits ner.
 | Fält | Vad det gör |
 |---|---|
 | `tid` | Valfritt. `{ "sekunder", "etikett", "dold" }`. Med `dold: true` går klockan men visas inte. Klockan visas som MM:SS, t.ex. 00:45. Med `matare.visning: "kort"` står den i ett eget kort till höger. |
-| `matare` | `namn` (t.ex. "Förtalsrisk"), `steg` (antal steg innan mätaren är full), `status` (valfri text till höger), `visning`: `"steg"` (standard, rutor längst ner som fylls) eller `"procent"` (procent kvar uppe till höger, t.ex. "God tro 100 %", tar klockans plats) eller `"kort"` (kort under rubriken med en guldstapel som börjar full och krymper, t.ex. "Försäkringen", med `dekor.raknare` som ett kort bredvid) eller `"antal"` (räknaren "Namn: 0" uppe till höger med vinröd siffra, t.ex. "Intrång: 0"; tar klockans plats). |
+| `matare` | `namn` (t.ex. "Förtalsrisk"), `steg` (antal steg innan mätaren är full), `status` (valfri text till höger), `visning`: `"steg"` (standard, rutor längst ner som fylls) eller `"procent"` (procent kvar uppe till höger, t.ex. "God tro 100 %", tar klockans plats) eller `"kort"` (kort under rubriken med en guldstapel som börjar full och krymper, t.ex. "Försäkringen", med `dekor.raknare` som ett kort bredvid) eller `"antal"` (namnet, t.ex. INTRÅNG, över en stor vinröd siffra uppe till höger; tar klockans plats). |
 | `infotext` | Valfritt. Längre text i en ruta under rubriken, t.ex. uppdraget. Grön på mörkt tema, ljusbeige på ljust. |
+| `tipsUnderSpel` | Valfritt. `true` visar Fylgia-tipset i en ruta längst ner medan man spelar (mörk på ljust tema, ljus på mörkt). Placera då spelaren ovanför rutan, t.ex. `y` 640. |
 | `misstag`, `misstagText` | Bara med `fangst`: `{ "fangstMissad": 1 }` steg på mätaren och valfri pratbubbla när ett fångstobjekt missas. |
 | `info` | Valfritt. Rutan under rubriken. Den första posten står till vänster, den sista till höger. `serif: true` sätter värdet i serif, som "KROGKUNG". |
 | `instruktion` | Valfritt. Kort text på planen (`text`, `y`) som tonas bort efter 6 sekunder. |

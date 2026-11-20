@@ -289,6 +289,8 @@ export interface InvadersInstallningar {
   misstagText?: { fangstMissad?: string };
   /** Valfri ruta under rubriken med en längre text, t.ex. uppdraget. */
   infotext?: string;
+  /** Visa Fylgia-tipset i en ruta längst ner medan man spelar (inte bara i startrutan). */
+  tipsUnderSpel?: boolean;
   /** Saker som faller och ska fångas (valfritt). */
   fangst?: FangstData[];
   /** Block som stoppar spelarens skott (valfritt). */
@@ -305,7 +307,7 @@ export interface InvadersInstallningar {
      * "steg" (standard): stapel i rutor längst ner som fylls vid misstag.
      * "procent": procent kvar uppe till höger (t.ex. "God tro 100 %"), sjunker vid misstag. Tar klockans plats.
      * "kort": ett kort under rubriken med en guldstapel som börjar full och krymper (t.ex. "Försäkringen").
-     * "antal": en räknare uppe till höger, t.ex. "Intrång: 0" (vinröd siffra). Tar klockans plats.
+     * "antal": en räknare uppe till höger: namnet (t.ex. "INTRÅNG") över en vinröd siffra. Tar klockans plats.
      */
     visning?: 'steg' | 'procent' | 'kort' | 'antal';
   };
@@ -358,6 +360,8 @@ export interface BrickTyp {
   stil?: 'ljus' | 'mork';
   /** Figur (art.ts) i stället för ruta, med etiketten i liten text under, t.ex. "tub-egen". */
   figur?: string;
+  /** Färg på etiketten under figuren. Standard: mörkgrön. */
+  etikettFarg?: FargNamn;
   /** Träffytan krymps så här många punkter på varje sida, så att skott som nästan går fri släpps igenom. */
   smalTraff?: number;
   /** Räknas i vinstvillkoret "fel-borta": alla brickor av den här typen ska vara borta. */
