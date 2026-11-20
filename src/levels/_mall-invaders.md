@@ -142,3 +142,22 @@ Bakgrundsanimationer. Utan `raddning` kan spelaren inte påverka dem och de har 
 | `handelse.ljud` | Valfritt ljud, t.ex. `"muu"`. |
 | `handelse.raddning` | Valfritt. `{ "text": "Kon räddad!" }`: ett skott som träffar källan (ufot) under händelsen avbryter den, och figuren faller tillbaka. Förlorade figurer räknas i `maxDekorForlorade`. |
 | `raknare` | Valfri räknare i ett kort bredvid mätaren (kräver `matare.visning: "kort"`). `text` med `{kvar}` och `{totalt}`, t.ex. `"{kvar} av {totalt}"`. |
+
+### Sköldläge och märkta projektiler (valfritt)
+Spelaren skjuter inte utan styr en sköld. Se nivå 9 (`niva-09.json`) och README för ett komplett exempel.
+| Fält | Vad det gör |
+|---|---|
+| `skold` | Slår på sköldläget. `etikett`: text under skölden. `spelare` blir skölden (t.ex. `"utseende": "skold"`); `skott` behövs inte. |
+| `skyddas` | Det som står under skölden: `utseende`, valfritt `ledsen` (figur vid fel), `x`, `y`, `b`, `h`, `etikett`. |
+| `skyttar.skyttar` | Rutor som skjuter: `id`, `etikett`, `ikon`, mittpunkt `x`/`y`, `b`, `h`, och `typer` med vikt. |
+| `skyttar.typer` | Projektiltyper: `etikett`, `farg`, valfritt `streckad`, och `kategori`. |
+| `skyttar.markningar` | Märkningarna, t.ex. `["A", "B", "C"]`. Varje projektil får en slumpvis. |
+| `skyttar.kategorier` | Regel per kategori: `"en-per-markning"`, `"slapp-alltid"` eller `"blockera-alltid"`, och utfallen `vidFelBlock` / `vidFelSlapp` (`matare`, `text`, `ledsen` i ms). |
+| `skyttar.fart`, `intervall`, `slutIntervall`, `fordrojning`, `samtidigt` | Fart (punkter/s), tid mellan skotten från början till slut, väntan före första, och fler per salva från en andel av tiden. |
+| `skyttar.mal` | Var projektilerna siktar (`x`, `y`) och spridning i sidled. |
+| `skyttar.flikar` | Flikar för märkningarna (`x`, `y`, `prefix`, `rubrik`) som tänds vid första träffen. |
+| `hornruta` | Liten ruta uppe till höger: `rubrik` och `text`. |
+| `introSteg` | Förklaring i steg (tryck för nästa) första gången nivån spelas. |
+
+En nivå utan brickor kan ha `"rader": []`.
+I `_mall-invaders.json` ligger fälten för sköldläget under `_skoldlage_exempel`. Flytta upp dem direkt i `invaders` (och ta bort nyckeln) för att använda dem.

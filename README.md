@@ -233,6 +233,55 @@ under spelet. Nivån har inga poäng. I förkortad form:
 }
 ```
 
+**Sköldläge och märkta projektiler (nivå 9, Dubbelstraffet):** med `skold` skjuter spelaren inte; `spelare` blir en
+sköld (figuren `"skold"`) som dras i sidled och blockerar allt den träffar. `skyddas` är det som står under skölden.
+`skyttar` skjuter projektiler i raka banor mot `skyddas`; varje projektil har en typ (med kategori) och en märkning
+(t.ex. vilken deklaration). Regelmotorn (`mechanics/invaders/rules.ts`) håller reda på vilka märkningar som redan
+träffats och bedömer varje träff och blockering mot kategorins regel: `"en-per-markning"` (den första träffen per
+märkning är rätt, resten ska blockeras), `"slapp-alltid"` eller `"blockera-alltid"`. Fel ger `vidFelBlock` eller
+`vidFelSlapp`: steg på mätaren, pratbubbla och valfritt `ledsen` (ms som det skyddade ser ledset ut). Skyttarna finns i
+`mechanics/invaders/shooters.ts`; i en salva skjuts projektilerna med en kort lucka så att de går att skilja åt.
+`introSteg` visar en förklaring i steg första gången (inte när nivån redan är klarad), och `hornruta` en liten ruta
+uppe till höger. I förkortad form:
+
+```json
+"invaders": {
+  "spelare": { "utseende": "skold", "y": 470, "b": 84, "h": 10 },
+  "skold": { "etikett": "NE BIS IN IDEM" },
+  "skyddas": { "utseende": "skattskyldig", "ledsen": "skattskyldig-ledsen", "x": 195, "y": 598, "b": 64, "h": 108, "etikett": "Den skattskyldige" },
+  "skyttar": {
+    "skyttar": [
+      { "id": "skatteverket", "etikett": "Skatteverket", "ikon": "dokument", "x": 105, "y": 200, "b": 170, "h": 64,
+        "typer": [{ "typ": "skattetillagg", "vikt": 1 }] },
+      { "id": "aklagaren", "etikett": "Åklagaren", "ikon": "klubba", "x": 285, "y": 200, "b": 170, "h": 64,
+        "typer": [{ "typ": "skattebrott", "vikt": 0.65 }, { "typ": "bokforingsbrott", "vikt": 0.35 }] }
+    ],
+    "typer": {
+      "skattetillagg": { "etikett": "Skattetillägg", "farg": "guld", "kategori": "sanktion" },
+      "skattebrott": { "etikett": "Skattebrott", "farg": "vinrod", "kategori": "sanktion" },
+      "bokforingsbrott": { "etikett": "Bokföringsbrott", "farg": "vinrod", "streckad": true, "kategori": "fri" }
+    },
+    "markningar": ["A", "B", "C"],
+    "kategorier": {
+      "sanktion": { "regel": "en-per-markning",
+                    "vidFelBlock": { "matare": 10, "text": "Ett straff får man faktiskt få" },
+                    "vidFelSlapp": { "matare": 20, "text": "Dubbelbestraffning!", "ledsen": 2000 } },
+      "fri": { "regel": "slapp-alltid", "vidFelBlock": { "matare": 20, "text": "Bokföringsbrott är en annan sak" } }
+    },
+    "fart": 160, "intervall": 1900, "slutIntervall": 900, "fordrojning": 1200,
+    "samtidigt": [{ "fran": 0.55, "antal": 2 }, { "fran": 0.85, "antal": 3 }],
+    "mal": { "x": 195, "y": 578, "spridning": 22 },
+    "flikar": { "x": 300, "y": 548, "prefix": "Dekl.", "rubrik": "Deklarationer" }
+  },
+  "hornruta": { "rubrik": "Plenum", "text": "Alla justitieråd" },
+  "introSteg": ["En sanktion per deklaration får gå igenom.", "Den andra blockerar du.", "Bokföringsbrott släpper du alltid igenom."],
+  "brickor": { "typer": {}, "rader": [], …},
+  "tid": { "sekunder": 50, "etikett": "Kvar" },
+  "matare": { "namn": "Rättssäkerhet", "steg": 100, "visning": "kort" },
+  "vinst": ["overlev"], "forlust": ["matare-full"]
+}
+```
+
 **Styrning:** spelaren drar var som helst på skärmen för att flytta markören i sidled, och släpper för att skjuta.
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
@@ -416,7 +465,7 @@ Med `node scripts/kolla-platshallare.mjs --strikt` avslutas den med fel om någo
 
 ## Platshållare
 
-- **Nivå 9–10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
+- **Nivå 10** är platshållare (bara `id`, `nummer`, `titel`, `referens`, `mekanik`, `fylgiaMal`, ev. `etikett`). De syns låsta på kartan.
 - **Typsnitt**: Newsreader och Instrument Sans från Google Fonts. Byts mot ABC Arizona i `src/config/theme.ts` + `index.html`.
 - **Logotyp**: den riktiga, extraherad som vektor ur KAN:s varumärkesmanual (2026-11-16). Filerna är vita och färgas i spelet (`src/ui/Logo.ts`).
 - **Spelvärden** för nivå 1 (kraft, vind, skadestånd 25 000 kr, mätaren −50 per bilträff) behöver provspelas. Slicen slumpas mellan 0,03 och 0,075 per slag (var fjärde åt andra hållet), siktlinjen visar 40 % av banan och bilen står strax ovanför green.

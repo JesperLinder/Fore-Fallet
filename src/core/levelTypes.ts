@@ -389,7 +389,8 @@ export interface InvadersInstallningar {
     /** Valfri text på spelaren, t.ex. "BIL-\nREGISTRET". */
     etikett?: string;
   };
-  skott: {
+  /** Spelarens skott. Behövs inte i sköldläge (skold), där spelaren inte skjuter. */
+  skott?: {
     /** "slapp" = skjuter när fingret släpps, "auto" = skjuter hela tiden medan fingret är nere. */
     lage: 'slapp' | 'auto';
     /** Minsta tid mellan två skott (ms). */
@@ -419,6 +420,19 @@ export interface InvadersInstallningar {
   };
   /** Fallande hot som ska skjutas ner innan de når botten (valfritt). */
   hot?: HotInstallningar;
+  /**
+   * Sköldläge (valfritt): spelaren skjuter inte utan styr "spelare" som en sköld i sidled. Skölden blockerar
+   * allt den träffar, t.ex. fiendernas märkta projektiler (skyttar). etikett: text under skölden.
+   */
+  skold?: { etikett?: string };
+  /** Det som ska skyddas under skölden (figur i art.ts). ledsen: figur som visas en stund vid fel (utfall.ledsen). */
+  skyddas?: { utseende: string; ledsen?: string; x: number; y: number; b: number; h: number; etikett?: string };
+  /** Skyttar som skjuter märkta projektiler mot det som skyddas, med regler för vad som ska blockeras. */
+  skyttar?: SkyttarInstallningar;
+  /** Liten mörk ruta uppe till höger med rubrik och text, t.ex. "PLENUM / Alla justitieråd". */
+  hornruta?: { rubrik: string; text: string };
+  /** Kort förklaring i steg (tryck för nästa) första gången nivån spelas. Visas inte när nivån redan är klarad. */
+  introSteg?: string[];
   /** Bakgrundshändelser som spelaren inte kan påverka, med valfri räknare (valfritt). */
   dekor?: DekorInstallningar;
   /** Valfri text (pratbubbla) när ett fångstobjekt missas. */
@@ -567,6 +581,54 @@ export interface HotInstallningar {
   fordrojning?: number;
   /** Vad som händer när ett hot når spelaren. */
   botten: BottenRegel;
+}
+
+/**
+ * Skyttar (invaders, sköldläge): fiender som skjuter märkta projektiler mot det som skyddas. Varje projektil har en
+ * typ (med kategori) och en märkning (t.ex. vilken deklaration den gäller). Kategorins regel avgör om den ska
+ * blockeras eller släppas igenom; fel ger utfallet vidFelBlock eller vidFelSlapp.
+ */
+export interface SkyttarInstallningar {
+  skyttar: {
+    id: string;
+    etikett: string;
+    /** Figur i art.ts i guld, t.ex. "dokument". */
+    ikon?: string;
+    /** Rutans mittpunkt och storlek. Projektilerna skjuts från rutans underkant. */
+    x: number;
+    y: number;
+    b: number;
+    h: number;
+    /** Vilka typer skytten skjuter, med vikt (sannolikhet). */
+    typer: { typ: string; vikt: number }[];
+  }[];
+  /** Projektiltyperna: etikett, färg, valfri streckad kant och kategori (nyckel i kategorier). */
+  typer: Record<string, { etikett: string; farg: FargNamn; streckad?: boolean; kategori: string }>;
+  /** Märkningarna, t.ex. ["A", "B", "C"]. Varje projektil får en slumpvis. */
+  markningar: string[];
+  /**
+   * Regel per kategori. "en-per-markning": den första som träffar per märkning ska släppas igenom, resten blockeras.
+   * "slapp-alltid": ska alltid släppas igenom. "blockera-alltid": ska alltid blockeras.
+   */
+  kategorier: Record<string, { regel: 'en-per-markning' | 'slapp-alltid' | 'blockera-alltid'; vidFelBlock?: Utfall; vidFelSlapp?: Utfall }>;
+  /** Fart (punkter per sekund), tid mellan skotten i början och i slutet (ms) och väntetid före första skottet. */
+  fart: number;
+  intervall: number;
+  slutIntervall: number;
+  fordrojning?: number;
+  /** Flera samtidigt mot slutet: från en viss andel av tiden (0–1), så många per gång. */
+  samtidigt?: { fran: number; antal: number }[];
+  /** Var projektilerna siktar (mittpunkt) och hur mycket de sprids i sidled. */
+  mal: { x: number; y: number; spridning: number };
+  /** Flikar som visar märkningarna och lyser när en "en-per-markning"-märkning fått sin första träff. */
+  flikar?: { x: number; y: number; prefix: string; rubrik?: string };
+}
+
+/** Konsekvens av ett fel: steg på mätaren (misstag), pratbubbla och hur länge det skyddade ser ledset ut (ms). */
+export interface Utfall {
+  matare: number;
+  text?: string;
+  ledsen?: number;
 }
 
 /** Bakgrundshändelser (rent visuellt) med valfri räknare. */

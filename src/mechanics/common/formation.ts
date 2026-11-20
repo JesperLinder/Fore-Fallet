@@ -34,6 +34,7 @@ export class Formation<T> {
   ) {
     const forskj = (r: number) => inst.forskjutning?.[r] ?? 0;
     const totalB = Math.max(
+      0,
       ...inst.rader.map((rad, r) => forskj(r) + rad.length * inst.b + (rad.length - 1) * inst.mellanrum),
     );
     const x0 = (inst.kant.vanster + inst.kant.hoger) / 2 - totalB / 2;

@@ -4,5 +4,211 @@
   "titel": "Dubbelstraffet",
   "referens": "NJA 2013 s. 502",
   "mekanik": "invaders",
-  "fylgiaMal": false
+  "fylgiaMal": false,
+  "tema": "ljus",
+  "uppdragstext": "Skatteverket och åklagaren siktar på samma person, för samma uppgifter. Ett straff får gå igenom. Det andra blockerar du.",
+  "fylgiaTips": "Har Skatteverket redan beslutat om skattetillägg får det inte bli åtal för skattebrott för samma uppgift. Men bokföringsbrott är en annan sak – släpp igenom dem.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxMisstag": 0
+    },
+    "tva": {
+      "maxMisstag": 2
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "ljusbeige",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "skold",
+      "y": 470,
+      "b": 84,
+      "h": 10
+    },
+    "skold": {
+      "etikett": "NE BIS IN IDEM"
+    },
+    "skyddas": {
+      "utseende": "skattskyldig",
+      "ledsen": "skattskyldig-ledsen",
+      "x": 195,
+      "y": 598,
+      "b": 64,
+      "h": 108,
+      "etikett": "Den skattskyldige"
+    },
+    "skyttar": {
+      "skyttar": [
+        {
+          "id": "skatteverket",
+          "etikett": "Skatteverket",
+          "ikon": "dokument",
+          "x": 105,
+          "y": 200,
+          "b": 170,
+          "h": 64,
+          "typer": [
+            {
+              "typ": "skattetillagg",
+              "vikt": 1
+            }
+          ]
+        },
+        {
+          "id": "aklagaren",
+          "etikett": "Åklagaren",
+          "ikon": "klubba",
+          "x": 285,
+          "y": 200,
+          "b": 170,
+          "h": 64,
+          "typer": [
+            {
+              "typ": "skattebrott",
+              "vikt": 0.65
+            },
+            {
+              "typ": "bokforingsbrott",
+              "vikt": 0.35
+            }
+          ]
+        }
+      ],
+      "typer": {
+        "skattetillagg": {
+          "etikett": "Skattetillägg",
+          "farg": "guld",
+          "kategori": "sanktion"
+        },
+        "skattebrott": {
+          "etikett": "Skattebrott",
+          "farg": "vinrod",
+          "kategori": "sanktion"
+        },
+        "bokforingsbrott": {
+          "etikett": "Bokföringsbrott",
+          "farg": "vinrod",
+          "streckad": true,
+          "kategori": "fri"
+        }
+      },
+      "markningar": [
+        "A",
+        "B",
+        "C"
+      ],
+      "kategorier": {
+        "sanktion": {
+          "regel": "en-per-markning",
+          "vidFelBlock": {
+            "matare": 10,
+            "text": "Ett straff får man faktiskt få"
+          },
+          "vidFelSlapp": {
+            "matare": 20,
+            "text": "Dubbelbestraffning!",
+            "ledsen": 2000
+          }
+        },
+        "fri": {
+          "regel": "slapp-alltid",
+          "vidFelBlock": {
+            "matare": 20,
+            "text": "Bokföringsbrott är en annan sak"
+          }
+        }
+      },
+      "fart": 160,
+      "intervall": 1900,
+      "slutIntervall": 900,
+      "fordrojning": 1200,
+      "samtidigt": [
+        {
+          "fran": 0.55,
+          "antal": 2
+        },
+        {
+          "fran": 0.85,
+          "antal": 3
+        }
+      ],
+      "mal": {
+        "x": 195,
+        "y": 578,
+        "spridning": 22
+      },
+      "flikar": {
+        "x": 300,
+        "y": 548,
+        "prefix": "Dekl.",
+        "rubrik": "Deklarationer"
+      }
+    },
+    "hornruta": {
+      "rubrik": "Plenum",
+      "text": "Alla justitieråd"
+    },
+    "introSteg": [
+      "En sanktion per deklaration får gå igenom.",
+      "Den andra blockerar du.",
+      "Bokföringsbrott släpper du alltid igenom."
+    ],
+    "tipsUnderSpel": true,
+    "brickor": {
+      "typer": {},
+      "rader": [],
+      "b": 10,
+      "h": 10,
+      "mellanrum": 0,
+      "startY": 0,
+      "steg": {
+        "x": 0,
+        "ned": 0,
+        "intervall": 1000
+      },
+      "kant": {
+        "vanster": 16,
+        "hoger": 374
+      }
+    },
+    "tid": {
+      "sekunder": 50,
+      "etikett": "Kvar"
+    },
+    "matare": {
+      "namn": "Rättssäkerhet",
+      "steg": 100,
+      "visning": "kort"
+    },
+    "vinst": [
+      "overlev"
+    ],
+    "forlust": [
+      "matare-full"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Straffad två gånger.",
+    "orsaker": {
+      "matare-full": "Ne bis in idem – inte två gånger för samma sak."
+    }
+  },
+  "domslut": {
+    "rubrik": "Bara en gång",
+    "domskal": [
+      "Skattetillägg och straff för skattebrott för samma oriktiga uppgift, i två olika förfaranden, strider mot rätten att inte straffas två gånger för samma brott.",
+      "Hindret uppstår så snart Skatteverket har beslutat om skattetillägg – även om beslutet inte har vunnit laga kraft.",
+      "Bokföringsbrott är normalt en annan gärning. Det går att döma för det även efter skattetillägg."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/2013s502"
+  }
 }

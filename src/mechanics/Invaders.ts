@@ -3,6 +3,8 @@
  * som rör sig stegvis nedåt. Varje bricktyp i nivåfilen (brickor.typer) anger själv vad som händer vid
  * träff (onHit) och när brickan når spelaren (onPass) – t.ex. ska bort, får inte träffas, ska fyllas.
  * Valfritt: fler vågor, fallande fångstobjekt, skydd, hot, dekor, nedräkning. Allt kommer från nivåfilen.
+ * Sköldläge (skold): spelaren skjuter inte utan styr en sköld som blockerar skyttarnas märkta projektiler
+ * (invaders/shooters.ts); regelmotorn (invaders/rules.ts) bedömer varje blockering och träff.
  *
  * Styrning: dra var som helst för att flytta (relativt, så fingret inte skymmer), släpp för att skjuta.
  * Med skott.lage "auto" skjuter spelaren i stället hela tiden medan fingret är nere.
@@ -25,6 +27,10 @@ import { skapaText } from '../ui/text';
 import { streckadLinje } from '../ui/shapes';
 import { visaStart } from './common/startPanel';
 import { spelTips } from '../ui/TipPanel';
+import { Skyttar, type MarktProjektil } from './invaders/shooters';
+import { Projektilregler } from './invaders/rules';
+import { visaIntro } from './common/intro';
+import { framsteg } from '../core/progress';
 
 const SKOTT_B = 5;
 const SKOTT_H = 14;
@@ -53,6 +59,10 @@ export class Invaders implements Mekanik {
   private hot?: FallandeHot;
   private dekor?: Dekorhandelser;
   private instruktion?: Phaser.GameObjects.Text;
+  private skyttar?: Skyttar;
+  private regler?: Projektilregler;
+  /** Det som skyddas i sköldläget (figuren byts mot "ledsen" en stund vid fel). */
+  private skyddas?: Phaser.GameObjects.Graphics;
 
   private startad = false;
   private pausad = false;
@@ -96,7 +106,10 @@ export class Invaders implements Mekanik {
     const figur = this.scene.add.graphics();
     ritaFigur(figur, sp.utseende, 0, 0, sp.b, sp.h);
     this.spelare = this.scene.add.container(MITT_X, sp.y, [figur]).setDepth(20);
-    if (sp.etikett) {
+    if (this.inst.skold?.etikett) {
+      // Sköldläge: texten står under skölden.
+      this.spelare.add(skapaText(this.scene, 0, sp.h / 2 + 12, this.inst.skold.etikett, 'overrubrik', 'morkockra', { origo: [0.5, 0.5], storlek: 10 }));
+    } else if (sp.etikett) {
       const t = skapaText(this.scene, 0, 0, sp.etikett, 'etikett', 'morkgron', { origo: [0.5, 0.5], storlek: 10, justering: 'center' });
       // Krymp texten så att den ryms i figuren.
       if (t.width > sp.b * 0.82) t.setScale((sp.b * 0.82) / t.width);
@@ -104,20 +117,85 @@ export class Invaders implements Mekanik {
     }
     this.blink = this.scene.add.rectangle(MITT_X, HOJD / 2, BREDD, HOJD, farg.vinrod, 1).setDepth(60).setAlpha(0);
 
+    this.byggSkoldlage();
+
     this.hud.visaTid(this.tidKvar);
     this.hud.visaMatare(0);
-    visaStart(this.scene, this.kontext.tips, () => {
+    // Förklaringen i steg visas bara tills nivån klarats en gång.
+    const intro = this.inst.introSteg?.length && !framsteg.arKlar(this.niva.id) ? this.inst.introSteg : undefined;
+    const start = () => visaStart(this.scene, this.kontext.tips, () => {
       this.startad = true;
       if (this.inst.tipsUnderSpel) {
         const t = spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'ljus').setAlpha(0);
         this.scene.tweens.add({ targets: t, alpha: 1, duration: 300 });
       }
     });
+    if (intro) {
+      this.kontext.tips.setVisible(false);
+      visaIntro(this.scene, intro, () => {
+        this.kontext.tips.setVisible(true);
+        start();
+      });
+    } else {
+      start();
+    }
 
     this.scene.input.on('pointerdown', this.ner, this);
     this.scene.input.on('pointermove', this.flytta, this);
     this.scene.input.on('pointerup', this.upp, this);
     this.scene.events.on(Phaser.Scenes.Events.UPDATE, this.uppdatera, this);
+  }
+
+  // ---------- Sköldläge ----------
+
+  /** Det som skyddas, hörnrutan och skyttarna med sina regler (om nivån har dem). */
+  private byggSkoldlage(): void {
+    const s = this.inst.skyddas;
+    if (s) {
+      this.skyddas = this.scene.add.graphics({ x: s.x, y: s.y }).setDepth(9);
+      ritaFigur(this.skyddas, s.utseende, 0, 0, s.b, s.h);
+      if (s.etikett) skapaText(this.scene, s.x, s.y + s.h / 2 + 12, s.etikett, 'knapp', 'morkgron', { origo: [0.5, 0.5], storlek: 12 }).setDepth(9);
+    }
+    if (this.inst.hornruta) this.ritaHornruta(this.inst.hornruta);
+    const sk = this.inst.skyttar;
+    if (!sk) return;
+    this.regler = new Projektilregler(sk);
+    const sp = this.inst.spelare;
+    this.skyttar = new Skyttar(this.scene, sk, () => ({ x: this.spelare.x, y: sp.y, b: sp.b, h: sp.h }), (p, blockerad, x, y) =>
+      this.bedomProjektil(p, blockerad, x, y),
+    );
+  }
+
+  /** Liten tvåradig ruta som slutar vid pausknappen (smal, så att den inte krockar med titeln). */
+  private ritaHornruta(h: { rubrik: string; text: string }): void {
+    const rubrik = skapaText(this.scene, 0, 28, h.rubrik, 'overrubrik', 'beige', { origo: [0.5, 0], storlek: 9 });
+    const text = skapaText(this.scene, 0, 42, h.text, 'rubrik', 'ljusbeige', { origo: [0.5, 0], storlek: 14 });
+    const b = Math.max(rubrik.width, text.width) + 20;
+    const x = BREDD - avstand.l - 56 - b;
+    const g = this.scene.add.graphics().fillStyle(farg.morkgron, 1).fillRoundedRect(x, 20, b, 46, radie.m);
+    rubrik.setX(x + b / 2);
+    text.setX(x + b / 2);
+    this.scene.add.container(0, 0, [g, rubrik, text]).setDepth(30);
+  }
+
+  /** En märkt projektil har blockerats eller träffat: bedöm mot reglerna och ge utfallet. */
+  private bedomProjektil(p: MarktProjektil, blockerad: boolean, x: number, y: number): void {
+    if (this.klar || !this.regler) return;
+    const b = this.regler.bedom(p.typ, p.markning, blockerad);
+    if (b.forstaTraff) this.skyttar?.markera(p.markning);
+    if (!b.fel) return;
+    const u = b.utfall;
+    this.registreraMisstag(u?.matare ?? 0, u?.text, x, y);
+    const s = this.inst.skyddas;
+    if (u?.ledsen && s?.ledsen && this.skyddas) {
+      const g = this.skyddas;
+      g.clear();
+      ritaFigur(g, s.ledsen, 0, 0, s.b, s.h);
+      this.scene.time.delayedCall(u.ledsen, () => {
+        g.clear();
+        ritaFigur(g, s.utseende, 0, 0, s.b, s.h);
+      });
+    }
   }
 
   // ---------- Start ----------
@@ -167,11 +245,11 @@ export class Invaders implements Mekanik {
   private upp(): void {
     if (!this.fingerNere) return;
     this.fingerNere = false;
-    if (this.aktiv() && this.inst.skott.lage === 'slapp') this.skjut();
+    if (this.aktiv() && this.inst.skott?.lage === 'slapp') this.skjut();
   }
 
   private skjut(): void {
-    if (this.klocka - this.sistaSkott < this.inst.skott.intervall) return;
+    if (!this.inst.skott || this.klocka - this.sistaSkott < this.inst.skott.intervall) return;
     this.sistaSkott = this.klocka;
     const y = this.spelare.y - this.inst.spelare.h / 2 - SKOTT_H / 2;
     const figur = this.inst.skott.utseende;
@@ -196,13 +274,14 @@ export class Invaders implements Mekanik {
       this.tidKvar -= dt / 1000;
       this.hud.visaTid(this.tidKvar);
     }
-    if (this.fingerNere && this.inst.skott.lage === 'auto') this.skjut();
+    if (this.fingerNere && this.inst.skott?.lage === 'auto') this.skjut();
 
     this.rutnat.uppdatera(dt);
     this.slappIgenom();
     this.kollaVag();
     this.dekor?.uppdatera(dt);
     this.flyttaHot(dt);
+    this.skyttar?.uppdatera(dt, this.inst.tid ? 1 - this.tidKvar / this.inst.tid.sekunder : 0);
     this.flyttaSkott(dt);
     this.flyttaFangst(dt);
     this.ritaSikte();
@@ -210,7 +289,7 @@ export class Invaders implements Mekanik {
   }
 
   private flyttaSkott(dt: number): void {
-    const dy = (this.inst.skott.fart * dt) / 1000;
+    const dy = ((this.inst.skott?.fart ?? 0) * dt) / 1000;
     this.skott = this.skott.filter((s) => {
       s.y -= dy;
       const traff = this.skottTraffar(s.x, s.y - SKOTT_H / 2);
@@ -327,7 +406,7 @@ export class Invaders implements Mekanik {
   /** Prickad siktlinje rakt upp från spelaren medan fingret är nere. */
   private ritaSikte(): void {
     this.sikte.clear();
-    if (!this.fingerNere) return;
+    if (!this.fingerNere || !this.inst.skott) return; // sköldläget har inget sikte
     const brickTopp = this.inst.brickor.skottGenom ? 0 : this.rutnat.nedersta() + 8;
     const topp = Math.max(brickTopp, (this.hot?.nedersta() ?? 0) + 8, this.hud.tak);
     const botten = this.spelare.y - this.inst.spelare.h / 2 - 10;
@@ -498,6 +577,7 @@ export class Invaders implements Mekanik {
 
   private avslutaStyrning(): void {
     this.hot?.stoppa();
+    this.skyttar?.stoppa();
     this.fingerNere = false;
     this.sikte.clear();
     this.skott.forEach((s) => s.destroy());

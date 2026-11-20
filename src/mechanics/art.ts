@@ -24,6 +24,20 @@ function ritaTub(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number
   g.fillStyle(marke, 1).fillCircle(x, y + k.y + k.h / 2, k.b * 0.24);
 }
 
+/** Enkel person: huvud och rundad kropp i beige, glad eller ledsen mun. (x, y) = mitten. */
+function ritaPerson(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, glad: boolean): void {
+  const r = b * 0.42;
+  const hy = y - h / 2 + r;
+  g.fillStyle(farg.beige, 1).fillCircle(x, hy, r);
+  g.fillRoundedRect(x - b / 2, hy + r + 6, b, h - 2 * r - 6, 18);
+  g.fillStyle(farg.morkgron, 1).fillCircle(x - r * 0.35, hy - r * 0.1, 2.6).fillCircle(x + r * 0.35, hy - r * 0.1, 2.6);
+  g.lineStyle(2.5, farg.morkgron, 1);
+  g.beginPath();
+  if (glad) g.arc(x, hy + r * 0.05, r * 0.42, Math.PI * 0.2, Math.PI * 0.8);
+  else g.arc(x, hy + r * 0.62, r * 0.38, Math.PI * 1.2, Math.PI * 1.8);
+  g.strokePath();
+}
+
 type Min = 'arg' | 'forvanad' | 'nojd';
 
 /**
@@ -229,6 +243,36 @@ const figurer: Record<string, Rita> = {
   argument(g, x, y) {
     g.fillStyle(farg.lila, 1).fillCircle(x, y, 9);
     g.fillStyle(farg.ljusbeige, 0.5).fillCircle(x - 3, y - 3, 2.2);
+  },
+
+  /** Sköld: en lila stav (sköldläget i invaders). */
+  skold(g, x, y, b = 100, h = 10) {
+    g.fillStyle(farg.lila, 1).fillRoundedRect(x - b / 2, y - h / 2, b, h, h / 2);
+  },
+
+  /** Den skattskyldige: enkel, vänlig figur i beige. */
+  skattskyldig(g, x, y, b = 72, h = 120) {
+    ritaPerson(g, x, y, b, h, true);
+  },
+  'skattskyldig-ledsen'(g, x, y, b = 72, h = 120) {
+    ritaPerson(g, x, y, b, h, false);
+  },
+
+  /** Dokumentikon (kontur) – Skatteverket. f = färg. */
+  dokument(g, x, y, b = 22, h = 26, f = farg.guld) {
+    g.lineStyle(2, f, 1).strokeRoundedRect(x - b / 2, y - h / 2, b, h, 3);
+    for (const dy of [-0.2, 0.05, 0.3]) g.lineBetween(x - b * 0.25, y + dy * h, x + b * 0.25, y + dy * h);
+  },
+
+  /** Domarklubba (ikon) – åklagaren. f = färg. */
+  klubba(g, x, y, b = 24, h = 24, f = farg.guld) {
+    g.lineStyle(3, f, 1).lineBetween(x - b * 0.35, y + h * 0.4, x + b * 0.1, y - h * 0.05);
+    g.fillStyle(f, 1);
+    g.save();
+    g.translateCanvas(x + b * 0.15, y - h * 0.15);
+    g.rotateCanvas(-Math.PI / 4);
+    g.fillRoundedRect(-b * 0.3, -h * 0.13, b * 0.6, h * 0.26, 2);
+    g.restore();
   },
 
   /** Platt ufo i lila (inget känt filmufo). */

@@ -4,7 +4,7 @@
  */
 import { framsteg } from './progress';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel'>;
 
 interface Ton {
@@ -40,6 +40,8 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 330, till: 160, start: 0, langd: 0.06, form: 'square', volym: 0.07 },
     { fran: 110, till: 60, start: 0, langd: 0.12, form: 'triangle', volym: 0.25 },
   ],
+  // Dovt "duns" när något träffar (sköldläge).
+  duns: [{ fran: 95, till: 45, start: 0, langd: 0.22, form: 'sine', volym: 0.3 }],
   misstag: [{ fran: 180, till: 90, start: 0, langd: 0.28, form: 'sawtooth', volym: 0.07 }],
   vinst: [
     { fran: 523, till: 523, start: 0, langd: 0.14, form: 'triangle', volym: 0.13 },
