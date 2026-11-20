@@ -82,10 +82,27 @@ src/
   levels/                 en JSON-fil per nivå
   ui/                     knappar, text, stjärnor, paneler, märken, scroll
   debug/                  testläget (?debug=1), finns bara i utvecklings-/webbtestbygget
+  platform/haptics.ts     lätt vibration vid träff och misstag (Capacitor Haptics)
   platform/openLink.ts    öppnar externa länkar (Capacitor Browser i appen, ny flik på webben)
 public/assets/            Fylgias logotyp och symbol (SVG ur varumärkesmanualen)
 public/icon.svg           appikon/favicon, icon-1024.png är samma i 1024×1024 för iOS
 ```
+
+## Gemensamt gränssnitt i nivåerna
+
+- **Sidhuvud**: nivåetikett, titel och pausknapp ritas av `LevelScene` och står på samma plats i alla nivåer.
+- **Mätarkortet** uppe till höger (klocka, räknare, "Borgenärer", "Plenum" …) kommer från `src/ui/HeaderCard.ts`.
+  Kortet är mörkgrönt med grön kontur, så att guld, lila och ljusbeige text klarar kontrastkravet 4.5:1 på alla banor.
+  Om kortet skulle täcka nivåetiketten flyttar det ner under den och blir kompakt.
+- **Kontrast**: all text ska ha minst 4.5:1 mot bakgrunden. Guld (#BA8500) används aldrig som text på ljus bakgrund;
+  använd mörk ockra (#6B4E04) där. Mot lila bakgrund används mörkgrönt.
+- **Paus**: pausknappen ger "Fortsätt", "Börja om" och "Till kartan". När appen går i bakgrunden eller skärmen släcks
+  (`visibilitychange`) pausas spelet och visar pausmenyn. Det fortsätter först när spelaren trycker "Fortsätt".
+- **Säkra marginaler**: `#ram` i `index.html` lägger `env(safe-area-inset-*)` runt spelytan, så att inget hamnar under
+  kameraurtaget eller hemindikatorn. Marginalerna får scenens färg (överst banans översta lager, nederst det understa).
+- **Haptik**: lätt vibration vid träff och misstag (`src/platform/haptics.ts`, Capacitor Haptics). Ljudknappen styr
+  båda: ljud av betyder också vibration av. På webben används `navigator.vibrate` där det finns, annars händer inget.
+- **Scenbyten** tonar ut och in (`bytTill` i `BaseScene`), även "Börja om".
 
 ## Lägga till en nivå
 

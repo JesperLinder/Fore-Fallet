@@ -7,7 +7,7 @@
   "fylgiaMal": false,
   "tema": "ljus",
   "uppdragstext": "Skatteverket och åklagaren siktar på samma person, för samma uppgifter. Ett straff får gå igenom. Det andra blockerar du.",
-  "fylgiaTips": "Har Skatteverket redan beslutat om skattetillägg får det inte bli åtal för skattebrott för samma uppgift. Men bokföringsbrott är en annan sak – släpp igenom dem.",
+  "fylgiaTips": "Har Skatteverket redan beslutat om skattetillägg, får det inte bli åtal för skattebrott för samma uppgift. Men bokföringsbrott är en annan sak – släpp igenom dem.",
   "resultat": "vinst",
   "stjarnkrav": {
     "tre": {

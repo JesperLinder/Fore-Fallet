@@ -31,7 +31,7 @@ export class TitleScene extends BasScen {
       justering: 'center',
     });
 
-    new Knapp(this, MITT_X, 700, text.titel.spela, { bredd: BREDD - avstand.sida * 2 - 8, hojd: 58, variant: 'guld' }, () =>
+    new Knapp(this, MITT_X, 700, text.titel.spela, { bredd: BREDD - avstand.sida * 2 - 8, hojd: 56, variant: 'guld' }, () =>
       this.bytTill('Map'),
     );
   }

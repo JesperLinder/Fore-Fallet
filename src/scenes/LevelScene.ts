@@ -17,6 +17,7 @@ import { skapaText } from '../ui/text';
 import { tipsPanel } from '../ui/TipPanel';
 import { Knapp, ikonKnapp, ritaPaus } from '../ui/Button';
 import { marke } from '../ui/Badge';
+import { ETIKETT_HOGER } from '../ui/HeaderCard';
 import { testlage } from '../debug/flaggor';
 import { testknapparNiva } from '../debug/Testpanel';
 
@@ -37,6 +38,8 @@ export class LevelScene extends BasScen {
   private niva!: Niva;
   private mekanik!: Mekanik;
   private pausLager?: Phaser.GameObjects.Container;
+  /** Nivån är avgjord (domslut eller förlust på väg): ingen paus längre. */
+  private slut = false;
 
   constructor() {
     super({
@@ -57,11 +60,19 @@ export class LevelScene extends BasScen {
     this.niva = niva;
     this.forberedKamera('ljusbeige');
     this.ritaBakgrund();
+    const lager = niva.bana.lager;
+    if (lager.length) this.sattKantfarg(lager[0].farg, lager[lager.length - 1].farg);
     this.ritaRubrik();
 
     const tips = tipsPanel(this, niva.uppdragstext, niva.fylgiaTips);
     this.mekanik = skapaMekanik({ scene: this, niva, tips, avsluta: (r) => this.nivanKlar(r) });
+    this.slut = false;
+    this.pausLager = undefined;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.mekanik.forstor());
+    // Appen i bakgrunden eller skärmen släckt (visibilitychange): pausa och vänta på "Fortsätt".
+    const iBakgrunden = (): void => this.pausa(true);
+    this.game.events.on(Phaser.Core.Events.HIDDEN, iBakgrunden);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off(Phaser.Core.Events.HIDDEN, iBakgrunden));
     if (niva.mellanstopp) this.visaMellanstopp(niva.mellanstopp);
     if (testlage) {
       testknapparNiva(this, niva, (d) => { this.mekanik.pausa(true); this.bytTill('Verdict', d); }, (o) => { this.mekanik.pausa(true); this.visaForlust(o); });
@@ -93,14 +104,18 @@ export class LevelScene extends BasScen {
     const n = this.niva;
     const mork = n.tema === 'mork';
     const referens = n.overrubrikTillagg ? `${n.referens} · ${n.overrubrikTillagg}` : n.referens;
-    const over = skapaText(this, avstand.l, 22, text.niva.overrubrik(n.nummer, referens), 'overrubrik', mork ? 'guld' : 'morkockra');
-    // På lila bakgrund syns inte det lila märket: då blir det mörkgrönt med lila text.
+    // På lila bakgrund syns inte det lila märket: då blir det mörkgrönt med lila text. Mörk ockra har för låg
+    // kontrast mot lila, så nivåetiketten blir mörkgrön där.
     const lilaBakgrund = n.bana.lager[0]?.farg === 'lila';
+    const overFarg = mork ? 'guld' : lilaBakgrund ? 'morkgron' : 'morkockra';
+    const over = skapaText(this, avstand.l, 22, text.niva.overrubrik(n.nummer, referens), 'overrubrik', overFarg);
     let x = over.x + over.width + 8;
     if (n.rubrikmarke) x += marke(this, x, over.y + over.height / 2, n.rubrikmarke, 'guld', 'morkgron').width + 6;
+    let hoger = x - 8;
     if (n.fylgiaMal) {
-      marke(this, x, over.y + over.height / 2, text.karta.fylgiaMal, lilaBakgrund ? 'morkgron' : 'lila', lilaBakgrund ? 'lila' : 'morkgron');
+      hoger = x + marke(this, x, over.y + over.height / 2, text.karta.fylgiaMal, lilaBakgrund ? 'morkgron' : 'lila', lilaBakgrund ? 'lila' : 'morkgron').width;
     }
+    this.data.set(ETIKETT_HOGER, hoger);
     skapaText(this, avstand.l - 1, 38, n.titel, 'titel', mork ? 'ljusbeige' : 'morkgron', { storlek: 30 });
     ikonKnapp(this, BREDD - avstand.l - 24, 44, mork ? 'konturMork' : 'mork', ritaPaus, () => this.pausa(true)).setDepth(40);
   }
@@ -108,6 +123,7 @@ export class LevelScene extends BasScen {
   // ---------- Paus ----------
 
   private pausa(pausad: boolean): void {
+    if (pausad === !!this.pausLager || this.slut) return;
     this.mekanik.pausa(pausad);
     this.time.paused = pausad;
     if (pausad) {
@@ -141,7 +157,7 @@ export class LevelScene extends BasScen {
   private omstart(): void {
     this.tweens.resumeAll();
     this.time.paused = false;
-    this.scene.restart({ id: this.niva.id });
+    this.bytTill('Level', { id: this.niva.id });
   }
 
   private lamna(): void {
@@ -153,6 +169,7 @@ export class LevelScene extends BasScen {
   // ---------- Slut ----------
 
   private nivanKlar(r: MekanikResultat): void {
+    this.slut = true;
     if (r.forlust) {
       this.time.delayedCall(600, () => this.visaForlust(r.forlust!));
       return;
@@ -167,6 +184,7 @@ export class LevelScene extends BasScen {
 
   /** Förlustskärmen: nivåns rubrik, orsaken och "Försök igen". Inget sparas. */
   private visaForlust(orsak: ForlustOrsak): void {
+    this.slut = true;
     const f = this.niva.forlust;
     const matarNamn = this.niva.invaders?.matare.namn ?? '';
     const forklaring = f?.orsaker?.[orsak] ?? text.forlust.orsaker[orsak](matarNamn);

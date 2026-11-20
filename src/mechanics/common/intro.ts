@@ -6,6 +6,7 @@ import Phaser from 'phaser';
 import { avstand, farg, radie } from '../../config/theme';
 import { BREDD, HOJD, MITT_X } from '../../config/display';
 import { skapaText } from '../../ui/text';
+import { text } from '../../config/strings';
 import { fyllStjarna } from '../../ui/shapes';
 
 export function visaIntro(scene: Phaser.Scene, steg: string[], klar: () => void): void {
@@ -17,7 +18,7 @@ export function visaIntro(scene: Phaser.Scene, steg: string[], klar: () => void)
     panel.removeAll(true);
     const nummer = skapaText(scene, 62, 22, `${i + 1} / ${steg.length}`, 'overrubrik', 'morkockra', { storlek: 11 });
     const t = skapaText(scene, 62, 44, steg[i], 'citat', 'morkgron', { bredd: b - 62 - 20 });
-    const vidare = skapaText(scene, 62, t.y + t.height + 14, 'Tryck för att fortsätta', 'liten', 'morkockra');
+    const vidare = skapaText(scene, 62, t.y + t.height + 14, text.niva.tryckForAttFortsatta, 'liten', 'morkockra');
     const h = vidare.y + vidare.height + 20;
     const g = scene.add.graphics().fillStyle(farg.ljusbeige, 1).fillRoundedRect(0, 0, b, h, radie.l);
     fyllStjarna(g, 30, 34, 26, farg.lila);

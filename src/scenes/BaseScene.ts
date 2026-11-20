@@ -3,7 +3,7 @@
  * fast canvasen renderas i skärmens pixeltäthet, och tonar in scenen.
  */
 import Phaser from 'phaser';
-import { farg, type FargNamn } from '../config/theme';
+import { css, farg, type FargNamn } from '../config/theme';
 import { HOJD, MITT_X, ZOOM } from '../config/display';
 
 export abstract class BasScen extends Phaser.Scene {
@@ -14,6 +14,15 @@ export abstract class BasScen extends Phaser.Scene {
     kamera.centerOn(MITT_X, HOJD / 2);
     kamera.setBackgroundColor(farg[bakgrund]);
     kamera.fadeIn(180, 15, 40, 39);
+    this.sattKantfarg(bakgrund);
+  }
+
+  /**
+   * Färgen i de säkra marginalerna runt spelet (under kameraurtaget och hemindikatorn, se #ram i index.html):
+   * överkanten får scenens översta färg och nederkanten dess understa, så att marginalerna smälter in.
+   */
+  protected sattKantfarg(topp: FargNamn, botten: FargNamn = topp): void {
+    document.body.style.background = `linear-gradient(${css(topp)} 50%, ${css(botten)} 50%)`;
   }
 
   /** Byter scen med en kort övertoning. */

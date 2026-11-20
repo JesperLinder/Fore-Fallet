@@ -3,30 +3,20 @@
  * ska kastas, namnet under slangbellan och hur en borgenär ritas i formationen.
  */
 import Phaser from 'phaser';
-import { avstand, farg, radie } from '../../config/theme';
+import { avstand } from '../../config/theme';
 import { BREDD, HOJD } from '../../config/display';
 import type { HybridInstallningar, HybridProjektil } from '../../core/levelTypes';
 import { skapaText } from '../../ui/text';
+import { hornkort } from '../../ui/HeaderCard';
 import { Knapp } from '../../ui/Button';
 import { ritaFigur } from '../art';
 
 const KNAPP_H = 52;
 export const KNAPP_Y = HOJD - avstand.l - KNAPP_H / 2;
-const HOGER = BREDD - avstand.l - 56; // lämnar plats åt pausknappen
 
 /** Rutan "Borgenärer / 4 i kö". */
 export function byggFiendeRuta(scene: Phaser.Scene, hud: NonNullable<HybridInstallningar['hud']>, antal: number): void {
-  const rubrik = skapaText(scene, 0, 0, hud.rubrik, 'overrubrik', 'beige', { origo: [0.5, 0], storlek: 10 });
-  const varde = skapaText(scene, 0, 0, hud.varde.replace('{antal}', String(antal)), 'rubrik', 'ljusbeige', {
-    origo: [0.5, 0],
-    storlek: 20,
-  });
-  const b = Math.max(rubrik.width, varde.width) + 28;
-  const x = HOGER - b;
-  const g = scene.add.graphics().fillStyle(farg.morkgron, 1).fillRoundedRect(x, 20, b, 54, radie.m);
-  rubrik.setPosition(x + b / 2, 28);
-  varde.setPosition(x + b / 2, 42);
-  scene.add.container(0, 0, [g, rubrik, varde]).setDepth(30);
+  hornkort(scene, hud.rubrik).satt(hud.varde.replace('{antal}', String(antal)));
 }
 
 /** En borgenär i formationen: portfölj med etikett under. */

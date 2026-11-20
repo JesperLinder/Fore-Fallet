@@ -217,7 +217,7 @@ export class VerdictScene extends BasScen {
         ? text.domslut.nastaMal(nasta.titel)
         : text.domslut.sasongKlar;
     const ny = y + h + avstand.m + 29;
-    new Knapp(this, MITT_X, ny, etikett, { bredd: INNER_B, hojd: 58, variant: 'mork', kanTryckas: tryck }, () => {
+    new Knapp(this, MITT_X, ny, etikett, { bredd: INNER_B, hojd: 56, variant: 'mork', kanTryckas: tryck }, () => {
       if (behoverStjarna) this.bytTill('Level', { id: niva.id });
       else if (nasta && arUpplast(nasta)) this.bytTill('Level', { id: nasta.id });
       else if (!nasta) this.bytTill('Sasong');

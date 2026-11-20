@@ -51,8 +51,12 @@ export class SeasonScene extends BasScen {
     allaNivaer.forEach((niva, i) => {
       const y = y0 + i * (RAD_H + 6);
       const rad = this.add.container(X0, y);
-      const g = this.add.graphics().fillStyle(farg.gron, 1).fillRoundedRect(0, 0, INNER_B, RAD_H, radie.m);
-      const nr = skapaText(this, 24, RAD_H / 2, String(niva.nummer), 'rubrik', 'guld', { origo: [0.5, 0.5], storlek: 18 });
+      // Upplåsta rader är gröna kort; låsta bara en kontur (i stället för genomskinliga, som gav för låg kontrast).
+      const upplast = arUpplast(niva);
+      const g = this.add.graphics();
+      if (upplast) g.fillStyle(farg.gron, 1).fillRoundedRect(0, 0, INNER_B, RAD_H, radie.m);
+      else g.lineStyle(1, farg.gron, 1).strokeRoundedRect(0, 0, INNER_B, RAD_H, radie.m);
+      const nr = skapaText(this, 24, RAD_H / 2, String(niva.nummer), 'rubrik', upplast ? 'beige' : 'guld', { origo: [0.5, 0.5], storlek: 18 });
       const titel = skapaText(this, 48, RAD_H / 2, niva.titel, 'rubrik', 'ljusbeige', { origo: [0, 0.5], storlek: 17 });
       rad.add([g, nr, titel]);
       rad.add(stjarnRad(this, INNER_B - 44, RAD_H / 2, framsteg.stjarnor(niva.id) ?? 0, { storlek: 13, mellanrum: 3, fyllFarg: 'guld', konturFarg: 'beige' }));
@@ -60,10 +64,7 @@ export class SeasonScene extends BasScen {
         g.fillStyle(farg.morkgron, 1).fillCircle(INNER_B - 12, RAD_H / 2, 9);
         fyllStjarna(g, INNER_B - 12, RAD_H / 2, 11, farg.guld);
       }
-      if (!arUpplast(niva)) {
-        rad.setAlpha(0.5);
-        return;
-      }
+      if (!upplast) return;
       rad.setSize(INNER_B, RAD_H);
       rad.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, 0, INNER_B, RAD_H), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
       rad.on('pointerup', () => {

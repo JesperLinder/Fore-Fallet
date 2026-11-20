@@ -105,11 +105,6 @@ export class Slingshot implements Mekanik {
     if (this.inst.musik) startaMusik('boss');
     if (sidvy && this.niva.objekt.some((o) => o.typ === 'studsmal')) this.studsmal = new Studsmal(this.scene, this.niva, sidvy.gravitation);
     if (!hud) this.visaSkottko = byggSkottko(this.scene, this.bana.utslag, this.inst.projektil, this.inst.antal);
-    if (this.inst.projektilNamn) {
-      const { x, y } = this.bana.utslag;
-      skapaText(this.scene, x, y + 74, this.inst.projektilNamn, 'rubrik', 'ljusbeige', { origo: [0.5, 0.5], storlek: 15 }).setDepth(DJUP_KAST.projektil);
-    }
-
     // Kort tipsruta (bara tipset) i stället för den stora med uppdrag + tips.
     let tips = kontext.tips;
     if (this.inst.tipsUnderSpel) {
@@ -120,6 +115,12 @@ export class Slingshot implements Mekanik {
       const mark = this.niva.bana.lager[this.niva.bana.lager.length - 1]?.farg;
       const morkMark = mark === 'morkgron' || mark === 'gron' || mark === 'vinrod';
       tips = spelTips(this.scene, this.niva.fylgiaTips, morkMark ? 'mork' : 'ljus', nedre);
+    }
+    if (this.inst.projektilNamn) {
+      // Namnet under slangbellan, men aldrig ner i tipsrutan.
+      const { x, y } = this.bana.utslag;
+      const ny = tips.visible ? Math.min(y + 74, tips.y - 14) : y + 74;
+      skapaText(this.scene, x, ny, this.inst.projektilNamn, 'rubrik', 'ljusbeige', { origo: [0.5, 0.5], storlek: 15 }).setDepth(DJUP_KAST.projektil);
     }
 
     this.landade = this.scene.add.graphics().setDepth(DJUP_KAST.landad);

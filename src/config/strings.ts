@@ -36,6 +36,7 @@ export const text = {
     miss: 'Utanför',
     ute: 'Ute!',
     starta: 'Starta',
+    tryckForAttFortsatta: 'Tryck för att fortsätta',
   },
 
   /** Förlustskärmen. Rubriken kommer från nivåfilen ("forlust.rubrik"). */

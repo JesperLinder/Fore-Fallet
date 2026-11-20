@@ -8,13 +8,13 @@ import { avstand, css, farg, radie } from '../../config/theme';
 import { BREDD, HOJD } from '../../config/display';
 import type { InvadersInstallningar } from '../../core/levelTypes';
 import { skapaText } from '../../ui/text';
+import { hornkort } from '../../ui/HeaderCard';
 
 export const INFO_Y = 92;
 export const INFO_H = 44;
 export const MATARRAD_H = 46;
 export const MATARRAD_Y = HOJD - avstand.l - MATARRAD_H;
 
-const TID_HOGER = BREDD - avstand.l - 56; // lämnar plats åt pausknappen
 
 export interface InvadersHud {
   /** Skott ovanför den här linjen försvinner (under inforutan). */
@@ -45,7 +45,7 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar, tema: 
     tak = kort.tak;
   } else {
     const v = inst.matare.visning;
-    matare = v === 'procent' ? byggProcent(scene, inst.matare) : v === 'antal' ? byggAntal(scene, inst.matare, tema) : byggMatare(scene, inst.matare);
+    matare = v === 'procent' ? byggProcent(scene, inst.matare) : v === 'antal' ? byggAntal(scene, inst.matare) : byggMatare(scene, inst.matare);
   }
   return {
     tak,
@@ -59,15 +59,23 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar, tema: 
 
 /** "Pressläggning om 00:60". Upp till en minut visas som 00:SS, längre tider som MM:SS. */
 function byggTid(scene: Phaser.Scene, tid: NonNullable<InvadersInstallningar['tid']>) {
-  skapaText(scene, TID_HOGER, 40, tid.etikett, 'overrubrik', 'ljusbeige', { origo: [1, 0], storlek: 10 }).setDepth(30);
-  const varde = skapaText(scene, TID_HOGER, 52, '', 'titel', 'guld', { origo: [1, 0], storlek: 28 }).setDepth(30);
-  return (sekunder: number) => visaKlocka(varde, sekunder);
+  const kort = hornkort(scene, tid.etikett, 'guld');
+  return (sekunder: number) => {
+    const s = Math.max(0, Math.ceil(sekunder));
+    kort.satt(klocka(s));
+    kort.farg(s <= 10 ? 'lila' : 'guld');
+  };
 }
 
-/** 00:SS (eller MM:SS över en minut); lila de sista tio sekunderna. */
+/** 00:SS (eller MM:SS över en minut). */
+function klocka(s: number): string {
+  return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+}
+
+/** Klockan i korten; lila de sista tio sekunderna. */
 function visaKlocka(varde: Phaser.GameObjects.Text, sekunder: number): void {
   const s = Math.max(0, Math.ceil(sekunder));
-  varde.setText(`${pad(Math.floor(s / 60))}:${pad(s % 60)}`);
+  varde.setText(klocka(s));
   varde.setColor(css(s <= 10 ? 'lila' : 'guld'));
 }
 
@@ -124,21 +132,26 @@ function byggKort(
   const rakB = raknare ? (tid ? 106 : (helB - mellan) / 2) : 0;
   const b = helB - (tidB ? tidB + mellan : 0) - (rakB ? rakB + mellan : 0);
   const g = scene.add.graphics().setDepth(5);
-  g.fillStyle(farg.gron, 1).fillRoundedRect(x0, INFO_Y, b, h, radie.m);
+  // Samma kortstil som mätarkortet i hörnet (ui/HeaderCard.ts): guld och lila text klarar kontrastkravet där.
+  const kortRuta = (x: number, w: number): void => {
+    g.fillStyle(farg.morkgron, 1).fillRoundedRect(x, INFO_Y, w, h, radie.m);
+    g.lineStyle(1, farg.gron, 1).strokeRoundedRect(x, INFO_Y, w, h, radie.m);
+  };
+  kortRuta(x0, b);
   skapaText(scene, x0 + 14, INFO_Y + 12, m.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
   const stapelB = b - 28;
   const stapel = scene.add.graphics().setDepth(6);
   let andel = 1;
   const ritaStapel = (fyll: number) => {
     stapel.clear();
-    stapel.fillStyle(farg.morkgron, 1).fillRoundedRect(x0 + 14, INFO_Y + 36, stapelB, 8, 4);
+    stapel.fillStyle(farg.gron, 1).fillRoundedRect(x0 + 14, INFO_Y + 36, stapelB, 8, 4);
     if (andel > 0) stapel.fillStyle(fyll, 1).fillRoundedRect(x0 + 14, INFO_Y + 36, Math.max(8, stapelB * andel), 8, 4);
   };
 
   let visaRaknare = (_kvar: number, _totalt: number) => {};
   if (raknare) {
     const rx = x0 + b + mellan;
-    g.fillStyle(farg.gron, 1).fillRoundedRect(rx, INFO_Y, rakB, h, radie.m);
+    kortRuta(rx, rakB);
     skapaText(scene, rx + 14, INFO_Y + 12, raknare.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
     const varde = skapaText(scene, rx + 14, INFO_Y + 28, '', 'rubrik', 'ljusbeige', { storlek: 18 }).setDepth(6);
     visaRaknare = (kvar, totalt) => varde.setText(raknare.text.replace('{kvar}', String(kvar)).replace('{totalt}', String(totalt)));
@@ -147,7 +160,7 @@ function byggKort(
   let visaTid = (_s: number) => {};
   if (tid) {
     const tx = x0 + helB - tidB;
-    g.fillStyle(farg.gron, 1).fillRoundedRect(tx, INFO_Y, tidB, h, radie.m);
+    kortRuta(tx, tidB);
     skapaText(scene, tx + 14, INFO_Y + 12, tid.etikett, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
     const varde = skapaText(scene, tx + 14, INFO_Y + 26, '', 'rubrik', 'guld', { storlek: 22 }).setDepth(6);
     visaTid = (sekunder) => visaKlocka(varde, sekunder);
@@ -171,30 +184,32 @@ function byggKort(
 
 /** Mätare som procent kvar uppe till höger, t.ex. "God tro 100 %". Tar klockans plats. */
 function byggProcent(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
-  skapaText(scene, TID_HOGER, 40, m.namn, 'overrubrik', 'ljusbeige', { origo: [1, 0], storlek: 10 }).setDepth(30);
-  const varde = skapaText(scene, TID_HOGER, 52, '', 'titel', 'guld', { origo: [1, 0], storlek: 28 }).setDepth(30);
+  const kort = hornkort(scene, m.namn, 'guld');
   return {
     visaMatare: (steg: number) => {
       const kvar = Math.max(0, Math.round(((m.steg - steg) / m.steg) * 100));
-      varde.setText(`${kvar} %`);
+      kort.satt(`${kvar} %`);
     },
     markeraMatare: () => {
       // En enda markering per misstag: lila en kort stund, sedan tillbaka till guld.
-      varde.setColor(css('lila'));
-      scene.time.delayedCall(450, () => varde.setColor(css('guld')));
+      kort.farg('lila');
+      scene.time.delayedCall(450, () => kort.farg('guld'));
     },
   };
 }
 
-/** Räknare uppe till höger: namnet ("INTRÅNG") över en stor vinröd siffra. Visar antal steg (misstag). */
-function byggAntal(scene: Phaser.Scene, m: InvadersInstallningar['matare'], tema: 'ljus' | 'mork') {
-  skapaText(scene, TID_HOGER, 40, m.namn, 'overrubrik', tema === 'ljus' ? 'morkgron' : 'ljusbeige', { origo: [1, 0], storlek: 10 }).setDepth(30);
-  const varde = skapaText(scene, TID_HOGER, 52, '0', 'titel', 'vinrod', { origo: [1, 0], storlek: 28 }).setDepth(30);
+/**
+ * Räknare uppe till höger: namnet ("INTRÅNG") över antalet steg (misstag). Siffran är ljus vid noll och lila
+ * därefter (vinrött syns inte på det mörka kortet).
+ */
+function byggAntal(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
+  const kort = hornkort(scene, m.namn);
   return {
-    visaMatare: (steg: number) => varde.setText(String(steg)),
-    markeraMatare: () => {
-      scene.tweens.add({ targets: varde, scale: 1.3, duration: 120, yoyo: true });
+    visaMatare: (steg: number) => {
+      kort.satt(String(steg));
+      kort.farg(steg > 0 ? 'lila' : 'ljusbeige');
     },
+    markeraMatare: () => kort.puls(),
   };
 }
 

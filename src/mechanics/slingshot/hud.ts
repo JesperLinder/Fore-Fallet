@@ -3,13 +3,13 @@
  * och kön av kvarvarande skott bredvid slangbellan.
  */
 import Phaser from 'phaser';
-import { avstand, css, farg, radie } from '../../config/theme';
-import { BREDD } from '../../config/display';
+import { avstand, css, farg } from '../../config/theme';
 import { ritaFigur } from '../art';
 import { text } from '../../config/strings';
 import type { KastInstallningar, SlangbellaInstallningar } from '../../core/levelTypes';
 import { StatKort, matare, prickar } from '../../ui/StatCard';
 import { skapaText } from '../../ui/text';
+import { hornkort } from '../../ui/HeaderCard';
 
 const HUD_Y = 92;
 const HUD_H = 58;
@@ -83,20 +83,8 @@ export function byggVindindikator(
 
 /** Räknaren uppe till höger för block med "mal", t.ex. "EFTERDEBITERING / 4 år". Returnerar en visa-funktion. */
 export function byggRaknare(scene: Phaser.Scene, r: NonNullable<SlangbellaInstallningar['raknare']>): (kvar: number) => void {
-  const hoger = BREDD - avstand.l - 56; // lämnar plats åt pausknappen
-  const rubrik = skapaText(scene, 0, 28, r.rubrik, 'overrubrik', 'beige', { origo: [0.5, 0], storlek: 10 });
-  const varde = skapaText(scene, 0, 42, '', 'rubrik', 'ljusbeige', { origo: [0.5, 0], storlek: 20 });
-  const g = scene.add.graphics();
-  scene.add.container(0, 0, [g, rubrik, varde]).setDepth(30);
-  return (kvar) => {
-    varde.setText(r.text.replace('{kvar}', String(kvar)));
-    const b = Math.max(rubrik.width, varde.width) + 28;
-    const x = hoger - b;
-    g.clear().fillStyle(farg.morkgron, 1).fillRoundedRect(x, 20, b, 54, radie.m);
-    g.lineStyle(1, farg.gron, 1).strokeRoundedRect(x, 20, b, 54, radie.m);
-    rubrik.setX(x + b / 2);
-    varde.setX(x + b / 2);
-  };
+  const kort = hornkort(scene, r.rubrik);
+  return (kvar) => kort.satt(r.text.replace('{kvar}', String(kvar)));
 }
 
 /** Kvarvarande skott som små projektiler bredvid slangbellan (när resultatraden saknas). */

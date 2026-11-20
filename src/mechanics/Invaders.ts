@@ -10,6 +10,7 @@
  * Med skott.lage "auto" skjuter spelaren i stället hela tiden medan fingret är nere.
  */
 import Phaser from 'phaser';
+import { hornkort } from '../ui/HeaderCard';
 import { avstand, farg, radie } from '../config/theme';
 import { BREDD, HOJD, MITT_X } from '../config/display';
 import type { BottenRegel, ForlustOrsak, InvadersInstallningar, Niva, SkyddData } from '../core/levelTypes';
@@ -166,16 +167,9 @@ export class Invaders implements Mekanik {
     );
   }
 
-  /** Liten tvåradig ruta som slutar vid pausknappen (smal, så att den inte krockar med titeln). */
+  /** Liten tvåradig ruta i hörnet (kompakt, så att den inte krockar med titeln). */
   private ritaHornruta(h: { rubrik: string; text: string }): void {
-    const rubrik = skapaText(this.scene, 0, 28, h.rubrik, 'overrubrik', 'beige', { origo: [0.5, 0], storlek: 9 });
-    const text = skapaText(this.scene, 0, 42, h.text, 'rubrik', 'ljusbeige', { origo: [0.5, 0], storlek: 14 });
-    const b = Math.max(rubrik.width, text.width) + 20;
-    const x = BREDD - avstand.l - 56 - b;
-    const g = this.scene.add.graphics().fillStyle(farg.morkgron, 1).fillRoundedRect(x, 20, b, 46, radie.m);
-    rubrik.setX(x + b / 2);
-    text.setX(x + b / 2);
-    this.scene.add.container(0, 0, [g, rubrik, text]).setDepth(30);
+    hornkort(this.scene, h.rubrik, 'ljusbeige', true).satt(h.text);
   }
 
   /** En märkt projektil har blockerats eller träffat: bedöm mot reglerna och ge utfallet. */

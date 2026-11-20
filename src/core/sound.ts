@@ -3,6 +3,7 @@
  * Ljudet kan stängas av på kartan; valet sparas via progress.ts.
  */
 import { framsteg } from './progress';
+import { vibrera } from '../platform/haptics';
 
 export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel'>;
@@ -72,6 +73,7 @@ function hamtaKontext(): AudioContext | null {
 /** Spelar en effekt, om ljudet är på. Tyst om webbläsaren saknar Web Audio. */
 export function spela(ljud: Ljud): void {
   if (!framsteg.ljudPa()) return;
+  if (ljud === 'traff' || ljud === 'misstag') vibrera();
   const ctx = hamtaKontext();
   if (!ctx) return;
   // iOS startar ljudet pausat tills användaren rört skärmen; alla anrop kommer från tryck/spel.
