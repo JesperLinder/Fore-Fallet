@@ -32,7 +32,7 @@
     },
     "tva": {
       "minAntal": {
-        "telefon": 1
+        "ombud": 1
       }
     },
     "en": {}
@@ -96,7 +96,10 @@
               "etikettFarg": "morkgron",
               "fart": 250,
               "onFangst": {
-                "raknas": "fullmakt",
+                "raknas": [
+                  "fullmakt",
+                  "ombud"
+                ],
                 "text": "Fullmakten sparad till senare"
               }
             }
@@ -354,7 +357,10 @@
               "h": 40,
               "fart": 130,
               "onFangst": {
-                "raknas": "telefon",
+                "raknas": [
+                  "telefon",
+                  "ombud"
+                ],
                 "text": "Ombud utsett",
                 "taBortFlagga": "utser",
                 "ljud": "pling"

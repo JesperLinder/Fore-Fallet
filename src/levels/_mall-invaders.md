@@ -216,6 +216,7 @@ Se även "Nivåer med faser" i README: en nivå kan ha flera faser i följd med 
 | `tidslinje` | `fran`, `till`, `startDatum` ("ÅÅÅÅ-MM-DD"), `sekunderPerDag`, `y`, `markeringar` (`datum`, `etikett`), valfri `text`, `handelser` (`datum` och `steg`), `slutDatum` och `vidSlut: "forlust"`. Varje passerat datum sätter flaggan `datum:ÅÅÅÅ-MM-DD`. |
 | `genast` | Stoppuret: `namn`, `startFlagga`, `sekunder`, `tomFlagga`, `x`, `y`, `r`, valfritt `ljud` (tickar). |
 | `knappar` | Villkorade knappar: `text`, `x`, `y`, `b`, `variant`, `villkor` (`krav` = någon av flaggorna, `inte` = flaggan får inte vara satt, `annars` = förklaringen på den tonade knappen) och `handling` (`"vinst"`, `"forlust"` eller `{ "slapp", "flagga" }`). |
+| `raknas` (i en regel) | Ett räknarnamn, eller en lista som ökar flera räknare samtidigt, t.ex. `["fullmakt", "ombud"]`. |
 | `flagga`, `taBortFlagga` (i en regel) | Sätter eller tar bort en flagga. En räknare över noll räknas också som en satt flagga, även från en tidigare fas. |
 | Händelsesteg `flagga`, `text` | `{ "gor": "flagga", "namn" }` sätter en flagga; `{ "gor": "text", "text", "y", "farg", "textFarg" }` visar en pratbubbla. |
 | `strom.typer.*.lagra` | `{ "knapp": "Öppna", "regel": {…}, "utseendeEfter": "potatissack-oppnad", "y": 168 }`: fångade objekt läggs i en rad med en liten knapp. |

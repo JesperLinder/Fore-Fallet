@@ -596,12 +596,14 @@ export class Invaders implements Mekanik {
       this.hud.markeraMatare();
     }
     this.poang += r.poang ?? 0;
-    this.rakna(r.raknas);
+    const raknare = r.raknas === undefined ? [] : Array.isArray(r.raknas) ? r.raknas : [r.raknas];
+    raknare.forEach((n) => this.rakna(n));
     if (r.fyll && this.inst.matare.lage === 'fyll') {
       this.fyllSteg += r.fyll;
       this.hud.visaMatare(this.fyllSteg);
     }
-    if (r.raknas && r.raknas === this.inst.etapper?.raknare) this.visaEtapp((this.antal[r.raknas] ?? 0) - 1);
+    const etapp = this.inst.etapper?.raknare;
+    if (etapp && raknare.includes(etapp)) this.visaEtapp((this.antal[etapp] ?? 0) - 1);
   }
 
   /** Knappen från en fångstregel (t.ex. "Hoppa av kursen"). Med vinstvillkoret "knapp" avslutar ett tryck nivån/fasen. */
@@ -735,7 +737,7 @@ export class Invaders implements Mekanik {
     const mal = this.inst.mal;
     const malNatt = !!mal && (this.antal[mal.raknare] ?? 0) >= mal.antal;
     if (f.includes('mal-omojligt') && mal && this.strom && !malNatt) {
-      const kvar = this.strom.kvar((t) => t.onFangst?.raknas === mal.raknare);
+      const kvar = this.strom.kvar((t) => [t.onFangst?.raknas].flat().includes(mal.raknare));
       if ((this.antal[mal.raknare] ?? 0) + kvar < mal.antal) return this.forlora('mal-omojligt');
     }
 

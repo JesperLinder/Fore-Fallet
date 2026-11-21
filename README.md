@@ -611,6 +611,8 @@ i `invaders` och påverkar inte nivåer som inte använder det.
 - `slutText`: en pratbubbla när nivån eller fasen är vunnen, t.ex. "Säckarna gick vidare till sex odlare."
 - `musik`: bossmusik under spelet ("boss-d").
 - Med faser räknas tidigare fasers räknare in i stjärnkraven (t.ex. `minAntal: { "fullmakt": 1 }` från fas 1).
+- En regels `raknas` kan vara en lista, t.ex. `["fullmakt", "ombud"]`: båda räknarna ökar. Potatispartiet ger 2★
+  med `minAntal: { "ombud": 1 }`, som både fullmakten (fas 1) och telefonen (fas 2) räknar.
 
 Objekt med `utseende` (t.ex. `"bil"`, `"golfboll"`) hämtar figuren från `src/mechanics/art.ts`.
 Behövs en helt ny figur är det enda stället som kräver kod. Alternativt kan den läggas som bild i `public/assets/`,

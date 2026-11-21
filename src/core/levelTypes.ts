@@ -1005,8 +1005,11 @@ export interface FangstRegel {
   /** Steg på en mätare med lage "fyll". */
   fyll?: number;
   poang?: number;
-  /** Räknas i en namngiven räknare (stjarnkrav.maxAntal, mal, forManga, summa). */
-  raknas?: string;
+  /**
+   * Räknas i en namngiven räknare (stjarnkrav.maxAntal, mal, forManga, summa), eller i flera samtidigt,
+   * t.ex. ["fullmakt", "ombud"].
+   */
+  raknas?: string | string[];
   /** Pratbubbla, t.ex. "Kunden gick" eller "+667 kr". Vinröd vid misstag, annars guld (bra) eller mörkgrön. */
   text?: string;
   /** "bra" (guld) eller "neutral" (mörkgrön) bubbla när regeln inte är ett misstag. Standard: bra. */
