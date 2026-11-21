@@ -65,6 +65,7 @@ Nästa nivå låses upp när den här har minst en stjärna.
 | `figur` | Rita bara en figur ur art.ts (t.ex. `"ufo"`), utan ruta och etikett. |
 | `skottGenom` | Skotten passerar brickorna, som alltså inte kan skjutas ner (t.ex. ufon som släpper hot). |
 | `vagor` | Valfritt. Fler vågor: en lista där varje våg ersätter valfria fält ovan (t.ex. `rader`, `steg`, `mellanrum`, `forskjutning`, `blanda`) och kan ha `text` (pratbubbla). Nästa våg kommer när alla brickor i den förra är borta eller har passerat. Vinstvillkoren `alla-klara` och `fel-borta` gäller först efter sista vågen. |
+| `upprepaVagor` | Valfritt. `true`: vågorna börjar om från första vågen i `vagor` när den sista är klar, tills nivån är vunnen eller förlorad (t.ex. när vinsten är en räknare som ska nå ett mål). |
 | `fastBredd` | Rutnätet vänder vid kanten räknat på hela den ursprungliga bredden. Då kommer det ner i samma takt även när brickor försvunnit. Utan detta (som i klassisk invaders) går färre brickor längre i sidled och kommer ner långsammare. |
 
 Ett skott tar den första bricka det möter.
@@ -82,6 +83,7 @@ träffas; i Kolsyretuberna är det tvärtom (`egen` ska fyllas, `annan` får pas
 | `onHit` | Vid träff. `effekt`: `"ta-bort"` (försvinner), `"fyll"` (fylls med en stigande nivå, lämnar uppåt, fräsande ljud) eller `"skaka"` (ligger kvar). Dessutom valfritt `poang`, `matare` (steg på mätaren), `misstag: true` (räknas i `maxMisstag`, med blink och skakning; `matare` räknas alltid som misstag), `text` (pratbubbla), `raknas` (namn på en räknare, se `maxAntal`) och `ersattTyp` (med `"ta-bort"`: brickans `ersattning` dyker upp som en bricka av den typen). Utelämnas `onHit` stoppas skottet utan effekt. |
 | `onPass` | När brickan når spelaren: `poang`, `matare` (räknas som misstag), `text` och `raknas`. `{}` = brickan passerar och inget händer. Utelämnas `onPass` stannar brickan, och nivån förloras om `forlust` innehåller `"botten"`. Bubblan är vinröd vid mätarsteg, mörkgrön vid poängavdrag eller när passagen räknas (`raknas`), och annars guld. |
 | `onPassDold` | Som `onPass` men för en bricka som fortfarande är dold (reveal). Utelämnas = `onPass`. |
+| `ljud` (i `onHit`/`onPass`) | Valfritt ljud, t.ex. `"plopp"`. Standard vid träff: `"traff"` (ta-bort) eller `"pssst"` (fyll). En träff med negativ `poang` och utan misstag visar texten i en mörkgrön bubbla. |
 
 ### `fangst` (valfritt)
 Saker som faller och ska fångas av spelaren.
@@ -170,7 +172,7 @@ Nivåer där spelaren bara fångar det som faller, med olika regler per sort. Se
 | `strom.intervall`, `slutIntervall`, `fordrojning` | Tid mellan objekten (ms) i början och i slutet (tempot ändras jämnt över nivåns `tid`), och väntan före det första. |
 | `strom.fart`, `y`, `kant` | Fallhastighet (punkter/s), starthöjd, och valfritt `{ "vanster", "hoger" }` för var objekten släpps. |
 | `matare.lage` | `"fyll"`: mätaren (visning `"kort"`) börjar tom och fylls av `fyll`, t.ex. "Vanlig service". Misstag påverkar den inte. |
-| `summa` | Räknarkort bredvid mätaren (visning `"kort"`): `namn`, `text` med `{varde}`, `raknare`, `totalt` och `antal`. Visar `totalt × fångade / antal`, t.ex. 2 000 kr efter 3. |
+| `summa` | Räknarkort bredvid mätaren (visning `"kort"`): `namn`, `text` med `{varde}`, `raknare`, `totalt` och `antal`. Visar `totalt × fångade / antal`, t.ex. 2 000 kr efter 3. Räknar allt med `raknas` lika med `raknare`, även brickor som passerar. `ljudVarje: { "varde": 1000, "ljud": "ding" }` spelar ljudet när värdet passerar en jämn multipel. |
 | `mal` | `{ "raknare", "antal" }` för vinsten `"mal"` och förlusten `"mal-omojligt"`. |
 | `forManga` | `{ "raknare", "max" }` för förlusten `"for-manga"`, t.ex. fler än 8 missade kunder. |
 
@@ -200,9 +202,9 @@ Strömmen har också `etikettY` (textens höjd på objektet) och `bubbla` (liten
 ### Kulisser, rullande väg och engångshändelser (valfritt)
 | Fält | Vad det gör |
 |---|---|
-| `kulisser` | Fasta figurer bakom spelet: `{ "utseende", "x", "y", "b", "h", "farg" }`, valfritt med `text` (`textY`, `textFarg`, `textStorlek`). Utan `utseende` blir det bara text. `fram: true` ritar framför spelaren, t.ex. en kassadisk. |
+| `kulisser` | Fasta figurer bakom spelet: `{ "id", "utseende", "x", "y", "b", "h", "farg" }` (`id` behövs bara för steget `byt`), valfritt med `text` (`textY`, `textFarg`, `textStorlek`). Utan `utseende` blir det bara text. `fram: true` ritar framför spelaren, t.ex. en kassadisk. |
 | `bakgrund` | `{ "typ": "vag", "x", "b", "topp", "fart" }`: en väg i höjdled vars streckade mittlinje rullar nedåt. |
-| `handelser` | Engångshändelser: `{ "start": ms, "steg": […] }`. Varje steg har `gor`, `langd` (ms), valfritt `efter` (när nästa steg börjar, standard `langd`) och `ljud`. Stegen: `in` (`id`, `utseende`, `b`, `h`, `fran`, `till`: en figur glider in), `ut` (`id`, `till`), `vicka` (`id`), `bubblor` (`x`, `y`, `farg`, valfri `flack` [rx, ry] som ligger kvar), `pratbubbla` (`x`, `y` = spetsen, `text`, `farg`, `textFarg`) och `vanta`. Spelaren kan inte påverka dem. |
+| `handelser` | Engångshändelser: `{ "start": ms, "steg": […] }`. Varje steg har `gor`, `langd` (ms), valfritt `efter` (när nästa steg börjar, standard `langd`) och `ljud`. Stegen: `in` (`id`, `utseende`, `b`, `h`, `fran`, `till`: en figur glider in), `ut` (`id`, `till`), `vicka` (`id`), `bubblor` (`x`, `y`, `farg`, valfri `flack` [rx, ry] som ligger kvar), `pratbubbla` (`x`, `y` = spetsen, `text`, `farg`, `textFarg`), `vanta`, `lys` (`x`, `y`, `r`, `farg`: en pulserande ring), `visa` (`utseende`, `x`, `y`, `b`, `h`, valfritt `id`, `fran`, `text`, `textY`, `textFarg`: en figur som växer fram) och `byt` (`id`, `utseende`: byter utseende på en figur eller en kulisse med `id`). Spelaren kan inte påverka dem. **`"start": "vinst"`** spelar händelsen när nivån är vunnen: spelet fryser, och domslutet kommer när händelsen är klar. `"hoppaOver": true` låter spelaren hoppa över den med ett tryck efter första gången. |
 
 En nivå utan brickor kan ha `"rader": []` eller utelämna `brickor`.
 I `_mall-invaders.json` ligger fälten för sköldläget under `_skoldlage_exempel`. Flytta upp dem direkt i `invaders` (och ta bort nyckeln) för att använda dem.

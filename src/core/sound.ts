@@ -9,7 +9,7 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick' | 'plopp' | 'ding' | 'avslojande';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel' | 'krasch'>;
 
 interface Ton {
@@ -95,6 +95,23 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 1500, till: 1200, start: 0, langd: 0.012, form: 'square', volym: 0.03 },
     { fran: 330, till: 300, start: 0, langd: 0.07, form: 'sine', volym: 0.2 },
   ],
+  // Torrt "plopp" när ett dåligt ägg skjuts bort: en kort ton som faller snabbt.
+  plopp: [
+    { fran: 620, till: 180, start: 0, langd: 0.07, form: 'sine', volym: 0.24 },
+    { fran: 2400, till: 1200, start: 0, langd: 0.012, form: 'square', volym: 0.03 },
+  ],
+  // Kort "ding" var 1 000:e portion: en ljus klocka.
+  ding: [
+    { fran: 1760, till: 1760, start: 0, langd: 0.35, form: 'sine', volym: 0.08 },
+    { fran: 3520, till: 3520, start: 0, langd: 0.12, form: 'sine', volym: 0.02 },
+  ],
+  // Lågt, dovt ackord vid avslöjandet (moll), långsamt avtonat.
+  avslojande: [
+    { fran: 110, till: 110, start: 0, langd: 1.4, form: 'triangle', volym: 0.2 },
+    { fran: 130.8, till: 130.8, start: 0.03, langd: 1.4, form: 'triangle', volym: 0.15 },
+    { fran: 164.8, till: 164.8, start: 0.06, langd: 1.4, form: 'triangle', volym: 0.12 },
+    { fran: 55, till: 55, start: 0, langd: 1.2, form: 'sine', volym: 0.18 },
+  ],
   // Hammarslag: ett torrt klick och en kort, dov smäll.
   hammare: [
     { fran: 1100, till: 600, start: 0, langd: 0.02, form: 'square', volym: 0.06 },
@@ -142,6 +159,10 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   krasch: 0.46,
   hammare: 0.75,
   tick: 0.92,
+  plopp: 0.81,
+  // Dinget hörs ofta (var 1 000:e portion) och ligger ett par dB under de andra.
+  ding: 0.65,
+  avslojande: 0.26,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };

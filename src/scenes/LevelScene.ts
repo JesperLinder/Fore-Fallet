@@ -123,7 +123,9 @@ export class LevelScene extends BasScen {
     // En lång titel (t.ex. "Det sönderrivna testamentet") bryts på två rader före pausknappen. Underkanten sparas
     // så att mekaniken kan börja under den; kortare titlar ser ut exakt som förut.
     const maxB = BREDD - avstand.l - 48 - 12 - titel.x;
-    if (titel.width > maxB) titel.setWordWrapWidth(maxB).setLineSpacing(-6);
+    // Bara lite för bred (högst 10 %): krymp texten i stället, så att rubriken ryms på en rad.
+    if (titel.width > maxB && titel.width <= maxB * 1.1) titel.setFontSize(Math.floor((30 * maxB) / titel.width));
+    else if (titel.width > maxB) titel.setWordWrapWidth(maxB).setLineSpacing(-6);
     this.data.set(RUBRIK_NEDERKANT, titel.y + titel.height);
     ikonKnapp(this, BREDD - avstand.l - 24, 44, mork ? 'konturMork' : 'mork', ritaPaus, () => this.pausa(true)).setDepth(40);
   }

@@ -704,6 +704,126 @@ const figurer: Record<string, Rita> = {
     g.lineStyle(3, farg.morkgron, 1).strokeRect(x - B / 2, y - H / 2, B, H);
     g.lineBetween(x, y - H / 2, x, y + H / 2).lineBetween(x - B / 2, y, x + B / 2, y);
   },
+
+  // ---------- Kapitel 2: Salmonellan i skolköket ----------
+
+  /** Centralköket: kakelvägg, spis med tre grytor och en ugn. */
+  kok(g, x, y, b, h) {
+    const B = b || 358;
+    const H = h || 70;
+    const l = x - B / 2;
+    const t = y - H / 2;
+    g.fillStyle(farg.beige, 1).fillRoundedRect(l, t, B, H, 8);
+    g.lineStyle(1, farg.morkockra, 0.18);
+    for (let px = l + 18; px < l + B; px += 18) g.lineBetween(px, t, px, t + H * 0.45);
+    g.fillStyle(farg.gron, 1).fillRect(l + 10, t + H * 0.45, B * 0.62, H * 0.55);
+    for (let i = 0; i < 3; i++) {
+      const px = l + 10 + (B * 0.62 * (i + 0.5)) / 3;
+      g.fillStyle(farg.morkgron, 1).fillRoundedRect(px - 20, t + H * 0.18, 40, H * 0.32, { tl: 4, tr: 4, bl: 8, br: 8 });
+      g.fillStyle(farg.beige, 1).fillRect(px - 22, t + H * 0.16, 44, 4);
+      g.fillCircle(px, t + H * 0.12, 3);
+    }
+    const ox = l + 18 + B * 0.62;
+    const ob = B - (ox - l) - 10;
+    g.fillStyle(farg.morkgron, 1).fillRoundedRect(ox, t + 8, ob, H - 8, 4);
+    g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(ox + 10, t + H * 0.42, ob - 20, H * 0.38, 3);
+    g.fillStyle(farg.guld, 1).fillCircle(ox + 14, t + 16, 3).fillCircle(ox + 26, t + 16, 3);
+  },
+
+  /** Transportbana i höjdled: beige band med räcken och rullar. */
+  transportband(g, x, y, b, h) {
+    const B = b || 330;
+    const H = h || 480;
+    g.fillStyle(farg.beige, 1).fillRect(x - B / 2, y - H / 2, B, H);
+    g.lineStyle(1, farg.morkockra, 0.22);
+    for (let py = y - H / 2 + 12; py < y + H / 2; py += 24) g.lineBetween(x - B / 2 + 6, py, x + B / 2 - 6, py);
+    g.fillStyle(farg.morkockra, 0.6).fillRect(x - B / 2 - 3, y - H / 2, 3, H).fillRect(x + B / 2, y - H / 2, 3, H);
+  },
+
+  /** Matsalen: golv och ett långt bord. */
+  matsal(g, x, y, b, h) {
+    const B = b || 390;
+    const H = h || 98;
+    g.fillStyle(farg.beige, 1).fillRect(x - B / 2, y - H / 2, B, H);
+    g.fillStyle(farg.morkockra, 1).fillRoundedRect(x - B / 2 + 130, y - 4, B - 150, 14, 4);
+    g.fillRect(x - B / 2 + 140, y + 10, 6, 22).fillRect(x + B / 2 - 32, y + 10, 6, 22);
+  },
+
+  /** Lunchbricka: grön bricka med tallrik och mat. */
+  lunchbricka(g, x, y, b, h) {
+    const B = b || 44;
+    const H = h || 30;
+    g.fillStyle(farg.gron, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 4);
+    const r = Math.min(B, H) * 0.36;
+    g.fillStyle(farg.ljusbeige, 1).fillCircle(x - B * 0.08, y, r);
+    g.fillStyle(farg.guld, 1).fillCircle(x - B * 0.08 - r * 0.3, y - r * 0.15, r * 0.35);
+    g.fillStyle(farg.vinrod, 1).fillCircle(x - B * 0.08 + r * 0.35, y + r * 0.2, r * 0.28);
+    g.lineStyle(2, farg.beige, 1).lineBetween(x + B * 0.34, y - H * 0.3, x + B * 0.34, y + H * 0.3);
+  },
+
+  /** Friskt ägg: ljust med tunn kontur. */
+  agg(g, x, y, _b, h) {
+    const ry = (h || 30) * 0.46;
+    g.fillStyle(farg.ljusbeige, 1).fillEllipse(x, y, ry * 1.5, ry * 2);
+    g.lineStyle(1.5, farg.morkockra, 1).strokeEllipse(x, y, ry * 1.5, ry * 2);
+  },
+
+  /** Synligt dåligt ägg: grönaktigt med små mörka prickar och en liten stank. */
+  'agg-dalig'(g, x, y, _b, h) {
+    const ry = (h || 30) * 0.46;
+    g.fillStyle(farg.beige, 1).fillEllipse(x, y, ry * 1.5, ry * 2);
+    g.fillStyle(farg.gron, 0.55).fillEllipse(x, y, ry * 1.5, ry * 2);
+    g.lineStyle(1.5, farg.gron, 1).strokeEllipse(x, y, ry * 1.5, ry * 2);
+    g.fillStyle(farg.morkgron, 1);
+    for (const [dx, dy] of [[-0.3, -0.35], [0.25, -0.1], [-0.15, 0.3], [0.3, 0.4], [0.05, -0.6]]) g.fillCircle(x + dx * ry, y + dy * ry, 1.6);
+    g.lineStyle(1.2, farg.gron, 0.9);
+    g.beginPath();
+    g.moveTo(x + ry * 0.9, y - ry * 1.1);
+    g.lineTo(x + ry * 1.15, y - ry * 1.35);
+    g.lineTo(x + ry * 0.95, y - ry * 1.6);
+    g.strokePath();
+  },
+
+  /** Sleif (spelaren): en djup slev uppåt med skaft nedåt. */
+  sleif(g, x, y, b, h) {
+    const B = b || 40;
+    const H = h || 50;
+    const r = B * 0.36;
+    const by = y - H / 2 + r;
+    g.lineStyle(5, farg.morkgron, 1).lineBetween(x, by + r * 0.6, x, y + H / 2);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x, y + H / 2 - 2, 4);
+    g.fillStyle(farg.gron, 1);
+    g.beginPath();
+    g.arc(x, by, r, 0, Math.PI, false);
+    g.closePath();
+    g.fillPath();
+    g.lineStyle(3, farg.morkgron, 1).lineBetween(x - r - 2, by, x + r + 2, by);
+  },
+
+  /** Lärare i matsalen. */
+  larare(g, x, y, b, h) {
+    ritaLarare(g, x, y, b || 34, h || 56, false);
+  },
+
+  /** Läraren, illamående: grönaktig ton, en svettdroppe och en vågig mun. Diskret. */
+  'larare-illa'(g, x, y, b, h) {
+    ritaLarare(g, x, y, b || 34, h || 56, true);
+  },
+
+  /** Förstoringslins över ett helt vanligt ägg på en bricka. */
+  'lins-agg'(g, x, y, b) {
+    const R = (b || 150) * 0.38;
+    g.lineStyle(12, farg.morkgron, 1).lineBetween(x + R * 0.72, y + R * 0.72, x + R * 1.25, y + R * 1.25);
+    g.fillStyle(farg.ljusbeige, 1).fillCircle(x, y, R);
+    g.fillStyle(farg.gron, 1).fillRect(x - R * 0.85, y + R * 0.25, R * 1.7, R * 0.5);
+    g.fillStyle(farg.beige, 1).fillEllipse(x, y - R * 0.05, R * 0.7, R * 0.92);
+    g.lineStyle(2.5, farg.morkockra, 1).strokeEllipse(x, y - R * 0.05, R * 0.7, R * 0.92);
+    g.lineStyle(7, farg.morkgron, 1).strokeCircle(x, y, R);
+    g.lineStyle(2, farg.ljusbeige, 0.9);
+    g.beginPath();
+    g.arc(x, y, R - 12, Math.PI * 1.1, Math.PI * 1.4);
+    g.strokePath();
+  },
 };
 
 /** Kalenderblad: fyllt blad, mörk list upptill med två ringar och en tunn kontur. */
@@ -791,5 +911,35 @@ function ritaBlankett(g: Phaser.GameObjects.Graphics, x: number, y: number, b: n
     g.fillStyle(farg.guld, 1).fillCircle(sx, sy, 13);
     g.lineStyle(1.5, farg.ljusbeige, 1).strokeCircle(sx, sy, 9.5);
     fyllStjarna(g, sx, sy, 12, farg.ljusbeige);
+  }
+}
+
+/** Lärare: huvud med hår, kropp. illa: grönaktig ton i ansiktet, svettdroppe och vågig mun (diskret). */
+function ritaLarare(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, illa: boolean): void {
+  const r = b * 0.32;
+  const hy = y - h / 2 + r;
+  g.fillStyle(farg.vinrod, 1).fillRoundedRect(x - b / 2, hy + r + 2, b, h - 2 * r - 2, { tl: 12, tr: 12, bl: 3, br: 3 });
+  g.fillStyle(farg.beige, 1).fillCircle(x, hy, r);
+  if (illa) g.fillStyle(farg.gron, 0.32).fillCircle(x, hy, r);
+  g.lineStyle(1.5, farg.morkgron, 1).strokeCircle(x, hy, r);
+  g.fillStyle(farg.morkgron, 1).fillRoundedRect(x - r, hy - r - 1, r * 2, r * 0.55, { tl: r, tr: r, bl: 0, br: 0 });
+  g.fillCircle(x - r * 0.38, hy + r * 0.05, 1.5).fillCircle(x + r * 0.38, hy + r * 0.05, 1.5);
+  g.lineStyle(1.5, farg.morkgron, 1);
+  g.beginPath();
+  if (illa) {
+    g.moveTo(x - r * 0.4, hy + r * 0.5);
+    g.lineTo(x - r * 0.15, hy + r * 0.42);
+    g.lineTo(x + r * 0.1, hy + r * 0.55);
+    g.lineTo(x + r * 0.4, hy + r * 0.45);
+  } else {
+    g.arc(x, hy + r * 0.15, r * 0.38, Math.PI * 0.2, Math.PI * 0.8);
+  }
+  g.strokePath();
+  if (illa) {
+    // Svettdroppe vid tinningen.
+    const dx = x + r * 0.95;
+    const dy = hy - r * 0.2;
+    g.fillStyle(farg.ljusbeige, 1).fillTriangle(dx - 3, dy, dx + 3, dy, dx, dy - 6).fillCircle(dx, dy + 1, 3);
+    g.lineStyle(1, farg.gron, 1).strokeCircle(dx, dy + 1, 3);
   }
 }

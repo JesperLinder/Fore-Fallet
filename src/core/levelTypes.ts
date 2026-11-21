@@ -489,8 +489,9 @@ export interface InvadersInstallningar {
    * Räknare i ett kort bredvid mätaren (kräver matare.visning "kort"), t.ex. "Skadestånd 2 000 kr".
    * Visar round(totalt × antal fångade / antal), där antal fångade är räknaren "raknare". {varde} byts mot värdet.
    * Utan totalt och antal visas räknaren som den är (t.ex. "Ingrepp 2").
+   * ljudVarje: spela ljudet varje gång värdet passerar en jämn multipel, t.ex. { "varde": 1000, "ljud": "ding" }.
    */
-  summa?: { namn: string; text: string; raknare: string; totalt?: number; antal?: number };
+  summa?: { namn: string; text: string; raknare: string; totalt?: number; antal?: number; ljudVarje?: { varde: number; ljud: Ljud } };
   /** Vinst "mal": räknaren har nått antal. Förlust "mal-omojligt": det finns inte tillräckligt många kvar i strömmen. */
   mal?: { raknare: string; antal: number };
   /** Förlust "for-manga": räknaren har gått över max, t.ex. { "raknare": "missad", "max": 8 }. */
@@ -586,6 +587,8 @@ export type BrickInstallningar = RutnatInstallningar<BrickData> & {
    * Fälten ersätter motsvarande fält i "brickor" (t.ex. rader, steg, mellanrum). text: pratbubbla vid start.
    */
   vagor?: (Partial<RutnatInstallningar<BrickData>> & { text?: string })[];
+  /** Börja om med första vågen i "vagor" när den sista är klar (tills nivån är vunnen eller förlorad). */
+  upprepaVagor?: boolean;
 };
 
 /** Ett marscherande rutnät (invaders-brickor, hybridens borgenärer). */
@@ -649,6 +652,8 @@ export interface TraffRegel {
   raknas?: string;
   /** Bara "ta-bort": brickans "ersattning" dyker upp på samma plats, som en bricka av den här typen. */
   ersattTyp?: string;
+  /** Ljud vid träffen (standard: "traff" för ta-bort, "pssst" för fyll), t.ex. "plopp". */
+  ljud?: Ljud;
 }
 
 export interface BrickData {
@@ -778,6 +783,8 @@ export interface BottenRegel {
   text?: string;
   /** Räknas i en namngiven räknare, för stjarnkrav.maxAntal (t.ex. "missad"). */
   raknas?: string;
+  /** Valfritt ljud när brickan passerar. */
+  ljud?: Ljud;
 }
 
 export interface FangstData {
@@ -922,6 +929,8 @@ export interface VaxandeZon {
 
 /** En fast figur bakom spelet, valfritt med text. Utan utseende blir det bara text. */
 export interface Kulisse {
+  /** Valfritt id, så att en engångshändelse kan byta figuren (steget "byt"), t.ex. "larare". */
+  id?: string;
   utseende?: string;
   x: number;
   y: number;
@@ -940,9 +949,14 @@ export interface Kulisse {
 
 /** En händelse som spelas upp en gång, i steg. Steget börjar "efter" ms efter föregående stegs början (standard: dess längd). */
 export interface Engangshandelse {
-  /** Tid från start (ms). */
-  start: number;
+  /**
+   * Tid från start (ms), eller "vinst": händelsen spelas när nivån är vunnen. Då fryser spelet medan den pågår
+   * och domslutet visas när den är klar (en scriptad avslutning).
+   */
+  start: number | 'vinst';
   steg: HandelseSteg[];
+  /** Bara "vinst": efter första gången nivån klarats går händelsen att hoppa över med ett tryck. */
+  hoppaOver?: boolean;
 }
 
 type Punkt = [number, number];
@@ -954,6 +968,15 @@ export type HandelseSteg = (
   | { gor: 'bubblor'; x: number; y: number; farg: FargNamn; /** Lämna en färgad fläck kvar efteråt (rx, ry). */ flack?: Punkt }
   | { gor: 'pratbubbla'; x: number; y: number; text: string; farg: FargNamn; textFarg: FargNamn }
   | { gor: 'vanta' }
+  /** En ljus ring som pulserar runt (x, y), t.ex. runt en bricka som lyser upp. */
+  | { gor: 'lys'; x: number; y: number; r?: number; farg?: FargNamn }
+  /**
+   * En figur dyker upp och växer fram vid (x, y), valfritt från punkten fran (t.ex. en lins som zoomar in), med en
+   * valfri textrad under. Med id kan den bytas eller flyttas senare.
+   */
+  | { gor: 'visa'; id?: string; utseende: string; x: number; y: number; b?: number; h?: number; fran?: Punkt; text?: string; textFarg?: FargNamn; textY?: number }
+  /** Byter utseende på en figur (en kulisse eller en tidigare figur med samma id), t.ex. en lärare som blir illamående. */
+  | { gor: 'byt'; id: string; utseende: string }
 ) & { langd: number; efter?: number; ljud?: Ljud };
 
 // ---------- Hybrid ----------

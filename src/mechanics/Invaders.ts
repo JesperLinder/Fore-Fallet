@@ -16,7 +16,7 @@ import { BREDD, HOJD, MITT_X } from '../config/display';
 import type { BottenRegel, BrickInstallningar, FangstRegel, ForlustOrsak, InvadersInstallningar, Niva, SkyddData } from '../core/levelTypes';
 import type { FargNamn } from '../config/theme';
 import { pratbubbla } from '../ui/Badge';
-import { spela } from '../core/sound';
+import { spela, type Ljud } from '../core/sound';
 import type { Mekanik, MekanikKontext } from './Mechanic';
 import { ritaFigur } from './art';
 import { Rutnat, type Bricka } from './invaders/grid';
@@ -25,6 +25,7 @@ import { byggHud, INFO_Y, type InvadersHud } from './invaders/hud';
 import { FallandeHot } from './invaders/threats';
 import { Dekorhandelser } from './invaders/decor';
 import { skapaText } from '../ui/text';
+import { text } from '../config/strings';
 import { streckadLinje } from '../ui/shapes';
 import { visaStart } from './common/startPanel';
 import { spelTips } from '../ui/TipPanel';
@@ -88,6 +89,8 @@ export class Invaders implements Mekanik {
   /** Etapperna (delar som visas en i taget) och regler vars text eller talbubbla redan visats en gång. */
   private etapper: Phaser.GameObjects.Container[] = [];
   private visadEnGang = new Set<object>();
+  /** Den scriptade avslutningen (handelser med start "vinst") pågår: spelet står still. */
+  private slutscen = false;
 
   private startad = false;
   private pausad = false;
@@ -125,9 +128,14 @@ export class Invaders implements Mekanik {
     this.skydd = (this.inst.skydd ?? []).map((d) => this.skapaSkydd(d));
     this.fangst = (this.inst.fangst ?? []).map((d) => skapaFangst(this.scene, d));
     if (this.inst.bakgrund) this.vag = new RullandeVag(this.scene, this.inst.bakgrund);
-    if (this.inst.kulisser) ritaKulisser(this.scene, this.inst.kulisser);
+    const kulisser = this.inst.kulisser ? ritaKulisser(this.scene, this.inst.kulisser) : [];
     if (this.inst.strom) this.strom = new Fangststrom(this.scene, this.inst.strom);
     if (this.inst.handelser) this.handelser = new Engangshandelser(this.scene, this.inst.handelser);
+    // Kulisser med id kan bytas av en engångshändelse (t.ex. läraren i matsalen).
+    this.inst.kulisser?.forEach((k, i) => {
+      const g = kulisser[i].list[0];
+      if (k.id && g instanceof Phaser.GameObjects.Graphics) this.handelser?.registrera(k.id, g, k.b, k.h);
+    });
     if (this.inst.etapper) this.etapper = this.inst.etapper.delar.map((d) => ritaKulisse(this.scene, d).setAlpha(0));
     if (this.inst.vaxande) this.vaxande = new VaxandeMalen(this.scene, this.inst.vaxande);
     this.ritaInstruktion();
@@ -292,6 +300,11 @@ export class Invaders implements Mekanik {
   // ---------- Spelloopen ----------
 
   private uppdatera(_tid: number, dt: number): void {
+    // Den scriptade avslutningen: allt annat står still medan händelsen spelas.
+    if (this.slutscen) {
+      if (!this.pausad) this.handelser?.uppdatera(Math.min(dt, 50));
+      return;
+    }
     if (!this.aktiv()) return;
     dt = Math.min(dt, 50); // hoppa inte långt efter en hackning
     this.klocka += dt;
@@ -374,10 +387,10 @@ export class Invaders implements Mekanik {
     if (regel.effekt === 'ta-bort') {
       this.rutnat.taBort(bricka);
       if (regel.ersattTyp) this.rutnat.ersatt(bricka, regel.ersattTyp);
-      spela('traff');
+      spela(regel.ljud ?? 'traff');
     } else if (regel.effekt === 'fyll') {
       this.rutnat.fyll(bricka);
-      spela('pssst');
+      spela(regel.ljud ?? 'pssst');
     } else {
       this.skakaBricka(bricka);
     }
@@ -385,16 +398,27 @@ export class Invaders implements Mekanik {
     this.rakna(regel.raknas);
     const textY = mitt.y + this.inst.brickor.h / 2 + 22;
     if (regel.misstag || regel.matare) this.registreraMisstag(regel.matare ?? 0, regel.text, mitt.x, textY);
+    else if (regel.text && (regel.poang ?? 0) < 0) this.popup(mitt.x, textY, regel.text, 'morkgron', 'ljusbeige');
     else if (regel.text) this.popup(mitt.x, textY, regel.text, 'guld', 'morkgron');
   }
 
   private rakna(namn?: string): void {
-    if (namn) this.antal[namn] = (this.antal[namn] ?? 0) + 1;
+    if (!namn) return;
+    const fore = this.summaVarde();
+    this.antal[namn] = (this.antal[namn] ?? 0) + 1;
+    const s = this.inst.summa;
+    if (namn !== s?.raknare) return;
+    this.visaSumma();
+    // Ljud när värdet passerar en jämn multipel, t.ex. ett "ding" var 1 000:e portion.
+    const lv = s.ljudVarje;
+    if (lv && Math.floor(this.summaVarde() / lv.varde) > Math.floor(fore / lv.varde)) spela(lv.ljud);
   }
 
   /** När en våg är klar och det finns fler i brickor.vagor: nästa våg marscherar in. */
   private kollaVag(): void {
     const vagor = this.inst.brickor.vagor ?? [];
+    // Med upprepaVagor börjar vågorna om när den sista är klar.
+    if (this.inst.brickor.upprepaVagor && vagor.length && this.nastaVag >= vagor.length && this.rutnat.allaKlara()) this.nastaVag = 0;
     if (this.vagByte || this.nastaVag >= vagor.length || !this.rutnat.allaKlara()) return;
     const vag = vagor[this.nastaVag++];
     this.vagByte = true;
@@ -490,7 +514,6 @@ export class Invaders implements Mekanik {
       this.fyllSteg += r.fyll;
       this.hud.visaMatare(this.fyllSteg);
     }
-    if (r.raknas && r.raknas === this.inst.summa?.raknare) this.visaSumma();
     if (r.raknas && r.raknas === this.inst.etapper?.raknare) this.visaEtapp((this.antal[r.raknas] ?? 0) - 1);
   }
 
@@ -498,9 +521,15 @@ export class Invaders implements Mekanik {
   private visaSumma(): void {
     const s = this.inst.summa;
     if (!s) return;
+    this.hud.visaSumma(s.text.replace('{varde}', this.summaVarde().toLocaleString('sv-SE')));
+  }
+
+  /** Summans värde: round(totalt × fångade / antal), eller bara räknaren utan totalt och antal. */
+  private summaVarde(): number {
+    const s = this.inst.summa;
+    if (!s) return 0;
     const fangade = this.antal[s.raknare] ?? 0;
-    const varde = (s.totalt && s.antal ? Math.round((s.totalt * Math.min(fangade, s.antal)) / s.antal) : fangade).toLocaleString('sv-SE');
-    this.hud.visaSumma(s.text.replace('{varde}', varde));
+    return s.totalt && s.antal ? Math.round((s.totalt * Math.min(fangade, s.antal)) / s.antal) : fangade;
   }
 
   /** Visar etapp nummer i (t.ex. trähusets tak) med en liten studs. */
@@ -543,6 +572,7 @@ export class Invaders implements Mekanik {
     const linje = sp.y - sp.h / 2;
     const texter = new Map<string, 'misstag' | 'avdrag' | 'bra'>();
     const vikt = { bra: 0, avdrag: 1, misstag: 2 };
+    const ljud = new Set<Ljud>();
     for (const b of this.rutnat.brickor) {
       if (!b.levande) continue;
       if (this.rutnat.varldsMitt(b).y + this.inst.brickor.h / 2 < linje) continue;
@@ -553,11 +583,13 @@ export class Invaders implements Mekanik {
       this.poang += regel.poang ?? 0;
       this.rakna(regel.raknas);
       if (regel.matare) this.registreraMisstag(regel.matare);
+      if (regel.ljud) ljud.add(regel.ljud);
       if (!regel.text) continue;
       const slag = regel.matare ? 'misstag' : (regel.poang ?? 0) < 0 || regel.raknas ? 'avdrag' : 'bra';
       const tidigare = texter.get(regel.text);
       if (!tidigare || vikt[slag] > vikt[tidigare]) texter.set(regel.text, slag);
     }
+    ljud.forEach((l) => spela(l));
     let y = sp.y + sp.h / 2 + 26;
     for (const [text, slag] of texter) {
       if (slag === 'misstag') this.popup(MITT_X, y, text, 'vinrod', 'ljusbeige');
@@ -633,19 +665,44 @@ export class Invaders implements Mekanik {
   private vinna(): void {
     this.klar = true;
     this.avslutaStyrning();
-    const tid = this.bildaSlutrad();
-    this.scene.time.delayedCall(tid, () =>
-      this.kontext.avsluta({
-        poang: this.poang,
-        skadestand: 0,
-        nollstallt: false,
-        misstag: this.misstag,
-        tidKvar: Math.max(0, this.tidKvar),
-        matareKvar: this.matareKvar(),
-        dekorForlorade: this.dekor?.forlorade(),
-        antal: this.antal,
+    let tid = this.bildaSlutrad();
+    if (this.handelser?.harVinst()) {
+      // Scriptad avslutning: allt fryser, händelsen spelas och domslutet kommer när den är klar.
+      this.slutscen = true;
+      tid = Math.max(tid, this.handelser.startaVinst() + 300);
+      if (this.handelser.kanHoppas() && framsteg.arKlar(this.niva.id)) this.erbjudHoppa();
+    }
+    this.slutTimer = this.scene.time.delayedCall(tid, () => this.rapporteraVinst());
+  }
+
+  private slutTimer?: Phaser.Time.TimerEvent;
+
+  /** Efter första gången: ett tryck hoppar över den scriptade avslutningen. */
+  private erbjudHoppa(): void {
+    // Texten på en liten mörk lapp längst ner, så att den syns oavsett vad som ligger bakom.
+    const t = skapaText(this.scene, MITT_X, HOJD - 22, text.niva.hoppaOver, 'liten', 'ljusbeige', { origo: [0.5, 0.5], storlek: 12 }).setDepth(46);
+    this.scene.add.graphics().setDepth(45).fillStyle(farg.morkgron, 0.92).fillRoundedRect(t.x - t.width / 2 - 14, t.y - 13, t.width + 28, 26, 13);
+    // En kort fördröjning, så att fingret som släpps efter sista skottet inte hoppar över av misstag.
+    this.scene.time.delayedCall(350, () =>
+      this.scene.input.once('pointerup', () => {
+        if (!this.slutTimer || this.slutTimer.getOverallProgress() >= 1) return;
+        this.slutTimer.remove(false);
+        this.rapporteraVinst();
       }),
     );
+  }
+
+  private rapporteraVinst(): void {
+    this.kontext.avsluta({
+      poang: this.poang,
+      skadestand: 0,
+      nollstallt: false,
+      misstag: this.misstag,
+      tidKvar: Math.max(0, this.tidKvar),
+      matareKvar: this.matareKvar(),
+      dekorForlorade: this.dekor?.forlorade(),
+      antal: this.antal,
+    });
   }
 
   /** Flyttar brickor och fångstobjekt med "plats" till en rad, t.ex. KROGKUNG. Returnerar animationens längd (ms). */

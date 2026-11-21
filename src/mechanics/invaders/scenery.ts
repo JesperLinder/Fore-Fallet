@@ -20,8 +20,9 @@ const DJUP_BAKOM = 2;
 const DJUP_FRAM = 21;
 const DJUP_HANDELSE = 6;
 
-export function ritaKulisser(scene: Phaser.Scene, kulisser: Kulisse[]): void {
-  for (const k of kulisser) ritaKulisse(scene, k);
+/** Ritar kulisserna och returnerar deras behållare (i samma ordning). */
+export function ritaKulisser(scene: Phaser.Scene, kulisser: Kulisse[]): Phaser.GameObjects.Container[] {
+  return kulisser.map((k) => ritaKulisse(scene, k));
 }
 
 /** Ritar en kulisse i en behållare med mittpunkten i (x, y), så att den kan tonas eller skalas in (t.ex. en etapp). */
@@ -105,17 +106,53 @@ interface Bubbelkalla {
 
 const BUBBLA_MS = 70;
 
+/** Djup för det som visas i en scriptad avslutning: över spelplanen och spelaren. */
+const DJUP_SLUT = 35;
+
 export class Engangshandelser {
   private tid = 0;
   private spelningar: Spelning[];
   private figurer = new Map<string, Phaser.GameObjects.Graphics>();
+  /** Storlek per figur-id, så att steget "byt" ritar den nya figuren lika stor. */
+  private storlek = new Map<string, [number, number]>();
   private bubblor: Bubbelkalla[] = [];
 
   constructor(
     private scene: Phaser.Scene,
     lista: Engangshandelse[],
   ) {
-    this.spelningar = lista.map((h) => ({ h, i: 0, nasta: h.start }));
+    // Händelser med start "vinst" väntar tills startaVinst() anropas.
+    this.spelningar = lista.map((h) => ({ h, i: 0, nasta: h.start === 'vinst' ? Infinity : h.start }));
+  }
+
+  /** Gör en kulisse (dess grafik, ritad kring (0, 0)) åtkomlig för steget "byt" under sitt id. */
+  registrera(id: string, g: Phaser.GameObjects.Graphics, b = 0, h = 0): void {
+    this.figurer.set(id, g);
+    this.storlek.set(id, [b, h]);
+  }
+
+  /** Sant om någon händelse ska spelas vid vinst, och om den går att hoppa över. */
+  harVinst(): boolean {
+    return this.spelningar.some((s) => s.h.start === 'vinst');
+  }
+
+  kanHoppas(): boolean {
+    return this.spelningar.some((s) => s.h.start === 'vinst' && s.h.hoppaOver);
+  }
+
+  /** Startar händelserna med start "vinst". Returnerar hur länge de pågår (ms). */
+  startaVinst(): number {
+    let langst = 0;
+    for (const s of this.spelningar) {
+      if (s.h.start !== 'vinst') continue;
+      s.nasta = this.tid;
+      let t = 0;
+      for (const steg of s.h.steg) {
+        langst = Math.max(langst, t + steg.langd);
+        t += steg.efter ?? steg.langd;
+      }
+    }
+    return langst;
   }
 
   uppdatera(dt: number): void {
@@ -178,7 +215,56 @@ export class Engangshandelser {
         break;
       case 'vanta':
         break;
+      case 'lys':
+        this.lys(steg.x, steg.y, steg.r ?? 34, farg[steg.farg ?? 'guld'], steg.langd);
+        break;
+      case 'visa': {
+        const [fx, fy] = steg.fran ?? [steg.x, steg.y];
+        const g = this.scene.add.graphics({ x: fx, y: fy }).setDepth(DJUP_SLUT).setScale(0.15).setAlpha(0);
+        ritaFigur(g, steg.utseende, 0, 0, steg.b ?? 0, steg.h ?? 0);
+        const tid = Math.min(500, steg.langd);
+        this.scene.tweens.add({ targets: g, x: steg.x, y: steg.y, scale: 1, alpha: 1, duration: tid, ease: 'Back.easeOut' });
+        if (steg.id) {
+          this.figurer.set(steg.id, g);
+          this.storlek.set(steg.id, [steg.b ?? 0, steg.h ?? 0]);
+        }
+        if (steg.text) {
+          const t = skapaText(this.scene, steg.x, steg.y + (steg.textY ?? (steg.h ?? 60) / 2 + 18), steg.text, 'knapp', steg.textFarg ?? 'morkgron', {
+            origo: [0.5, 0.5],
+            storlek: 14,
+            bredd: BREDD - 60,
+            justering: 'center',
+          }).setDepth(DJUP_SLUT + 1).setAlpha(0);
+          const bakom = this.scene.add.graphics().setDepth(DJUP_SLUT).setAlpha(0);
+          bakom.fillStyle(farg.ljusbeige, 0.95).fillRoundedRect(t.x - t.width / 2 - 12, t.y - t.height / 2 - 6, t.width + 24, t.height + 12, 12);
+          this.scene.tweens.add({ targets: [t, bakom], alpha: 1, delay: tid * 0.7, duration: 250 });
+        }
+        break;
+      }
+      case 'byt': {
+        const g = this.figurer.get(steg.id);
+        if (!g) {
+          console.warn(`Händelsen "byt": ingen figur med id "${steg.id}"`);
+          break;
+        }
+        const [b, h] = this.storlek.get(steg.id) ?? [0, 0];
+        g.clear();
+        ritaFigur(g, steg.utseende, 0, 0, b, h);
+        const x = g.x;
+        this.scene.tweens.add({ targets: g, x: x + 2, duration: 90, yoyo: true, repeat: 3, onComplete: () => g.setX(x) });
+        break;
+      }
     }
+  }
+
+  /** En ljus ring som pulserar runt (x, y) och tonas bort efter langd ms. */
+  private lys(x: number, y: number, r: number, f: number, langd: number): void {
+    const g = this.scene.add.graphics({ x, y }).setDepth(22).setAlpha(0);
+    g.fillStyle(f, 0.28).fillCircle(0, 0, r);
+    g.lineStyle(3, f, 1).strokeCircle(0, 0, r);
+    g.lineStyle(1.5, farg.ljusbeige, 0.9).strokeCircle(0, 0, r - 5);
+    this.scene.tweens.add({ targets: g, alpha: 1, duration: 200 });
+    this.scene.tweens.add({ targets: g, scale: 1.15, duration: 380, yoyo: true, repeat: Math.max(0, Math.round(langd / 760) - 1) });
   }
 
   private bubbla(k: Bubbelkalla): void {

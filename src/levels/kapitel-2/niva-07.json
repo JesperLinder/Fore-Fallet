@@ -4,5 +4,511 @@
   "referens": "NJA 1989 s. 389",
   "rattsomrade": "Produktansvar",
   "mekanik": "invaders",
-  "kommerSnart": true
+  "fylgiaMal": false,
+  "tema": "ljus",
+  "uppdragstext": "Du driver centralköket som lagar lunch till 30 skolor. Sortera bort dåliga ägg och håll hygienen uppe. Gör allt rätt.",
+  "fylgiaTips": "Ibland räcker det inte att vara noggrann. Vid strikt ansvar spelar det ingen roll om du var vårdslös – bara om maten orsakade skadan.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "minMatare": 91
+    },
+    "tva": {
+      "minMatare": 61
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "ljusbeige",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "sleif",
+      "y": 712,
+      "b": 40,
+      "h": 50
+    },
+    "skott": {
+      "lage": "slapp",
+      "intervall": 220,
+      "fart": 900,
+      "utseende": "stampelavtryck"
+    },
+    "kulisser": [
+      {
+        "utseende": "kok",
+        "x": 195,
+        "y": 192,
+        "b": 358,
+        "h": 64
+      },
+      {
+        "utseende": "transportband",
+        "x": 195,
+        "y": 466,
+        "b": 330,
+        "h": 520
+      },
+      {
+        "utseende": "matsal",
+        "x": 195,
+        "y": 795,
+        "b": 390,
+        "h": 98
+      },
+      {
+        "id": "larare",
+        "utseende": "larare",
+        "x": 64,
+        "y": 790,
+        "b": 34,
+        "h": 56
+      },
+      {
+        "utseende": "lunchbricka",
+        "x": 300,
+        "y": 782,
+        "b": 40,
+        "h": 24
+      }
+    ],
+    "brickor": {
+      "typer": {
+        "bricka": {
+          "figur": "lunchbricka",
+          "onPass": {
+            "raknas": "portioner"
+          }
+        },
+        "agg": {
+          "figur": "agg",
+          "onPass": {
+            "raknas": "portioner"
+          },
+          "onHit": {
+            "effekt": "ta-bort",
+            "poang": -10,
+            "text": "Slöseri",
+            "raknas": "sloseri"
+          }
+        },
+        "dalig": {
+          "figur": "agg-dalig",
+          "skaBort": true,
+          "onHit": {
+            "effekt": "ta-bort",
+            "ljud": "plopp",
+            "raknas": "borta"
+          },
+          "onPass": {
+            "matare": 1,
+            "text": "Det där såg inte bra ut"
+          }
+        }
+      },
+      "rader": [
+        [
+          {
+            "etikett": "",
+            "typ": "bricka"
+          },
+          {
+            "etikett": "",
+            "typ": "agg"
+          },
+          {
+            "etikett": "",
+            "typ": "bricka"
+          },
+          {
+            "etikett": "",
+            "typ": "agg"
+          },
+          {
+            "etikett": "",
+            "typ": "bricka"
+          }
+        ],
+        [
+          {
+            "etikett": "",
+            "typ": "agg"
+          },
+          {
+            "etikett": "",
+            "typ": "dalig"
+          },
+          {
+            "etikett": "",
+            "typ": "agg"
+          },
+          {
+            "etikett": "",
+            "typ": "bricka"
+          },
+          {
+            "etikett": "",
+            "typ": "agg"
+          }
+        ],
+        [
+          {
+            "etikett": "",
+            "typ": "bricka"
+          },
+          {
+            "etikett": "",
+            "typ": "agg"
+          },
+          {
+            "etikett": "",
+            "typ": "dalig"
+          },
+          {
+            "etikett": "",
+            "typ": "agg"
+          },
+          {
+            "etikett": "",
+            "typ": "bricka"
+          }
+        ]
+      ],
+      "b": 44,
+      "h": 48,
+      "mellanrum": 16,
+      "startY": 236,
+      "steg": {
+        "x": 5,
+        "ned": 34,
+        "intervall": 80
+      },
+      "kant": {
+        "vanster": 30,
+        "hoger": 360
+      },
+      "fastBredd": true,
+      "vagor": [
+        {
+          "rader": [
+            [
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "dalig"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              }
+            ],
+            [
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "dalig"
+              }
+            ],
+            [
+              {
+                "etikett": "",
+                "typ": "dalig"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              }
+            ]
+          ],
+          "blanda": true,
+          "steg": {
+            "x": 5,
+            "ned": 34,
+            "intervall": 74
+          }
+        },
+        {
+          "rader": [
+            [
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "dalig"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              }
+            ],
+            [
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "dalig"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              }
+            ],
+            [
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "dalig"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              }
+            ]
+          ],
+          "blanda": true,
+          "steg": {
+            "x": 5,
+            "ned": 34,
+            "intervall": 68
+          }
+        },
+        {
+          "rader": [
+            [
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "dalig"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              }
+            ],
+            [
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "dalig"
+              }
+            ],
+            [
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              },
+              {
+                "etikett": "",
+                "typ": "bricka"
+              },
+              {
+                "etikett": "",
+                "typ": "agg"
+              }
+            ]
+          ],
+          "blanda": true,
+          "steg": {
+            "x": 5,
+            "ned": 34,
+            "intervall": 62
+          }
+        }
+      ],
+      "upprepaVagor": true
+    },
+    "handelser": [
+      {
+        "start": "vinst",
+        "hoppaOver": true,
+        "steg": [
+          {
+            "gor": "lys",
+            "x": 300,
+            "y": 782,
+            "r": 30,
+            "farg": "guld",
+            "langd": 3000,
+            "efter": 500
+          },
+          {
+            "gor": "visa",
+            "id": "lins",
+            "utseende": "lins-agg",
+            "x": 195,
+            "y": 420,
+            "b": 170,
+            "h": 170,
+            "fran": [
+              300,
+              782
+            ],
+            "text": "Salmonella – osynlig för blotta ögat",
+            "textY": 104,
+            "textFarg": "morkgron",
+            "langd": 2500,
+            "efter": 1200,
+            "ljud": "avslojande"
+          },
+          {
+            "gor": "byt",
+            "id": "larare",
+            "utseende": "larare-illa",
+            "langd": 1300
+          }
+        ]
+      }
+    ],
+    "summa": {
+      "namn": "Portioner",
+      "text": "{varde} / 9 500",
+      "raknare": "portioner",
+      "totalt": 9500,
+      "antal": 38,
+      "ljudVarje": {
+        "varde": 1000,
+        "ljud": "ding"
+      }
+    },
+    "matare": {
+      "namn": "Hygien",
+      "steg": 8,
+      "visning": "kort"
+    },
+    "mal": {
+      "raknare": "portioner",
+      "antal": 38
+    },
+    "vinst": [
+      "mal"
+    ],
+    "forlust": [
+      "matare-full"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Stängt av miljöförvaltningen.",
+    "orsaker": {
+      "matare-full": "Köket skötte sig inte."
+    }
+  },
+  "domslut": {
+    "rubrik": "Strikt ansvar",
+    "underrubrik": "Du skötte köket bra. Det hjälpte inte.",
+    "domskal": [
+      "Lärare blev sjuka av salmonellasmittad mat som lagats i ett centralkök som drevs av staden och serverats i skolans matsal.",
+      "Staden invände att köket var väl utrustat och sköttes väl.",
+      "HD lade ändå ett strikt produktskadeansvar på staden. Ansvaret gäller oavsett om någon har varit vårdslös."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1989s389"
+  }
 }

@@ -84,6 +84,8 @@ export const text = {
   },
 
   niva: {
+    /** Under en scriptad avslutning, efter första gången nivån klarats. */
+    hoppaOver: 'Tryck för att hoppa över',
     overrubrik: (nummer: number, referens: string) => `Nivå ${nummer} · ${referens}`,
     /** Före nivåetiketten från kapitel 2, t.ex. "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 visas utan. */
     kapitelPrefix: (kapitel: number) => `K${kapitel} · `,

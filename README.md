@@ -390,7 +390,7 @@ src/levels/
   kapitel-1/              "Klassikerna", de tio första nivåerna
     kapitel.json          kapitelfilen
     niva-01.json … niva-10.json
-  kapitel-2/              "Civilrätten": nivå 1–6 är spelbara, nivå 7–10 är "kommer snart"
+  kapitel-2/              "Civilrätten": nivå 1–7 är spelbara, nivå 8–10 är "kommer snart"
   _mall-*.json            mallar för nya nivåer (läses inte in)
 ```
 
@@ -438,7 +438,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 | 4 | `oxelhacken` | Oxelhäcken | NJA 1990 s. 71 | Grannerätt | invaders | **spelbar** |
 | 5 | `trahuset` | Trähuset | NJA 1985 s. 717 | Avtalsrätt | invaders | **spelbar** |
 | 6 | `testamentet` | Det sönderrivna testamentet | NJA 2017 s. 362 | Arvsrätt | memory | **spelbar** |
-| 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | kommer snart |
+| 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | **spelbar** |
 | 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | hybrid | kommer snart |
 | 9 | `tva-testamenten` | De två testamentena | NJA 2022 s. 509 | Arvsrätt | memory | kommer snart |
 | 10 | `potatispartiet` | Potatispartiet | NJA 1982 s. 301 | Köprätt | boss | kommer snart |
@@ -447,7 +447,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
   (och fyll på nivån) när den byggs.
 - Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
 - Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
-- Efter Det sönderrivna testamentet leder domslutets knapp till kartan (nästa nivå "kommer snart").
+- Efter Salmonellan i skolköket leder domslutets knapp till kartan (nästa nivå "kommer snart").
 
 ### Lägga till ett kapitel
 
@@ -768,11 +768,39 @@ I förkortad form:
 tonas in när räknaren når N, t.ex. väggar, tak, skorsten och fönster för varje bindande avtal. Strömmens sorter kan
 ha en liten pratbubbla (`bubbla`) och textens höjd (`etikettY`).
 
+**Scriptad avslutning (kapitel 2, nivå 7 Salmonellan i skolköket):** en engångshändelse med `"start": "vinst"`
+spelas när nivån är vunnen. Spelet fryser medan den pågår, och domslutet visas när den är klar. Med `"hoppaOver": true`
+går den att hoppa över med ett tryck efter första gången nivån klarats. Stegen `lys` (en ring som pulserar runt en
+punkt), `visa` (en figur som växer fram, valfritt från en punkt, med en textrad under) och `byt` (byter utseende på en
+figur, t.ex. en kulisse med `id`) gör avslöjandet möjligt. Övrigt nytt i invaders: `ljud` på bricktypernas `onHit` och
+`onPass`, summakortet räknar också brickor som passerar (`raknas`), `summa.ljudVarje` spelar ett ljud vid jämna steg
+(t.ex. ett "ding" var 1 000:e portion), och `brickor.upprepaVagor` börjar om vågorna tills nivån är avgjord.
+I förkortad form:
+
+```json
+"kulisser": [{ "id": "larare", "utseende": "larare", "x": 64, "y": 790 }, { "utseende": "lunchbricka", "x": 300, "y": 782 }, …],
+"brickor": { "typer": {
+    "bricka": { "figur": "lunchbricka", "onPass": { "raknas": "portioner" } },
+    "agg": { "figur": "agg", "onPass": { "raknas": "portioner" }, "onHit": { "effekt": "ta-bort", "poang": -10, "text": "Slöseri" } },
+    "dalig": { "figur": "agg-dalig", "onHit": { "effekt": "ta-bort", "ljud": "plopp" },
+               "onPass": { "matare": 1, "text": "Det där såg inte bra ut" } } },
+  "rader": […], "vagor": […], "upprepaVagor": true, … },
+"handelser": [{ "start": "vinst", "hoppaOver": true, "steg": [
+  { "gor": "lys", "x": 300, "y": 782, "r": 30, "farg": "guld", "langd": 3000, "efter": 500 },
+  { "gor": "visa", "id": "lins", "utseende": "lins-agg", "x": 195, "y": 420, "b": 170, "h": 170, "fran": [300, 782],
+    "text": "Salmonella – osynlig för blotta ögat", "textY": 104, "langd": 2500, "efter": 1200, "ljud": "avslojande" },
+  { "gor": "byt", "id": "larare", "utseende": "larare-illa", "langd": 1300 } ] }],
+"summa": { "namn": "Portioner", "text": "{varde} / 9 500", "raknare": "portioner", "totalt": 9500, "antal": 38,
+           "ljudVarje": { "varde": 1000, "ljud": "ding" } },
+"matare": { "namn": "Hygien", "steg": 8, "visning": "kort" },
+"mal": { "raknare": "portioner", "antal": 38 }, "vinst": ["mal"], "forlust": ["matare-full"]
+```
+
 **Styrning:** spelaren drar var som helst på skärmen för att flytta markören i sidled, och släpper för att skjuta.
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
 
-**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch" och "hammare" som nivåerna kan välja i reglerna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
+**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch", "hammare", "plopp", "ding" och det dova ackordet "avslojande" som nivåerna kan välja i reglerna och händelserna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
 
 ### Slangbella med fysikblock (sidovy)
 
@@ -938,7 +966,7 @@ Tröskellinjerna har etiketter och en valfri text när de passeras. Med `"vinst"
 när mätaren passerar `vinsttroskel`, även om par återstår. Kort med `del` (`"vanster"`/`"hoger"`) är halvor av ett
 sönderrivet papper med ojämn rivkant; när paret hittas glider halvorna ihop. `hud.missar` visar felvändningarna och
 `hud.placering: "under"` ställer HUD-korten under rutnätet. `baksida` och `vandLjud` ändrar baksidans färger och
-vändljudet. Domslutet kan ha en `fotnot` i mindre text. En lång titel bryts på två rader. I förkortad form:
+vändljudet. Domslutet kan ha en `fotnot` i mindre text. En lång titel bryts på två rader (är den bara lite för bred krymps den i stället). I förkortad form:
 
 ```json
 "memory": {
