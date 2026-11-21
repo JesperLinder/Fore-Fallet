@@ -1,14 +1,12 @@
 /**
  * Startskärmen: Fylgia uppe till vänster, stor lila fyruddig stjärna som långsamt roterar (ett varv på 20 s),
- * "Före fallet", "Ett prejudikatspel" och raden om fylgian. "Spela" tar en ny spelare direkt till första
- * nivån, annars till kartan. "Om spelet" öppnar Om-skärmen.
+ * "Före fallet", "Ett prejudikatspel" och raden om fylgian. "Spela" öppnar kapitelvalet (även för en ny spelare).
+ * "Om spelet" öppnar Om-skärmen.
  */
 import Phaser from 'phaser';
 import { BasScen } from './BaseScene';
 import { avstand, farg } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
-import { allaNivaer } from '../core/levels';
-import { framsteg } from '../core/progress';
 import { text } from '../config/strings';
 import { skapaText } from '../ui/text';
 import { fyllStjarna, streckadLinje } from '../ui/shapes';
@@ -42,11 +40,9 @@ export class TitleScene extends BasScen {
     new Knapp(this, MITT_X, 758, text.titel.omSpelet, { bredd: b, hojd: 56, variant: 'konturMork' }, () => this.bytTill('Om'));
   }
 
-  /** En ny spelare (inga sparade resultat) går direkt till första nivån, andra till kapitelvalet. */
+  /** "Spela" öppnar alltid kapitelvalet; därifrån kapitlets karta och nivåerna. */
   private spela(): void {
-    const ny = allaNivaer.every((n) => !framsteg.arKlar(n.id));
-    if (ny) this.bytTill('Level', { id: allaNivaer[0].id });
-    else this.bytTill('Kapitel');
+    this.bytTill('Kapitel');
   }
 
   /** Den stora stjärnan med ringar runt, som i mockupen. */

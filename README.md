@@ -280,7 +280,7 @@ scripts/                  kontroller (platshållare, bygget, store-texter) och i
 ## Skärmarna
 
 - **Startskärmen** (`TitleScene`) har två knappar:
-  - **Spela**: en ny spelare utan sparade resultat går direkt till nivå 1, andra till kapitelvalet.
+  - **Spela**: öppnar kapitelvalet, även för en ny spelare. Därifrån kapitlets karta och nivåerna.
   - **Om spelet**.
 
   Den lila stjärnan roterar ett varv på 20 sekunder.
