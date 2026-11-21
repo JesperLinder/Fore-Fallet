@@ -772,7 +772,7 @@ ha en liten pratbubbla (`bubbla`) och textens höjd (`etikettY`).
 spelas när nivån är vunnen. Spelet fryser medan den pågår, och domslutet visas när den är klar. Med `"hoppaOver": true`
 går den att hoppa över med ett tryck efter första gången nivån klarats. Stegen `lys` (en ring som pulserar runt en
 punkt), `visa` (en figur som växer fram, valfritt från en punkt, med en textrad under) och `byt` (byter utseende på en
-figur, t.ex. en kulisse med `id`) gör avslöjandet möjligt. Övrigt nytt i invaders: `ljud` på bricktypernas `onHit` och
+figur, t.ex. en kulisse med `id`) gör avslöjandet möjligt, och `tona` tonar ner spelplanen medan linsen visas. Övrigt nytt i invaders: `ljud` på bricktypernas `onHit` och
 `onPass`, summakortet räknar också brickor som passerar (`raknas`), `summa.ljudVarje` spelar ett ljud vid jämna steg
 (t.ex. ett "ding" var 1 000:e portion), och `brickor.upprepaVagor` börjar om vågorna tills nivån är avgjord.
 I förkortad form:
@@ -787,6 +787,7 @@ I förkortad form:
   "rader": […], "vagor": […], "upprepaVagor": true, … },
 "handelser": [{ "start": "vinst", "hoppaOver": true, "steg": [
   { "gor": "lys", "x": 300, "y": 782, "r": 30, "farg": "guld", "langd": 3000, "efter": 500 },
+  { "gor": "tona", "topp": 152, "botten": 746, "farg": "ljusbeige", "alpha": 0.78, "langd": 400, "efter": 0 },
   { "gor": "visa", "id": "lins", "utseende": "lins-agg", "x": 195, "y": 420, "b": 170, "h": 170, "fran": [300, 782],
     "text": "Salmonella – osynlig för blotta ögat", "textY": 104, "langd": 2500, "efter": 1200, "ljud": "avslojande" },
   { "gor": "byt", "id": "larare", "utseende": "larare-illa", "langd": 1300 } ] }],

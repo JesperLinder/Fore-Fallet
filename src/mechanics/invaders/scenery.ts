@@ -215,6 +215,13 @@ export class Engangshandelser {
         break;
       case 'vanta':
         break;
+      case 'tona': {
+        // Under ringarna från "lys" (djup 22) och det som visas med "visa", över spelplanen och spelaren.
+        const sloja = this.scene.add.rectangle(BREDD / 2, (steg.topp + steg.botten) / 2, BREDD, steg.botten - steg.topp, farg[steg.farg ?? 'ljusbeige'], 1);
+        sloja.setDepth(21.5).setAlpha(0);
+        this.scene.tweens.add({ targets: sloja, alpha: steg.alpha ?? 0.75, duration: steg.langd });
+        break;
+      }
       case 'lys':
         this.lys(steg.x, steg.y, steg.r ?? 34, farg[steg.farg ?? 'guld'], steg.langd);
         break;

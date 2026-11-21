@@ -441,6 +441,15 @@
             "efter": 500
           },
           {
+            "gor": "tona",
+            "topp": 152,
+            "botten": 746,
+            "farg": "ljusbeige",
+            "alpha": 0.78,
+            "langd": 400,
+            "efter": 0
+          },
+          {
             "gor": "visa",
             "id": "lins",
             "utseende": "lins-agg",

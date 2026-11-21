@@ -977,6 +977,11 @@ export type HandelseSteg = (
   | { gor: 'visa'; id?: string; utseende: string; x: number; y: number; b?: number; h?: number; fran?: Punkt; text?: string; textFarg?: FargNamn; textY?: number }
   /** Byter utseende på en figur (en kulisse eller en tidigare figur med samma id), t.ex. en lärare som blir illamående. */
   | { gor: 'byt'; id: string; utseende: string }
+  /**
+   * Tonar ner ett band av skärmen (från topp till botten, y) med en halvgenomskinlig färg, så att det som visas
+   * sedan (t.ex. linsen) syns tydligt. Det som ligger utanför bandet, och ringar från "lys", påverkas inte.
+   */
+  | { gor: 'tona'; topp: number; botten: number; farg?: FargNamn; alpha?: number }
 ) & { langd: number; efter?: number; ljud?: Ljud };
 
 // ---------- Hybrid ----------
