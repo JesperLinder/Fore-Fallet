@@ -256,7 +256,7 @@ src/
   scenes/                 Boot, Title, Map, Level, Verdict, Season, About (Om spelet), Congrats (Grattis) + BaseScene
   mechanics/              Slingshot.ts, Invaders.ts, Hybrid.ts, registry.ts, art.ts (figurer)
   mechanics/slingshot/    kastaren (launcher.ts: slangbella, sikte, flygning), flygmodell, bana, resultatrad
-  mechanics/invaders/     brickornas rutnät, fallande objekt, HUD (tid, inforuta, mätare)
+  mechanics/invaders/     brickornas rutnät, fallande objekt, ström av fångstobjekt, kulisser och händelser, HUD
   mechanics/hybrid/       hybridens HUD: borgenärsrutan, valknappar, hur fiender ritas
   mechanics/Memory.ts     memorymekaniken (rutnät, vändning, par, effekterna "dimma" och "blanda")
   mechanics/memory/       memoryts HUD (par, drag, tid, mätare, inforuta) och symbolerna på korten (forms.ts)
@@ -432,8 +432,8 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 
 | Nr | id | Titel | Referens | Rättsområde | Mekanik | Status |
 |---|---|---|---|---|---|---|
-| 1 | `tvattvattnet` | Tvättvattnet | NJA 1982 s. 386 | Skadestånd | invaders | kommer snart |
-| 2 | `semesterdagarna` | Semesterdagarna | NJA 1992 s. 213 | Skadestånd | hybrid | kommer snart |
+| 1 | `tvattvattnet` | Tvättvattnet | NJA 1982 s. 386 | Skadestånd | invaders | **spelbar** |
+| 2 | `semesterdagarna` | Semesterdagarna | NJA 1992 s. 213 | Skadestånd | invaders | **spelbar** |
 | 3 | `husbilen` | Husbilen | NJA 1996 s. 598 | Köprätt | memory | **spelbar** |
 | 4 | `oxelhacken` | Oxelhäcken | NJA 1990 s. 71 | Grannerätt | invaders | kommer snart |
 | 5 | `trahuset` | Trähuset | NJA 1985 s. 717 | Avtalsrätt | invaders | kommer snart |
@@ -447,8 +447,6 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
   (och fyll på nivån) när den byggs.
 - Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
 - Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
-- **Tillfälligt:** Husbilen är upplåst så fort kapitel 2 är upplåst, utan att nivå 1–2 behöver vara klarade
-  (`TILLFALLIGT_UPPLASTA` i `src/core/levels.ts`). **Ta bort `husbilen` därifrån när nivå 1–2 är byggda.**
 - Efter Husbilen leder domslutets knapp till kartan (nästa nivå "kommer snart").
 
 ### Lägga till ett kapitel
@@ -684,11 +682,62 @@ uppe till höger. I förkortad form:
 }
 ```
 
+**Ström av fångstobjekt, kulisser och engångshändelser (kapitel 2, nivå 1–2):** nivåer utan brickor och skott.
+Spelaren styr bara i sidled och fångar det som faller. Allt är valfritt och påverkar inte nivåer som inte använder det.
+
+- `brickor` och `skott` kan utelämnas.
+- `strom`: fångstobjekt som släpps uppifrån på slumpvis x (`mechanics/invaders/stream.ts`). Varje typ i `strom.typer`
+  har utseende (figur i art.ts, valfri `farg`), storlek, valfria `etiketter` (en väljs slumpvis), `fladder` (fladdrar
+  lätt i sidled och vickar) och regler för `onFangst` och `onPass`: `matare` (misstag), `fyll` (fyller en mätare med
+  `"lage": "fyll"`), `raknas`, `poang`, `text`, `ton` (`"bra"` guld eller `"neutral"` mörkgrön bubbla) och `ljud`.
+  `antal` ger en bestämd omgång i slumpad ordning (t.ex. minst fyra förstörda dagar); `vikter` en oändlig ström.
+  Tempot går från `intervall` till `slutIntervall` över nivåns tid.
+- `matare.lage: "fyll"`: mätaren (visning `"kort"`) börjar tom och fylls av `fyll` i reglerna, t.ex. "Vanlig service".
+- `summa`: ett räknarkort bredvid mätaren som visar en summa, t.ex. "Skadestånd 2 000 kr" efter tre fångade.
+- `mal` och vinstvillkoret `"mal"`: vinst när räknaren nått sitt antal. Förlusten `"mal-omojligt"`: det finns inte
+  längre tillräckligt många kvar i strömmen.
+- `forManga` och förlusten `"for-manga"`: räknaren har gått över max, t.ex. fler än 8 missade kunder.
+- `kulisser`: fasta figurer och texter bakom spelet (`fram: true` ritar framför spelaren, t.ex. en disk).
+- `bakgrund: { "typ": "vag" }`: en väg i höjdled vars mittlinje rullar nedåt.
+- `handelser`: engångshändelser i steg vid en viss tid (`mechanics/invaders/scenery.ts`). Stegen är `in` och `ut`
+  (en figur glider in eller ut), `vicka`, `bubblor` (valfri `flack` som ligger kvar), `pratbubbla` och `vanta`. Varje
+  steg har `langd`; nästa steg börjar efter `efter` ms (standard: `langd`). Spelaren kan inte påverka dem.
+
+Tvättvattnet i förkortad form:
+
+```json
+"invaders": {
+  "spelare": { "utseende": "kassor", "y": 726, "b": 44, "h": 54 },
+  "kulisser": [{ "utseende": "pump", "x": 90, "y": 420, "b": 44, "h": 92 }, { "utseende": "hink", "x": 52, "y": 456 }, …,
+               { "utseende": "kassadisk", "x": 195, "y": 797, "b": 390, "h": 94, "fram": true }],
+  "strom": {
+    "typer": { "kund": { "utseende": "kund", "b": 38, "h": 34,
+      "onFangst": { "fyll": 1, "raknas": "betjanad", "ljud": "pling" },
+      "onPass": { "raknas": "missad", "text": "Kunden gick", "ton": "neutral", "ljud": "miss" } } },
+    "vikter": { "kund": 1 }, "intervall": 1500, "slutIntervall": 850, "fart": 150, "y": 170
+  },
+  "handelser": [{ "start": 25000, "steg": [
+    { "gor": "in", "id": "skugga", "utseende": "skugga", "fran": [-30, 440], "till": [132, 440], "langd": 2200 },
+    { "gor": "bubblor", "x": 162, "y": 446, "farg": "gron", "flack": [12, 3], "langd": 3200, "efter": 1400, "ljud": "pssst" },
+    { "gor": "ut", "id": "skugga", "till": [-40, 440], "langd": 1800 }, …,
+    { "gor": "pratbubbla", "x": 196, "y": 532, "text": "Lacken! Jag stämmer er!", "farg": "vinrod", "textFarg": "ljusbeige", "langd": 4200 }
+  ] }],
+  "tid": { "sekunder": 45, "etikett": "Tid kvar" },
+  "matare": { "namn": "Vanlig service", "steg": 25, "visning": "kort", "lage": "fyll" },
+  "forManga": { "raknare": "missad", "max": 8 },
+  "vinst": ["overlev"], "forlust": ["for-manga"]
+}
+```
+
+Semesterdagarna använder `antal` (4 förstörda, 6 lite sämre och 5 bra dagar i slumpad ordning), `summa`, `mal`
+(3 förstörda dagar) och förlusterna `"matare-full"` (trovärdigheten) och `"mal-omojligt"`. Stjärnorna räknar fel
+fångster med `maxAntal: { "fel": … }`.
+
 **Styrning:** spelaren drar var som helst på skärmen för att flytta markören i sidled, och släpper för att skjuta.
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
 
-**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio. Ljudet slås av och på med högtalarknappen på kartan.
+**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling" och "mynt" som nivåerna kan välja i fångstreglerna. Ljudet slås av och på med högtalarknappen på kartan.
 
 ### Slangbella med fysikblock (sidovy)
 

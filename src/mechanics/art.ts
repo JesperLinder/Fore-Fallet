@@ -428,7 +428,195 @@ const figurer: Record<string, Rita> = {
     g.fillStyle(farg.guld, 1).fillTriangle(x + 1, y - 62, x + 1, y - 44, x + 28, y - 50);
     g.fillStyle(farg.morkgron, 1).fillCircle(x, y, 2.5);
   },
+
+  // ---------- Kapitel 2: Tvättvattnet (macken) ----------
+
+  /** Bensinpump utan märke: mörk kropp, ljus display, slang och munstycke. */
+  pump(g, x, y, b, h) {
+    const B = b || 44;
+    const H = h || 92;
+    const topp = y - H / 2;
+    g.fillStyle(farg.morkgron, 1).fillRoundedRect(x - B / 2, topp, B, H - 6, 6);
+    g.fillRect(x - B / 2 - 4, y + H / 2 - 8, B + 8, 8);
+    g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(x - B / 2 + 6, topp + 8, B - 12, H * 0.22, 3);
+    g.fillStyle(farg.morkgron, 1);
+    g.fillRect(x - B / 2 + 10, topp + 13, B * 0.32, 3).fillRect(x - B / 2 + 10, topp + 19, B * 0.5, 3);
+    g.fillStyle(farg.gron, 1).fillRoundedRect(x - B / 2 + 6, topp + H * 0.4, B - 12, H * 0.16, 3);
+    // Slang och munstycke på sidan.
+    g.lineStyle(3, farg.gron, 1);
+    g.beginPath();
+    g.moveTo(x + B / 2, topp + H * 0.35);
+    g.lineTo(x + B / 2 + 7, topp + H * 0.5);
+    g.lineTo(x + B / 2 + 7, topp + H * 0.72);
+    g.strokePath();
+    g.fillStyle(farg.morkgron, 1).fillRoundedRect(x + B / 2 + 3, topp + H * 0.7, 9, 14, 2);
+  },
+
+  /** Tvätthink med vatten och en borste. */
+  hink(g, x, y, b, h) {
+    const B = b || 30;
+    const H = h || 26;
+    const topp = y - H / 2;
+    g.fillStyle(farg.gron, 1).fillPoints(
+      [
+        new Phaser.Math.Vector2(x - B / 2, topp + 3),
+        new Phaser.Math.Vector2(x + B / 2, topp + 3),
+        new Phaser.Math.Vector2(x + B / 2 - 4, y + H / 2),
+        new Phaser.Math.Vector2(x - B / 2 + 4, y + H / 2),
+      ],
+      true,
+    );
+    g.fillStyle(farg.beige, 1).fillEllipse(x, topp + 3, B - 4, 6);
+    g.lineStyle(1.5, farg.morkgron, 1).strokeEllipse(x, topp + 3, B, 7);
+    // Borsten sticker upp.
+    g.lineStyle(3, farg.morkockra, 1).lineBetween(x + 3, topp + 2, x + B * 0.42, topp - H * 0.55);
+    g.fillStyle(farg.morkockra, 1).fillRoundedRect(x + B * 0.42 - 5, topp - H * 0.55 - 6, 10, 7, 2);
+  },
+
+  /** Kassören bakom disken (spelaren): huvud, mörk tröja och en guldfärgad namnskylt. */
+  kassor(g, x, y, b, h) {
+    const B = b || 44;
+    const H = h || 54;
+    const r = B * 0.3;
+    const hy = y - H / 2 + r;
+    g.fillStyle(farg.morkgron, 1).fillRoundedRect(x - B / 2, hy + r + 3, B, H - 2 * r - 3, { tl: 16, tr: 16, bl: 4, br: 4 });
+    g.fillStyle(farg.beige, 1).fillCircle(x, hy, r);
+    g.lineStyle(1.5, farg.morkgron, 1).strokeCircle(x, hy, r);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x - r * 0.35, hy - r * 0.05, 1.8).fillCircle(x + r * 0.35, hy - r * 0.05, 1.8);
+    g.lineStyle(1.8, farg.morkgron, 1);
+    g.beginPath();
+    g.arc(x, hy + r * 0.1, r * 0.42, Math.PI * 0.2, Math.PI * 0.8);
+    g.strokePath();
+    g.fillStyle(farg.guld, 1).fillRoundedRect(x + B * 0.08, hy + r + 10, B * 0.26, 7, 2);
+  },
+
+  /** Kassadisken: en lång mörk disk med ljus skiva och en liten kassaapparat. */
+  kassadisk(g, x, y, b, h) {
+    const B = b || 390;
+    const H = h || 50;
+    g.fillStyle(farg.morkgron, 1).fillRect(x - B / 2, y - H / 2, B, H);
+    g.fillStyle(farg.gron, 1).fillRect(x - B / 2, y - H / 2, B, 7);
+    g.fillStyle(farg.beige, 1).fillRoundedRect(x - B / 2 + 14, y - H / 2 + 14, 54, 24, 3);
+    g.fillStyle(farg.morkgron, 1).fillRect(x - B / 2 + 20, y - H / 2 + 19, 26, 6);
+  },
+
+  /** Kund: liten rund figur i guld med ett kvitto. */
+  kund(g, x, y, b) {
+    const r = (b || 34) * 0.42;
+    g.fillStyle(farg.guld, 1).fillCircle(x - 3, y, r);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x - 3 - r * 0.35, y - r * 0.2, 1.8).fillCircle(x - 3 + r * 0.35, y - r * 0.2, 1.8);
+    g.lineStyle(1.6, farg.morkgron, 1);
+    g.beginPath();
+    g.arc(x - 3, y + r * 0.05, r * 0.4, Math.PI * 0.2, Math.PI * 0.8);
+    g.strokePath();
+    // Kvittot: en liten lapp med taggig underkant och två rader.
+    const kx = x + r * 0.55;
+    const ky = y - 2;
+    g.fillStyle(farg.ljusbeige, 1).fillRect(kx, ky - 7, 11, 13);
+    g.fillTriangle(kx, ky + 6, kx + 3.7, ky + 6, kx + 1.8, ky + 9);
+    g.fillTriangle(kx + 3.7, ky + 6, kx + 7.3, ky + 6, kx + 5.5, ky + 9);
+    g.fillTriangle(kx + 7.3, ky + 6, kx + 11, ky + 6, kx + 9.2, ky + 9);
+    g.lineStyle(1, farg.morkgron, 1).strokeRect(kx, ky - 7, 11, 13);
+    g.lineBetween(kx + 2.5, ky - 3, kx + 8.5, ky - 3).lineBetween(kx + 2.5, ky + 1, kx + 7, ky + 1);
+  },
+
+  /** En skugga som smyger: mörk, halvgenomskinlig figur med luva och en flaska. */
+  skugga(g, x, y, b, h) {
+    const B = b || 34;
+    const H = h || 56;
+    g.fillStyle(farg.morkgron, 0.82);
+    g.fillCircle(x, y - H / 2 + B * 0.28, B * 0.28);
+    g.fillRoundedRect(x - B / 2, y - H / 2 + B * 0.5, B, H - B * 0.5, { tl: 14, tr: 14, bl: 3, br: 3 });
+    g.fillStyle(farg.vinrod, 1).fillRoundedRect(x + B / 2 - 2, y - 4, 8, 15, 2);
+    g.fillRect(x + B / 2, y - 9, 4, 6);
+  },
+
+  /** Bil från sidan (som tvättar rutan). f = lackens färg. */
+  macbil(g, x, y, b, h, f = farg.vinrod) {
+    const B = b || 100;
+    const H = h || 46;
+    const botten = y + H / 2 - 9;
+    g.fillStyle(f, 1).fillRoundedRect(x - B / 2, botten - H * 0.42, B, H * 0.42, 7);
+    g.fillRoundedRect(x - B * 0.3, y - H / 2, B * 0.55, H * 0.45, { tl: 10, tr: 10, bl: 0, br: 0 });
+    g.fillStyle(farg.ljusbeige, 1);
+    g.fillRoundedRect(x - B * 0.25, y - H / 2 + 5, B * 0.21, H * 0.3, 3);
+    g.fillRoundedRect(x + B * 0.0, y - H / 2 + 5, B * 0.2, H * 0.3, 3);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x - B * 0.3, botten, 9).fillCircle(x + B * 0.3, botten, 9);
+    g.fillStyle(farg.beige, 1).fillCircle(x - B * 0.3, botten, 3.5).fillCircle(x + B * 0.3, botten, 3.5);
+  },
+
+  /** Kalenderlapp: ljust papper med vinröd kant och två ringar. Texten ("1 april") läggs ovanpå. */
+  kalenderlapp(g, x, y, b, h) {
+    const B = b || 50;
+    const H = h || 44;
+    g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 4);
+    g.fillStyle(farg.vinrod, 1).fillRoundedRect(x - B / 2, y - H / 2, B, 11, { tl: 4, tr: 4, bl: 0, br: 0 });
+    g.lineStyle(1, farg.morkgron, 1).strokeRoundedRect(x - B / 2, y - H / 2, B, H, 4);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x - B * 0.24, y - H / 2, 2.5).fillCircle(x + B * 0.24, y - H / 2, 2.5);
+  },
+
+  // ---------- Kapitel 2: Semesterdagarna ----------
+
+  /** Kalenderblad: ett blad i färgen f med mörk list och två ringar. Texten läggs ovanpå. */
+  kalenderblad(g, x, y, b, h, f = farg.beige) {
+    ritaKalenderblad(g, x, y, b || 84, h || 60, f);
+  },
+
+  /** Kalenderblad för en bra semesterdag: ljust blad med en sol. */
+  'kalenderblad-sol'(g, x, y, b, h) {
+    const B = b || 84;
+    const H = h || 60;
+    ritaKalenderblad(g, x, y, B, H, farg.ljusbeige);
+    const sy = y + 6;
+    g.lineStyle(2, farg.guld, 1);
+    for (let i = 0; i < 8; i++) {
+      const v = (i / 8) * Math.PI * 2;
+      g.lineBetween(x + Math.cos(v) * 11, sy + Math.sin(v) * 11, x + Math.cos(v) * 16, sy + Math.sin(v) * 16);
+    }
+    g.fillStyle(farg.guld, 1).fillCircle(x, sy, 8);
+  },
+
+  /** Korgen (spelaren i Semesterdagarna): bred, beige, med flätade ränder. Texten står på den. */
+  korg(g, x, y, b, h) {
+    const B = b || 120;
+    const H = h || 40;
+    const topp = y - H / 2;
+    g.fillStyle(farg.beige, 1).fillPoints(
+      [
+        new Phaser.Math.Vector2(x - B / 2, topp),
+        new Phaser.Math.Vector2(x + B / 2, topp),
+        new Phaser.Math.Vector2(x + B / 2 - 8, y + H / 2),
+        new Phaser.Math.Vector2(x - B / 2 + 8, y + H / 2),
+      ],
+      true,
+    );
+    g.fillStyle(farg.guld, 1).fillRoundedRect(x - B / 2 - 3, topp - 4, B + 6, 7, 3);
+    g.lineStyle(1, farg.morkockra, 0.35);
+    for (let i = 1; i < 6; i++) g.lineBetween(x - B / 2 + (B * i) / 6, topp + 4, x - B / 2 + (B * i) / 6 + (i < 3 ? 2 : -2), y + H / 2);
+  },
+
+  /** Husvagn uppifrån: ljus kaross, takluckor och en dragstång framåt (uppåt). */
+  husvagn(g, x, y, b, h) {
+    const B = b || 64;
+    const H = h || 100;
+    g.lineStyle(3, farg.beige, 1).lineBetween(x, y - H / 2 - 16, x, y - H / 2);
+    g.fillStyle(farg.beige, 1).fillTriangle(x - 9, y - H / 2, x + 9, y - H / 2, x, y - H / 2 - 12);
+    g.fillStyle(farg.morkgron, 1).fillRect(x - B / 2 - 5, y - 8, 6, 22).fillRect(x + B / 2 - 1, y - 8, 6, 22);
+    g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 12);
+    g.lineStyle(1.5, farg.beige, 1).strokeRoundedRect(x - B / 2 + 5, y - H / 2 + 5, B - 10, H - 10, 9);
+    g.fillStyle(farg.beige, 1).fillRoundedRect(x - B * 0.22, y - H * 0.3, B * 0.44, H * 0.16, 3);
+    g.fillRoundedRect(x - B * 0.22, y + H * 0.1, B * 0.44, H * 0.16, 3);
+  },
 };
+
+/** Kalenderblad: fyllt blad, mörk list upptill med två ringar och en tunn kontur. */
+function ritaKalenderblad(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, f: number): void {
+  const mork = f === farg.vinrod || f === farg.morkgron || f === farg.gron;
+  g.fillStyle(f, 1).fillRoundedRect(x - b / 2, y - h / 2, b, h, 5);
+  g.fillStyle(mork ? farg.morkgron : farg.morkockra, 1).fillRoundedRect(x - b / 2, y - h / 2, b, 10, { tl: 5, tr: 5, bl: 0, br: 0 });
+  g.lineStyle(1.2, mork ? farg.beige : farg.morkgron, 1).strokeRoundedRect(x - b / 2, y - h / 2, b, h, 5);
+  g.fillStyle(farg.ljusbeige, 1).fillCircle(x - b * 0.25, y - h / 2 + 5, 2.5).fillCircle(x + b * 0.25, y - h / 2 + 5, 2.5);
+}
 
 function ritaKo(g: Phaser.GameObjects.Graphics, x: number, y: number, sprattel: boolean): void {
   g.fillStyle(farg.beige, 1);

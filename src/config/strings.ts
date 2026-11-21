@@ -103,6 +103,8 @@ export const text = {
       'tid-slut': () => 'Tiden tog slut innan allt var rättat.',
       botten: () => 'Brickorna hann ända ner.',
       'skott-slut': () => 'Skotten tog slut.',
+      'for-manga': () => 'Det blev för många missar.',
+      'mal-omojligt': () => 'Det fanns inte tillräckligt många kvar att fånga.',
     },
   },
 

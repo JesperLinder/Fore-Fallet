@@ -90,13 +90,6 @@ export function arGodkand(niva: NivaPlatshallare | Niva): boolean {
 }
 
 /**
- * TILLFÄLLIGT: nivåer som är upplåsta så fort kapitlet är upplåst, utan att föregående nivå behöver vara klarad.
- * Husbilen (kapitel 2, nivå 3) är den enda spelbara nivån i kapitel 2 än så länge och ska gå att testa.
- * TA BORT "husbilen" härifrån när nivå 1–2 i kapitel 2 (tvattvattnet, semesterdagarna) är byggda.
- */
-const TILLFALLIGT_UPPLASTA = new Set<string>(['husbilen']);
-
-/**
  * En nivå är upplåst om den är spelbar och föregående nivå i kapitlet är godkänd. Kapitlets första nivå
  * är upplåst när kapitlet är det. I testläget är alla spelbara nivåer upplåsta (nivåer som "kommer snart"
  * är inte spelbara och alltså alltid låsta).
@@ -106,7 +99,6 @@ export function arUpplast(niva: NivaPlatshallare | Niva): niva is Niva {
   if (testlage) return true;
   const k = kapitelFor(niva.id);
   if (!k) return false;
-  if (TILLFALLIGT_UPPLASTA.has(niva.id)) return arKapitelUpplast(k);
   const foregaende = k.nivaLista[k.nivaLista.findIndex((n) => n.id === niva.id) - 1];
   return foregaende ? arGodkand(foregaende) : arKapitelUpplast(k);
 }

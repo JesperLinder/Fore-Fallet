@@ -3,6 +3,153 @@
   "titel": "Semesterdagarna",
   "referens": "NJA 1992 s. 213",
   "rattsomrade": "Skadestånd",
-  "mekanik": "hybrid",
-  "kommerSnart": true
+  "mekanik": "invaders",
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Bilen och husvagnen skadades och semestern blev lidande. Kräv ersättning – men bara för dagarna som faktiskt förstördes.",
+  "fylgiaTips": "Förlorad fritid kan ge skadestånd. Men inte varje sur semesterdag – förlusten måste vara betydande.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxAntal": {
+        "fel": 0
+      }
+    },
+    "tva": {
+      "maxAntal": {
+        "fel": 1
+      }
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "korg",
+      "y": 752,
+      "b": 140,
+      "h": 42,
+      "etikett": "Skadeståndsanspråk"
+    },
+    "bakgrund": {
+      "typ": "vag",
+      "x": 195,
+      "b": 130,
+      "topp": 150,
+      "fart": 90
+    },
+    "kulisser": [
+      {
+        "utseende": "husvagn",
+        "x": 195,
+        "y": 636,
+        "b": 64,
+        "h": 100
+      }
+    ],
+    "strom": {
+      "typer": {
+        "forstord": {
+          "utseende": "kalenderblad",
+          "farg": "vinrod",
+          "etiketter": [
+            "Bara bilkörning",
+            "Ingen vila"
+          ],
+          "b": 88,
+          "h": 62,
+          "fladder": true,
+          "onFangst": {
+            "raknas": "forstord",
+            "text": "+667 kr",
+            "ljud": "mynt"
+          }
+        },
+        "lite": {
+          "utseende": "kalenderblad",
+          "farg": "beige",
+          "etiketter": [
+            "Lite regn",
+            "Kort försening",
+            "Sämre middag"
+          ],
+          "b": 88,
+          "h": 62,
+          "fladder": true,
+          "onFangst": {
+            "matare": 2,
+            "raknas": "fel",
+            "text": "För obetydligt"
+          }
+        },
+        "bra": {
+          "utseende": "kalenderblad-sol",
+          "b": 88,
+          "h": 62,
+          "fladder": true,
+          "onFangst": {
+            "matare": 1,
+            "raknas": "fel",
+            "text": "Det där var ju en bra dag"
+          }
+        }
+      },
+      "antal": {
+        "forstord": 4,
+        "lite": 6,
+        "bra": 5
+      },
+      "intervall": 1700,
+      "fordrojning": 900,
+      "fart": 120,
+      "y": 176
+    },
+    "summa": {
+      "namn": "Skadestånd",
+      "text": "{varde} kr",
+      "raknare": "forstord",
+      "totalt": 2000,
+      "antal": 3
+    },
+    "matare": {
+      "namn": "Trovärdighet",
+      "steg": 6,
+      "visning": "kort"
+    },
+    "mal": {
+      "raknare": "forstord",
+      "antal": 3
+    },
+    "vinst": [
+      "mal"
+    ],
+    "forlust": [
+      "matare-full",
+      "mal-omojligt"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Ogillat.",
+    "orsaker": {
+      "matare-full": "Du krävde ersättning för fel dagar.",
+      "mal-omojligt": "Du krävde ersättning för fel dagar."
+    }
+  },
+  "domslut": {
+    "rubrik": "2 000 kr för tre dagar",
+    "domskal": [
+      "När bilen och husvagnen skadades blev familjens semester lidande.",
+      "Förlusterna en av dagarna var för obetydliga för att ersättas.",
+      "Men långa körningar med nästan ingen rekreation räknades som förlust av fritid. HD uppskattade skadan för tre dagar till 2 000 kr."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1992s213"
+  }
 }

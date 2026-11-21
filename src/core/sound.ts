@@ -9,7 +9,7 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel'>;
 
 interface Ton {
@@ -73,6 +73,18 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 210, till: 150, start: 0, langd: 0.2, form: 'triangle', volym: 0.16 },
     { fran: 160, till: 110, start: 0.12, langd: 0.22, form: 'triangle', volym: 0.12 },
   ],
+  // Kassaapparatens "pling": ett kort mekaniskt klick och en ljus klocka med två deltoner.
+  pling: [
+    { fran: 1800, till: 900, start: 0, langd: 0.02, form: 'square', volym: 0.04 },
+    { fran: 2093, till: 2093, start: 0.03, langd: 0.45, form: 'sine', volym: 0.09 },
+    { fran: 2637, till: 2637, start: 0.03, langd: 0.32, form: 'sine', volym: 0.05 },
+    { fran: 4186, till: 4186, start: 0.03, langd: 0.12, form: 'sine', volym: 0.02 },
+  ],
+  // Mynt: två snabba, ljusa toner (ett "kling-ling").
+  mynt: [
+    { fran: 988, till: 988, start: 0, langd: 0.07, form: 'square', volym: 0.04 },
+    { fran: 1319, till: 1319, start: 0.065, langd: 0.28, form: 'square', volym: 0.04 },
+  ],
   vinst: [
     { fran: 523, till: 523, start: 0, langd: 0.14, form: 'triangle', volym: 0.13 },
     { fran: 659, till: 659, start: 0.12, langd: 0.14, form: 'triangle', volym: 0.13 },
@@ -107,6 +119,9 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   flipp: 1.3,
   par: 0.92,
   miss: 0.81,
+  // Kassans pling hörs vid varje betjänad kund och ligger därför, som flippet, ett par dB under de andra.
+  pling: 0.43,
+  mynt: 1.56,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };

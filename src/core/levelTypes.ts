@@ -4,6 +4,7 @@
  * på kartan) eller Niva (fullständig, spelbar nivå). En ny nivå ska aldrig kräva ny kod – bara en ny fil.
  */
 import type { FargNamn } from '../config/theme';
+import type { Ljud } from './sound';
 
 /** "boss" är reserverad för kapitel 2:s bossnivå (Potatispartiet), som inte är byggd än. */
 export type MekanikTyp = 'slingshot' | 'invaders' | 'hybrid' | 'memory' | 'boss';
@@ -108,7 +109,7 @@ export interface StjarnKrav {
   minAntal?: Record<string, number>;
 }
 
-export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten' | 'skott-slut';
+export type ForlustOrsak = 'matare-full' | 'tid-slut' | 'botten' | 'skott-slut' | 'for-manga' | 'mal-omojligt';
 
 export interface Forlust {
   rubrik: string;
@@ -472,24 +473,25 @@ export interface InvadersInstallningar {
     /** Skottets fart uppåt (punkter per sekund). */
     fart: number;
   };
-  brickor: RutnatInstallningar<BrickData> & {
-    /**
-     * Bricktyperna. Varje bricka i "rader" anger en typ (nyckel här), och typen bestämmer hur brickan ser ut,
-     * vad som händer vid träff (onHit) och när den når spelaren (onPass).
-     */
-    typer: Record<string, BrickTyp>;
-    /** Valfri figur (art.ts) på varje bricka, med etiketten i liten text under, t.ex. "bilsiluett". */
-    ikon?: string;
-    /** Rita bara den här figuren (art.ts), utan ruta och etikett, t.ex. "ufo". */
-    figur?: string;
-    /** Skotten passerar igenom brickorna (de kan inte skjutas ner), t.ex. ufon. */
-    skottGenom?: boolean;
-    /**
-     * Valfria fler vågor. När alla brickor i en våg är klara (borta eller släppta igenom) kommer nästa.
-     * Fälten ersätter motsvarande fält i "brickor" (t.ex. rader, steg, mellanrum). text: pratbubbla vid start.
-     */
-    vagor?: (Partial<RutnatInstallningar<BrickData>> & { text?: string })[];
-  };
+  /** Valfritt: nivåer som bara har fångstobjekt (strom) kan utelämna brickorna. */
+  brickor?: BrickInstallningar;
+  /** Ström av fångstobjekt i olika typer, var och en med egna regler när den fångas eller passerar (valfritt). */
+  strom?: FangstStrom;
+  /** Fasta kulisser bakom spelet, t.ex. pumpar, hinkar och en kassadisk (valfritt). */
+  kulisser?: Kulisse[];
+  /** Rörlig bakgrund (valfritt). "vag": en väg i höjdled vars mittlinje rullar nedåt. */
+  bakgrund?: { typ: 'vag'; x: number; b: number; topp: number; fart: number };
+  /** Händelser som spelas upp en gång vid en viss tid, i steg (valfritt). Spelaren kan inte påverka dem. */
+  handelser?: Engangshandelse[];
+  /**
+   * Räknare i ett kort bredvid mätaren (kräver matare.visning "kort"), t.ex. "Skadestånd 2 000 kr".
+   * Visar round(totalt × antal fångade / antal), där antal fångade är räknaren "raknare". {varde} byts mot värdet.
+   */
+  summa?: { namn: string; text: string; raknare: string; totalt: number; antal: number };
+  /** Vinst "mal": räknaren har nått antal. Förlust "mal-omojligt": det finns inte tillräckligt många kvar i strömmen. */
+  mal?: { raknare: string; antal: number };
+  /** Förlust "for-manga": räknaren har gått över max, t.ex. { "raknare": "missad", "max": 8 }. */
+  forManga?: { raknare: string; max: number };
   /** Fallande hot som ska skjutas ner innan de når botten (valfritt). */
   hot?: HotInstallningar;
   /**
@@ -532,6 +534,12 @@ export interface InvadersInstallningar {
      * "antal": en räknare uppe till höger: namnet (t.ex. "INTRÅNG") över en vinröd siffra. Tar klockans plats.
      */
     visning?: 'steg' | 'procent' | 'kort' | 'antal';
+    /**
+     * "misstag" (standard): mätaren visar misstagen (och "matare-full" ger förlust).
+     * "fyll": mätaren börjar tom och fylls av fångstregler med "fyll", t.ex. "Vanlig service" när kunder betjänas.
+     * Misstag påverkar den inte. Bara med visning "kort".
+     */
+    lage?: 'misstag' | 'fyll';
   };
   /** Hur många steg mätaren stiger när ett fångstobjekt missas (bara nivåer med "fangst"). */
   misstag?: { fangstMissad: number };
@@ -541,14 +549,34 @@ export interface InvadersInstallningar {
   instruktion?: { text: string; y: number };
   /**
    * Alla villkor måste vara uppfyllda för vinst. "alla-klara" = varje bricka bortskjuten eller släppt igenom.
-   * "overlev" = tiden har gått ut utan förlust (kräver "tid").
+   * "overlev" = tiden har gått ut utan förlust (kräver "tid"). "mal" = räknaren i "mal" har nått sitt antal.
    */
-  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara' | 'overlev')[];
+  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara' | 'overlev' | 'mal')[];
   /** Något av villkoren ger förlust. */
   forlust: ForlustOrsak[];
   /** Vid vinst: brickor och fångstobjekt med "plats" flyttas till en rad på denna höjd. */
   slutrad?: { y: number };
 }
+
+/** Brickorna i invaders: ett marscherande rutnät med bricktyper. */
+export type BrickInstallningar = RutnatInstallningar<BrickData> & {
+  /**
+   * Bricktyperna. Varje bricka i "rader" anger en typ (nyckel här), och typen bestämmer hur brickan ser ut,
+   * vad som händer vid träff (onHit) och när den når spelaren (onPass).
+   */
+  typer: Record<string, BrickTyp>;
+  /** Valfri figur (art.ts) på varje bricka, med etiketten i liten text under, t.ex. "bilsiluett". */
+  ikon?: string;
+  /** Rita bara den här figuren (art.ts), utan ruta och etikett, t.ex. "ufo". */
+  figur?: string;
+  /** Skotten passerar igenom brickorna (de kan inte skjutas ner), t.ex. ufon. */
+  skottGenom?: boolean;
+  /**
+   * Valfria fler vågor. När alla brickor i en våg är klara (borta eller släppta igenom) kommer nästa.
+   * Fälten ersätter motsvarande fält i "brickor" (t.ex. rader, steg, mellanrum). text: pratbubbla vid start.
+   */
+  vagor?: (Partial<RutnatInstallningar<BrickData>> & { text?: string })[];
+};
 
 /** Ett marscherande rutnät (invaders-brickor, hybridens borgenärer). */
 export interface RutnatInstallningar<T> {
@@ -766,6 +794,101 @@ export interface SkyddData {
   /** Antal skott blocket tål. */
   talighet: number;
 }
+
+// ---------- Invaders: ström av fångstobjekt, kulisser och engångshändelser ----------
+
+/**
+ * En ström av fallande fångstobjekt. Varje objekt har en typ (nyckel i typer) med eget utseende och egna regler
+ * för när det fångas (onFangst) och när det passerar spelaren (onPass).
+ * Ange "antal" för en bestämd omgång (blandas varje gång) eller "vikter" för en oändlig slumpad ström.
+ */
+export interface FangstStrom {
+  typer: Record<string, FangstTyp>;
+  /** En omgång med så här många av varje typ, i slumpad ordning, t.ex. { "forstord": 4, "lite": 6 }. */
+  antal?: Record<string, number>;
+  /** Oändlig ström: sannolikhet per typ, t.ex. { "kund": 1 }. Används om "antal" saknas. */
+  vikter?: Record<string, number>;
+  /** Tid mellan två objekt (ms) i början, och valfritt i slutet (tempot ändras jämnt över nivåns tid, kräver "tid"). */
+  intervall: number;
+  slutIntervall?: number;
+  /** Väntetid innan första objektet (ms). Standard: intervall. */
+  fordrojning?: number;
+  /** Fallhastighet (punkter per sekund). */
+  fart: number;
+  /** Starthöjd (mittpunkt). */
+  y: number;
+  /** Objekten släpps slumpvis mellan dessa x (standard: skärmens kanter med marginal). */
+  kant?: { vanster: number; hoger: number };
+}
+
+export interface FangstTyp {
+  /** Figur i art.ts, t.ex. "kund" eller "kalenderblad". */
+  utseende: string;
+  b: number;
+  h: number;
+  /** Färg på figuren (för figurer som kan färgas, t.ex. kalenderbladet). */
+  farg?: FargNamn;
+  /** Text på objektet; med flera väljs en slumpvis, t.ex. ["Lite regn", "Kort försening"]. */
+  etiketter?: string[];
+  etikettFarg?: FargNamn;
+  /** Objektet fladdrar lätt i sidled och vickar när det faller (t.ex. kalenderblad). */
+  fladder?: boolean;
+  onFangst?: FangstRegel;
+  onPass?: FangstRegel;
+}
+
+/** Vad som händer när ett objekt i strömmen fångas eller passerar. */
+export interface FangstRegel {
+  /** Steg på mätaren (ett misstag, med blink och skakning). */
+  matare?: number;
+  /** Steg på en mätare med lage "fyll". */
+  fyll?: number;
+  poang?: number;
+  /** Räknas i en namngiven räknare (stjarnkrav.maxAntal, mal, forManga, summa). */
+  raknas?: string;
+  /** Pratbubbla, t.ex. "Kunden gick" eller "+667 kr". Vinröd vid misstag, annars guld (bra) eller mörkgrön. */
+  text?: string;
+  /** "bra" (guld) eller "neutral" (mörkgrön) bubbla när regeln inte är ett misstag. Standard: bra. */
+  ton?: 'bra' | 'neutral';
+  /** Ljud, t.ex. "pling" eller "mynt". Standard vid fångst: "fanga". */
+  ljud?: Ljud;
+}
+
+/** En fast figur bakom spelet, valfritt med text. Utan utseende blir det bara text. */
+export interface Kulisse {
+  utseende?: string;
+  x: number;
+  y: number;
+  b?: number;
+  h?: number;
+  /** Färg för figurer som kan färgas. */
+  farg?: FargNamn;
+  text?: string;
+  /** Textens läge relativt (x, y). Standard: mitt på. */
+  textY?: number;
+  textFarg?: FargNamn;
+  textStorlek?: number;
+  /** Ritas framför fångstobjekten (t.ex. en disk). Standard: bakom. */
+  fram?: boolean;
+}
+
+/** En händelse som spelas upp en gång, i steg. Steget börjar "efter" ms efter föregående stegs början (standard: dess längd). */
+export interface Engangshandelse {
+  /** Tid från start (ms). */
+  start: number;
+  steg: HandelseSteg[];
+}
+
+type Punkt = [number, number];
+
+export type HandelseSteg = (
+  | { gor: 'in'; id: string; utseende: string; b?: number; h?: number; fran: Punkt; till: Punkt }
+  | { gor: 'ut'; id: string; till: Punkt }
+  | { gor: 'vicka'; id: string }
+  | { gor: 'bubblor'; x: number; y: number; farg: FargNamn; /** Lämna en färgad fläck kvar efteråt (rx, ry). */ flack?: Punkt }
+  | { gor: 'pratbubbla'; x: number; y: number; text: string; farg: FargNamn; textFarg: FargNamn }
+  | { gor: 'vanta' }
+) & { langd: number; efter?: number; ljud?: Ljud };
 
 // ---------- Hybrid ----------
 

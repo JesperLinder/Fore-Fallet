@@ -22,7 +22,7 @@ Alla koordinater är i logiska punkter på en skärm som är 390 × 844 (x åt h
 | `bana.lager` | Bakgrunden. För en enfärgad bakgrund räcker `[{ "farg": "morkgron", "topp": 0 }]`. |
 | `objekt` | Används inte av invaders. Lämna `[]`. |
 | `forlust.rubrik` | Rubrik på förlustskärmen (t.ex. "Tryckt. Förtal."). |
-| `forlust.orsaker` | Valfritt. Egen text per orsak: `matare-full`, `tid-slut`, `botten`. Saknas texten används standardtexten i `src/config/strings.ts`. |
+| `forlust.orsaker` | Valfritt. Egen text per orsak: `matare-full`, `tid-slut`, `botten`, `for-manga`, `mal-omojligt`. Saknas texten används standardtexten i `src/config/strings.ts`. |
 | `domslut` | `rubrik`, `text` (valfri), `domskal` (exakt 3), `lankTillFallet`, `utfall` (valfri rad per antal stjärnor). Halvvägsvinst: `vunnet` och valfritt `inteVunnet` (utan den visas bara Vunnet-rutan). |
 
 Nästa nivå låses upp när den här har minst en stjärna.
@@ -115,8 +115,8 @@ Block som stoppar spelarens skott och slits ner.
 | `misstag`, `misstagText` | Bara med `fangst`: `{ "fangstMissad": 1 }` steg på mätaren och valfri pratbubbla när ett fångstobjekt missas. |
 | `info` | Valfritt. Rutan under rubriken. Den första posten står till vänster, den sista till höger. `serif: true` sätter värdet i serif, som "KROGKUNG". |
 | `instruktion` | Valfritt. Kort text på planen (`text`, `y`) som tonas bort efter 6 sekunder. |
-| `vinst` | Alla villkor måste gälla: `"fel-borta"` (alla brickor vars typ har `skaBort` är borta), `"alla-fangade"` (alla fångstobjekt fångade), `"alla-klara"` (varje bricka bortskjuten eller släppt igenom) och/eller `"overlev"` (tiden har gått ut utan förlust, kräver `tid`). |
-| `forlust` | Något av villkoren ger förlust: `"matare-full"`, `"tid-slut"`, `"botten"` (en bricka når spelaren). |
+| `vinst` | Alla villkor måste gälla: `"fel-borta"` (alla brickor vars typ har `skaBort` är borta), `"alla-fangade"` (alla fångstobjekt fångade), `"alla-klara"` (varje bricka bortskjuten eller släppt igenom), `"overlev"` (tiden har gått ut utan förlust, kräver `tid`) och/eller `"mal"` (räknaren i `mal` har nått sitt antal). |
+| `forlust` | Något av villkoren ger förlust: `"matare-full"`, `"tid-slut"`, `"botten"` (en bricka når spelaren), `"for-manga"` (räknaren i `forManga` har gått över `max`) eller `"mal-omojligt"` (det finns inte längre tillräckligt många kvar i `strom` för att nå `mal`). |
 | `slutrad` | Valfritt. `{ "y" }`. Vid vinst flyttas allt med `plats` till en rad på den höjden, t.ex. KROGKUNG. |
 
 ### `hot` (valfritt): fallande hot
@@ -159,5 +159,27 @@ Spelaren skjuter inte utan styr en sköld. Se nivå 9 (`niva-09.json`) och READM
 | `hornruta` | Liten ruta uppe till höger: `rubrik` och `text`. |
 | `introSteg` | Förklaring i steg (tryck för nästa) första gången nivån spelas. |
 
-En nivå utan brickor kan ha `"rader": []`.
+### Ström av fångstobjekt (valfritt)
+Nivåer där spelaren bara fångar det som faller, med olika regler per sort. Se kapitel 2, nivå 1 (`tvattvattnet`) och 2 (`semesterdagarna`). `brickor` och `skott` kan då utelämnas.
+| Fält | Vad det gör |
+|---|---|
+| `strom.typer` | Sorterna: `utseende` (figur i art.ts), `b`, `h`, valfritt `farg` (för figurer som kan färgas, t.ex. `"kalenderblad"`), `etiketter` (text på objektet; en väljs slumpvis), `etikettFarg`, `fladder` (fladdrar lätt i sidled och vickar) och reglerna `onFangst` och `onPass`. |
+| `onFangst`, `onPass` | `matare` (steg på mätaren, ett misstag med blink), `fyll` (steg på en mätare med `lage: "fyll"`), `raknas` (namngiven räknare), `poang`, `text` (pratbubbla), `ton` (`"bra"` guld, standard, eller `"neutral"` mörkgrön) och `ljud` (t.ex. `"pling"`, `"mynt"`, `"miss"`; standard vid fångst `"fanga"`). |
+| `strom.antal` | En bestämd omgång: så många av varje sort, i slumpad ordning varje gång, t.ex. `{ "forstord": 4, "lite": 6, "bra": 5 }`. |
+| `strom.vikter` | I stället för `antal`: en oändlig ström med sannolikhet per sort, t.ex. `{ "kund": 1 }`. |
+| `strom.intervall`, `slutIntervall`, `fordrojning` | Tid mellan objekten (ms) i början och i slutet (tempot ändras jämnt över nivåns `tid`), och väntan före det första. |
+| `strom.fart`, `y`, `kant` | Fallhastighet (punkter/s), starthöjd, och valfritt `{ "vanster", "hoger" }` för var objekten släpps. |
+| `matare.lage` | `"fyll"`: mätaren (visning `"kort"`) börjar tom och fylls av `fyll`, t.ex. "Vanlig service". Misstag påverkar den inte. |
+| `summa` | Räknarkort bredvid mätaren (visning `"kort"`): `namn`, `text` med `{varde}`, `raknare`, `totalt` och `antal`. Visar `totalt × fångade / antal`, t.ex. 2 000 kr efter 3. |
+| `mal` | `{ "raknare", "antal" }` för vinsten `"mal"` och förlusten `"mal-omojligt"`. |
+| `forManga` | `{ "raknare", "max" }` för förlusten `"for-manga"`, t.ex. fler än 8 missade kunder. |
+
+### Kulisser, rullande väg och engångshändelser (valfritt)
+| Fält | Vad det gör |
+|---|---|
+| `kulisser` | Fasta figurer bakom spelet: `{ "utseende", "x", "y", "b", "h", "farg" }`, valfritt med `text` (`textY`, `textFarg`, `textStorlek`). Utan `utseende` blir det bara text. `fram: true` ritar framför spelaren, t.ex. en kassadisk. |
+| `bakgrund` | `{ "typ": "vag", "x", "b", "topp", "fart" }`: en väg i höjdled vars streckade mittlinje rullar nedåt. |
+| `handelser` | Engångshändelser: `{ "start": ms, "steg": […] }`. Varje steg har `gor`, `langd` (ms), valfritt `efter` (när nästa steg börjar, standard `langd`) och `ljud`. Stegen: `in` (`id`, `utseende`, `b`, `h`, `fran`, `till`: en figur glider in), `ut` (`id`, `till`), `vicka` (`id`), `bubblor` (`x`, `y`, `farg`, valfri `flack` [rx, ry] som ligger kvar), `pratbubbla` (`x`, `y` = spetsen, `text`, `farg`, `textFarg`) och `vanta`. Spelaren kan inte påverka dem. |
+
+En nivå utan brickor kan ha `"rader": []` eller utelämna `brickor`.
 I `_mall-invaders.json` ligger fälten för sköldläget under `_skoldlage_exempel`. Flytta upp dem direkt i `invaders` (och ta bort nyckeln) för att använda dem.

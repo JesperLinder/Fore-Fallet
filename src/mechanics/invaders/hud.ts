@@ -25,6 +25,8 @@ export interface InvadersHud {
   markeraMatare: () => void;
   /** Räknaren i kortet bredvid mätaren (visning "kort" + dekor.raknare). */
   visaRaknare: (kvar: number, totalt: number) => void;
+  /** Räknarkortet med färdig text (summa, t.ex. "2 000 kr"). */
+  visaSumma: (text: string) => void;
   /** Var fångade objekt parkeras (världskoordinater) – index 0, 1, 2 … */
   fangstPlats: (index: number) => Phaser.Math.Vector2;
 }
@@ -36,11 +38,14 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar, tema: 
   if (inst.info?.length) byggInfo(scene, inst.info);
   let tak = inst.infotext ? byggInfotext(scene, inst.infotext, tema) : INFO_Y + INFO_H;
   let visaRaknare: InvadersHud['visaRaknare'] = () => {};
+  let visaSumma: InvadersHud['visaSumma'] = () => {};
   let matare;
   if (inst.matare.visning === 'kort') {
-    const kort = byggKort(scene, inst.matare, inst.dekor?.raknare, synligTid);
+    const raknare = inst.dekor?.raknare ?? (inst.summa ? { namn: inst.summa.namn, text: inst.summa.text } : undefined);
+    const kort = byggKort(scene, inst.matare, raknare, synligTid);
     matare = kort;
     visaRaknare = kort.visaRaknare;
+    visaSumma = kort.visaSumma;
     visaTid = kort.visaTid;
     tak = kort.tak;
   } else {
@@ -50,6 +55,7 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar, tema: 
   return {
     tak,
     visaRaknare,
+    visaSumma,
     visaTid,
     visaMatare: matare.visaMatare,
     markeraMatare: matare.markeraMatare,
@@ -114,8 +120,8 @@ export function byggInfotext(scene: Phaser.Scene, innehall: string, tema: 'ljus'
 }
 
 /**
- * Mätaren som ett kort under rubriken med en guldstapel som börjar full och krymper, och valfritt
- * ett kort bredvid med en räknare (t.ex. "Kor i hagen: 8 av 8").
+ * Mätaren som ett kort under rubriken med en guldstapel som börjar full och krymper (eller, med lage "fyll",
+ * börjar tom och fylls), och valfritt ett kort bredvid med en räknare (t.ex. "Kor i hagen: 8 av 8").
  */
 function byggKort(
   scene: Phaser.Scene,
@@ -149,12 +155,14 @@ function byggKort(
   };
 
   let visaRaknare = (_kvar: number, _totalt: number) => {};
+  let visaSumma = (_text: string) => {};
   if (raknare) {
     const rx = x0 + b + mellan;
     kortRuta(rx, rakB);
     skapaText(scene, rx + 14, INFO_Y + 12, raknare.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
     const varde = skapaText(scene, rx + 14, INFO_Y + 28, '', 'rubrik', 'ljusbeige', { storlek: 18 }).setDepth(6);
     visaRaknare = (kvar, totalt) => varde.setText(raknare.text.replace('{kvar}', String(kvar)).replace('{totalt}', String(totalt)));
+    visaSumma = (text) => varde.setText(text);
   }
 
   let visaTid = (_s: number) => {};
@@ -169,9 +177,10 @@ function byggKort(
   return {
     tak: INFO_Y + h,
     visaRaknare,
+    visaSumma,
     visaTid,
     visaMatare: (steg: number) => {
-      andel = Math.max(0, (m.steg - steg) / m.steg);
+      andel = m.lage === 'fyll' ? Math.min(1, steg / m.steg) : Math.max(0, (m.steg - steg) / m.steg);
       ritaStapel(farg.guld);
     },
     markeraMatare: () => {

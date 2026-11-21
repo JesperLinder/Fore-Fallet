@@ -4,5 +4,253 @@
   "referens": "NJA 1982 s. 386",
   "rattsomrade": "Skadestånd",
   "mekanik": "invaders",
-  "kommerSnart": true
+  "fylgiaMal": false,
+  "tema": "ljus",
+  "uppdragstext": "Du driver en mack med självbetjäning. Betjäna kunderna i kassan. Hinkarna vid pumparna sköter sig själva – eller?",
+  "fylgiaTips": "Du kan inte vakta allt. Att ställa fram tvättvatten är vanlig service, inte en garanti för att ingen häller i något.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxAntal": {
+        "missad": 2
+      }
+    },
+    "tva": {
+      "maxAntal": {
+        "missad": 5
+      }
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "ljusbeige",
+        "topp": 0
+      },
+      {
+        "farg": "beige",
+        "topp": 372
+      },
+      {
+        "farg": "ljusbeige",
+        "topp": 604
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "kassor",
+      "y": 726,
+      "b": 44,
+      "h": 54
+    },
+    "kulisser": [
+      {
+        "utseende": "kalenderlapp",
+        "x": 282,
+        "y": 46,
+        "b": 48,
+        "h": 44,
+        "text": "1 april",
+        "textY": 6,
+        "textFarg": "morkgron",
+        "textStorlek": 11
+      },
+      {
+        "utseende": "pump",
+        "x": 90,
+        "y": 420,
+        "b": 44,
+        "h": 92
+      },
+      {
+        "utseende": "pump",
+        "x": 200,
+        "y": 420,
+        "b": 44,
+        "h": 92
+      },
+      {
+        "utseende": "pump",
+        "x": 310,
+        "y": 420,
+        "b": 44,
+        "h": 92
+      },
+      {
+        "utseende": "hink",
+        "x": 52,
+        "y": 456,
+        "b": 30,
+        "h": 26
+      },
+      {
+        "utseende": "hink",
+        "x": 162,
+        "y": 456,
+        "b": 30,
+        "h": 26
+      },
+      {
+        "utseende": "hink",
+        "x": 272,
+        "y": 456,
+        "b": 30,
+        "h": 26
+      },
+      {
+        "utseende": "kassadisk",
+        "x": 195,
+        "y": 797,
+        "b": 390,
+        "h": 94,
+        "fram": true
+      }
+    ],
+    "strom": {
+      "typer": {
+        "kund": {
+          "utseende": "kund",
+          "b": 38,
+          "h": 34,
+          "onFangst": {
+            "fyll": 1,
+            "raknas": "betjanad",
+            "ljud": "pling"
+          },
+          "onPass": {
+            "raknas": "missad",
+            "text": "Kunden gick",
+            "ton": "neutral",
+            "poang": -10,
+            "ljud": "miss"
+          }
+        }
+      },
+      "vikter": {
+        "kund": 1
+      },
+      "intervall": 1500,
+      "slutIntervall": 850,
+      "fordrojning": 800,
+      "fart": 150,
+      "y": 170
+    },
+    "handelser": [
+      {
+        "start": 25000,
+        "steg": [
+          {
+            "gor": "in",
+            "id": "skugga",
+            "utseende": "skugga",
+            "b": 34,
+            "h": 56,
+            "fran": [
+              -30,
+              440
+            ],
+            "till": [
+              132,
+              440
+            ],
+            "langd": 2200
+          },
+          {
+            "gor": "bubblor",
+            "x": 162,
+            "y": 446,
+            "farg": "gron",
+            "flack": [
+              13,
+              4
+            ],
+            "langd": 9000,
+            "efter": 1400,
+            "ljud": "pssst"
+          },
+          {
+            "gor": "ut",
+            "id": "skugga",
+            "till": [
+              -40,
+              440
+            ],
+            "langd": 1800
+          },
+          {
+            "gor": "vanta",
+            "langd": 1000
+          },
+          {
+            "gor": "in",
+            "id": "bil",
+            "utseende": "macbil",
+            "b": 100,
+            "h": 46,
+            "fran": [
+              470,
+              560
+            ],
+            "till": [
+              196,
+              560
+            ],
+            "langd": 2000
+          },
+          {
+            "gor": "vicka",
+            "id": "bil",
+            "langd": 1600
+          },
+          {
+            "gor": "pratbubbla",
+            "x": 196,
+            "y": 532,
+            "text": "Lacken! Jag stämmer er!",
+            "farg": "vinrod",
+            "textFarg": "ljusbeige",
+            "langd": 4200
+          }
+        ]
+      }
+    ],
+    "tid": {
+      "sekunder": 45,
+      "etikett": "Tid kvar"
+    },
+    "matare": {
+      "namn": "Vanlig service",
+      "steg": 25,
+      "visning": "kort",
+      "lage": "fyll"
+    },
+    "forManga": {
+      "raknare": "missad",
+      "max": 8
+    },
+    "vinst": [
+      "overlev"
+    ],
+    "forlust": [
+      "for-manga"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Kön växte.",
+    "orsaker": {
+      "for-manga": "Kassan är också ditt jobb."
+    }
+  },
+  "domslut": {
+    "rubrik": "Ingen skadeståndsskyldighet",
+    "domskal": [
+      "Någon hällde frätande syra i tvättvattnet som macken ställt ut. Bilar och kläder skadades.",
+      "Att ställa fram vatten innebar ingen garanti för att det var ofarligt.",
+      "Tvätthinkar är vanlig service. Den som sköter kassan kan inte bevaka hela stationen, så det var inte vårdslöst att lämna dem utan tillsyn."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1982s386"
+  }
 }

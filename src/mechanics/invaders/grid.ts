@@ -5,14 +5,14 @@
  */
 import Phaser from 'phaser';
 import { farg, radie } from '../../config/theme';
-import type { BrickData, BrickTyp, InvadersInstallningar } from '../../core/levelTypes';
+import type { BrickData, BrickInstallningar, BrickTyp } from '../../core/levelTypes';
 import { skapaText } from '../../ui/text';
 import { Formation, type FormationsObjekt } from '../common/formation';
 import { streckadRam } from '../../ui/shapes';
 import { fyllnadsYta, ritaFigur } from '../art';
 
 export type Bricka = FormationsObjekt<BrickData>;
-type BrickInst = InvadersInstallningar['brickor'];
+type BrickInst = BrickInstallningar;
 
 /** Brickor med figur: figuren ritas så här högt ovanför mitten, med etiketten under. */
 const FIGUR_Y = -8;
