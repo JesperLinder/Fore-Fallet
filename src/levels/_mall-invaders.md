@@ -174,6 +174,29 @@ Nivåer där spelaren bara fångar det som faller, med olika regler per sort. Se
 | `mal` | `{ "raknare", "antal" }` för vinsten `"mal"` och förlusten `"mal-omojligt"`. |
 | `forManga` | `{ "raknare", "max" }` för förlusten `"for-manga"`, t.ex. fler än 8 missade kunder. |
 
+### Växande mål och timing-klipp (valfritt)
+Målen växer uppåt från en baslinje i stället för att falla. Spelaren styr verktyget (`spelare`, t.ex. `"hacksax"`) i sidled längs klipplinjen och **släpper fingret för att klippa** målet under verktyget. Se kapitel 2, nivå 4 (`oxelhacken`). I `_mall-invaders.json` ligger ett exempel under `_vaxande_exempel`. Sätt `spelare.y` till klipplinjens `y`; `brickor` och `skott` behövs inte.
+| Fält | Vad det gör |
+|---|---|
+| `vaxande.baslinje` | Marknivån (y) som målen växer upp från. |
+| `vaxande.mal` | Målens mittpunkter i sidled och zon: `[{ "x": 62, "zon": "din" }, …]`. |
+| `vaxande.b` | Ett måls bredd. |
+| `vaxande.viloHojd`, `maxHojd`, `kortHojd` | Höjd över baslinjen i vila (under linjen), där målet räknas som missat, och efter ett för tidigt klipp (det växer sakta tillbaka till vilohöjden). |
+| `vaxande.fart`, `slutFart` | Tillväxt i punkter per sekund i början och i slutet (ändras jämnt över nivåns `tid`). |
+| `vaxande.intervall`, `slutIntervall`, `fordrojning` | Tid (ms) mellan att ett nytt, slumpvis valt mål börjar växa, och före det första. |
+| `vaxande.klipplinje` | `{ "y", "text", "textX" }`: guldfärgad streckad linje med valfri text på en ljus lapp. |
+| `vaxande.rackvidd` | Valfritt. Hur långt från verktygets mitt ett mål får stå för att klippas. Standard: halva målbredden + 6. |
+| `vaxande.zoner` | Per zon: `farg`, valfri `kontur`, och reglerna `vidKlipp` (toppen ovanför linjen), `vidForTidigt` (toppen under linjen) och `vidMissat` (nådde `maxHojd`). Reglerna har samma fält som strömmens `onFangst`. |
+
+Nya fält i reglerna (gäller även strömmen): `matareMjuk` (steg på mätaren utan att det räknas som misstag, bara en kort markering), `textEnGang` (texten visas bara första gången) och `prat` (`{ "x", "y", "text", "farg", "textFarg", "langd" }`: en talbubbla första gången, t.ex. grannen i fönstret). Med `matare` spelas också regelns `ljud`, t.ex. `"krasch"`.
+
+### Etapper (valfritt)
+| Fält | Vad det gör |
+|---|---|
+| `etapper` | `{ "raknare", "delar": [kulisser] }`: del nummer N tonas in när räknaren når N, t.ex. väggar, tak, skorsten och fönster på trähuset i nivå 5 (`trahuset`). |
+
+Strömmen har också `etikettY` (textens höjd på objektet) och `bubbla` (liten pratbubbla ovanför objektet) per sort, och `summa` utan `totalt` och `antal` visar räknaren som den är (t.ex. "Ingrepp 2").
+
 ### Kulisser, rullande väg och engångshändelser (valfritt)
 | Fält | Vad det gör |
 |---|---|

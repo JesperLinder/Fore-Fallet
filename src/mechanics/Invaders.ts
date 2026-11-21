@@ -33,7 +33,8 @@ import { Projektilregler } from './invaders/rules';
 import { visaIntro } from './common/intro';
 import { framsteg } from '../core/progress';
 import { Fangststrom } from './invaders/stream';
-import { Engangshandelser, RullandeVag, ritaKulisser } from './invaders/scenery';
+import { Engangshandelser, RullandeVag, ritaKulisse, ritaKulisser, visaTalbubbla } from './invaders/scenery';
+import { VaxandeMalen } from './invaders/growth';
 
 const SKOTT_B = 5;
 const SKOTT_H = 14;
@@ -83,6 +84,10 @@ export class Invaders implements Mekanik {
   private vag?: RullandeVag;
   /** Mätare med lage "fyll": hur många steg den fyllts. */
   private fyllSteg = 0;
+  private vaxande?: VaxandeMalen;
+  /** Etapperna (delar som visas en i taget) och regler vars text eller talbubbla redan visats en gång. */
+  private etapper: Phaser.GameObjects.Container[] = [];
+  private visadEnGang = new Set<object>();
 
   private startad = false;
   private pausad = false;
@@ -123,6 +128,8 @@ export class Invaders implements Mekanik {
     if (this.inst.kulisser) ritaKulisser(this.scene, this.inst.kulisser);
     if (this.inst.strom) this.strom = new Fangststrom(this.scene, this.inst.strom);
     if (this.inst.handelser) this.handelser = new Engangshandelser(this.scene, this.inst.handelser);
+    if (this.inst.etapper) this.etapper = this.inst.etapper.delar.map((d) => ritaKulisse(this.scene, d).setAlpha(0));
+    if (this.inst.vaxande) this.vaxande = new VaxandeMalen(this.scene, this.inst.vaxande);
     this.ritaInstruktion();
 
     this.sikte = this.scene.add.graphics().setDepth(8);
@@ -264,6 +271,7 @@ export class Invaders implements Mekanik {
     if (!this.fingerNere) return;
     this.fingerNere = false;
     if (this.aktiv() && this.inst.skott?.lage === 'slapp') this.skjut();
+    if (this.aktiv() && this.vaxande) this.klipp();
   }
 
   private skjut(): void {
@@ -303,6 +311,7 @@ export class Invaders implements Mekanik {
     this.flyttaSkott(dt);
     this.flyttaFangst(dt);
     this.flyttaStrom(dt);
+    this.vaxa(dt);
     this.vag?.uppdatera(dt);
     this.handelser?.uppdatera(dt);
     this.ritaSikte();
@@ -427,19 +436,54 @@ export class Invaders implements Mekanik {
     for (const o of passerade) this.tillampa(o.typ.onPass, false, o.obj.x, sp.y - sp.h / 2 - 34);
   }
 
+  // ---------- Växande mål och timing-klipp ----------
+
+  private vaxa(dt: number): void {
+    if (!this.vaxande) return;
+    const forlopp = this.inst.tid ? 1 - this.tidKvar / this.inst.tid.sekunder : 0;
+    for (const m of this.vaxande.uppdatera(dt, forlopp)) this.tillampa(m.zon.vidMissat, false, m.x, this.textHojd());
+  }
+
+  /** Spelaren släppte fingret: klipp målet under verktyget och bedöm klippet efter zonens regler. */
+  private klipp(): void {
+    if (!this.vaxande) return;
+    spela('snip');
+    this.scene.tweens.add({ targets: this.spelare, scaleX: 0.85, duration: 70, yoyo: true });
+    const k = this.vaxande.klipp(this.spelare.x);
+    if (!k) return;
+    const regel = k.bedomning === 'klipp' ? k.mal.zon.vidKlipp : k.mal.zon.vidForTidigt;
+    this.tillampa(regel, false, k.mal.x, this.textHojd());
+  }
+
+  /** Pratbubblor vid klipp hamnar ovanför klipplinjen. */
+  private textHojd(): number {
+    return (this.inst.vaxande?.klipplinje.y ?? this.inst.spelare.y) - 44;
+  }
+
   private tillampa(r: FangstRegel | undefined, fangad: boolean, x: number, y: number): void {
+    const forsta = !!r && !this.visadEnGang.has(r);
+    if (r) this.visadEnGang.add(r);
+    const text = r?.textEnGang && !forsta ? undefined : r?.text;
     if (r?.matare) {
-      // Ett misstag: blink, skakning och misstagsljudet (inget fångstljud).
-      this.registreraMisstag(r.matare, r.text, x, y);
+      // Ett misstag: blink, skakning och misstagsljudet (inget fångstljud), plus regelns eget ljud.
+      this.registreraMisstag(r.matare, text, x, y);
+      if (r.ljud) spela(r.ljud);
     } else {
       const ljud = r?.ljud ?? (fangad ? 'fanga' : undefined);
       if (ljud) spela(ljud);
-      if (r?.text) {
-        if (r.ton === 'neutral') this.popup(x, y, r.text, 'morkgron', 'ljusbeige');
-        else this.popup(x, y, r.text, 'guld', 'morkgron');
+      if (text) {
+        if (r?.ton === 'neutral') this.popup(x, y, text, 'morkgron', 'ljusbeige');
+        else this.popup(x, y, text, 'guld', 'morkgron');
       }
     }
     if (!r) return;
+    if (r.prat && forsta) visaTalbubbla(this.scene, r.prat.x, r.prat.y, r.prat.text, r.prat.farg, r.prat.textFarg, r.prat.langd);
+    if (r.matareMjuk && this.inst.matare.lage !== 'fyll') {
+      // Mätaren sjunker utan att det räknas som ett misstag: bara en kort markering.
+      this.matarSteg = Math.min(this.inst.matare.steg, this.matarSteg + r.matareMjuk);
+      this.hud.visaMatare(this.matarSteg);
+      this.hud.markeraMatare();
+    }
     this.poang += r.poang ?? 0;
     this.rakna(r.raknas);
     if (r.fyll && this.inst.matare.lage === 'fyll') {
@@ -447,15 +491,24 @@ export class Invaders implements Mekanik {
       this.hud.visaMatare(this.fyllSteg);
     }
     if (r.raknas && r.raknas === this.inst.summa?.raknare) this.visaSumma();
+    if (r.raknas && r.raknas === this.inst.etapper?.raknare) this.visaEtapp((this.antal[r.raknas] ?? 0) - 1);
   }
 
   /** Räknarkortet med summan, t.ex. "1 333 kr". */
   private visaSumma(): void {
     const s = this.inst.summa;
     if (!s) return;
-    const n = Math.min(this.antal[s.raknare] ?? 0, s.antal);
-    const varde = Math.round((s.totalt * n) / s.antal).toLocaleString('sv-SE');
+    const fangade = this.antal[s.raknare] ?? 0;
+    const varde = (s.totalt && s.antal ? Math.round((s.totalt * Math.min(fangade, s.antal)) / s.antal) : fangade).toLocaleString('sv-SE');
     this.hud.visaSumma(s.text.replace('{varde}', varde));
+  }
+
+  /** Visar etapp nummer i (t.ex. trähusets tak) med en liten studs. */
+  private visaEtapp(i: number): void {
+    const del = this.etapper[i];
+    if (!del || del.alpha > 0) return;
+    del.setAlpha(0).setScale(0.6);
+    this.scene.tweens.add({ targets: del, alpha: 1, scale: 1, duration: 320, ease: 'Back.easeOut' });
   }
 
   private fanga(f: Fangst): void {

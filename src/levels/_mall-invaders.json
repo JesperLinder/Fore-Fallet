@@ -418,6 +418,106 @@
         "Den andra blockerar du.",
         "Bokföringsbrott släpper du alltid igenom."
       ]
+    },
+    "_vaxande_exempel": {
+      "_forklaring": "Växande mål och timing-klipp (se _mall-invaders.md). Flytta upp fälten direkt i invaders och ta bort nyckeln. Spelaren blir verktyget: sätt spelare.y till klipplinjens y. brickor och skott behövs inte.",
+      "vaxande": {
+        "baslinje": 650,
+        "mal": [
+          {
+            "x": 90,
+            "zon": "din"
+          },
+          {
+            "x": 150,
+            "zon": "din"
+          },
+          {
+            "x": 240,
+            "zon": "granne"
+          },
+          {
+            "x": 300,
+            "zon": "granne"
+          }
+        ],
+        "b": 18,
+        "viloHojd": 150,
+        "maxHojd": 270,
+        "kortHojd": 90,
+        "fart": 30,
+        "slutFart": 52,
+        "intervall": 2200,
+        "slutIntervall": 1000,
+        "fordrojning": 1200,
+        "klipplinje": {
+          "y": 470,
+          "text": "[TEXT VID LINJEN]"
+        },
+        "zoner": {
+          "din": {
+            "farg": "morkgron",
+            "vidKlipp": {
+              "poang": 10,
+              "raknas": "klipp"
+            },
+            "vidForTidigt": {
+              "matare": 8,
+              "raknas": "forTidigt",
+              "text": "[FÖR TIDIGT]",
+              "ljud": "krasch"
+            },
+            "vidMissat": {
+              "poang": -5,
+              "raknas": "missat",
+              "text": "[MISSAT]",
+              "ton": "neutral"
+            }
+          },
+          "granne": {
+            "farg": "gron",
+            "kontur": "morkgron",
+            "vidKlipp": {
+              "poang": 10,
+              "raknas": "ingrepp",
+              "matareMjuk": 1,
+              "text": "[FÖRSTA GÅNGEN]",
+              "textEnGang": true,
+              "prat": {
+                "x": 316,
+                "y": 240,
+                "text": "[REPLIK]",
+                "farg": "vinrod",
+                "textFarg": "ljusbeige",
+                "langd": 2600
+              }
+            },
+            "vidForTidigt": {
+              "matare": 8,
+              "raknas": "forTidigt",
+              "text": "[FÖR TIDIGT]",
+              "ljud": "krasch"
+            },
+            "vidMissat": {
+              "poang": -5,
+              "raknas": "missat",
+              "text": "[MISSAT]",
+              "ton": "neutral"
+            }
+          }
+        }
+      },
+      "summa": {
+        "namn": "[RÄKNARE]",
+        "text": "{varde}",
+        "raknare": "ingrepp"
+      },
+      "spelare": {
+        "utseende": "hacksax",
+        "y": 470,
+        "b": 34,
+        "h": 44
+      }
     }
   },
   "forlust": {

@@ -4,5 +4,203 @@
   "referens": "NJA 1985 s. 717",
   "rattsomrade": "Avtalsrätt",
   "mekanik": "invaders",
-  "kommerSnart": true
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Avtal strömmar in från lokalkontoren. Bara det som en behörig person har skrivit under binder bolaget. Sortera rätt.",
+  "fylgiaTips": "En försäljare kan förhandla – men det betyder inte att hen får binda bolaget. Det krävs behörighet.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxAntal": {
+        "fel": 0
+      }
+    },
+    "tva": {
+      "maxAntal": {
+        "fel": 1
+      }
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      },
+      {
+        "farg": "gron",
+        "topp": 520,
+        "vag": 10
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "parm",
+      "y": 752,
+      "b": 124,
+      "h": 44,
+      "etikett": "Bolagets avtal"
+    },
+    "kulisser": [
+      {
+        "utseende": "hus-kontur",
+        "x": 195,
+        "y": 420
+      }
+    ],
+    "etapper": {
+      "raknare": "bindande",
+      "delar": [
+        {
+          "utseende": "hus-vagg",
+          "x": 160,
+          "y": 450,
+          "b": 70,
+          "h": 100
+        },
+        {
+          "utseende": "hus-vagg",
+          "x": 230,
+          "y": 450,
+          "b": 70,
+          "h": 100
+        },
+        {
+          "utseende": "hus-tak",
+          "x": 195,
+          "y": 370,
+          "b": 170,
+          "h": 60
+        },
+        {
+          "utseende": "hus-skorsten",
+          "x": 240,
+          "y": 362,
+          "b": 16,
+          "h": 34
+        },
+        {
+          "utseende": "hus-fonster",
+          "x": 195,
+          "y": 445,
+          "b": 36,
+          "h": 36
+        }
+      ]
+    },
+    "strom": {
+      "typer": {
+        "hk": {
+          "utseende": "blankett-stampel",
+          "etiketter": [
+            "Huvudkontoret"
+          ],
+          "b": 96,
+          "h": 100,
+          "etikettY": 32,
+          "onFangst": {
+            "raknas": "bindande",
+            "ljud": "hammare"
+          },
+          "onPass": {
+            "poang": -10,
+            "raknas": "missad"
+          }
+        },
+        "saljare": {
+          "utseende": "blankett",
+          "etiketter": [
+            "Försäljaren, lokalkontoret"
+          ],
+          "etikettFarg": "vinrod",
+          "b": 96,
+          "h": 100,
+          "etikettY": 27,
+          "onFangst": {
+            "matare": 1,
+            "raknas": "fel",
+            "text": "Inget avtal – fel person skrev under"
+          }
+        },
+        "kopare": {
+          "utseende": "blankett",
+          "etiketter": [
+            "Bara köparen"
+          ],
+          "b": 96,
+          "h": 100,
+          "etikettY": 32,
+          "onFangst": {
+            "matare": 1,
+            "raknas": "fel",
+            "text": "Inget avtal – fel person skrev under"
+          }
+        },
+        "lova": {
+          "utseende": "blankett",
+          "etiketter": [
+            "Försäljaren, lokalkontoret"
+          ],
+          "etikettFarg": "vinrod",
+          "b": 96,
+          "h": 100,
+          "etikettY": 27,
+          "bubbla": "Det här är bindande, lova!",
+          "onFangst": {
+            "matare": 1,
+            "raknas": "fel",
+            "text": "Ingen sedvänja, inget fog"
+          }
+        }
+      },
+      "vikter": {
+        "hk": 3,
+        "saljare": 2,
+        "kopare": 2,
+        "lova": 1
+      },
+      "intervall": 1500,
+      "fordrojning": 900,
+      "fart": 115,
+      "y": 205
+    },
+    "summa": {
+      "namn": "Bindande avtal",
+      "text": "{varde}",
+      "raknare": "bindande"
+    },
+    "matare": {
+      "namn": "Bolagets förtroende",
+      "steg": 4,
+      "visning": "kort"
+    },
+    "mal": {
+      "raknare": "bindande",
+      "antal": 5
+    },
+    "vinst": [
+      "mal"
+    ],
+    "forlust": [
+      "matare-full"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Bunden i onödan.",
+    "orsaker": {
+      "matare-full": "Försäljaren hade ingen behörighet. Det borde du ha vetat."
+    }
+  },
+  "domslut": {
+    "rubrik": "Inget avtal förrän huvudkontoret skrev under",
+    "domskal": [
+      "Köparen skrev under ett leveransavtal som försäljaren på lokalkontoret hade skickat.",
+      "Försäljaren hade inte behörighet att lämna ett bindande anbud för bolaget, och någon sedvänja om sådan behörighet hade inte visats.",
+      "Köparen hade inte heller visat att bolagets beteende gett honom fog att tro att försäljaren var behörig. Avtalet blev inte bindande vid hans underskrift."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1985s717"
+  }
 }

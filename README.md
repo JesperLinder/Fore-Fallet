@@ -256,7 +256,7 @@ src/
   scenes/                 Boot, Title, Map, Level, Verdict, Season, About (Om spelet), Congrats (Grattis) + BaseScene
   mechanics/              Slingshot.ts, Invaders.ts, Hybrid.ts, registry.ts, art.ts (figurer)
   mechanics/slingshot/    kastaren (launcher.ts: slangbella, sikte, flygning), flygmodell, bana, resultatrad
-  mechanics/invaders/     brickornas rutnät, fallande objekt, ström av fångstobjekt, kulisser och händelser, HUD
+  mechanics/invaders/     brickornas rutnät, fallande objekt, ström av fångstobjekt, växande mål, kulisser och händelser, HUD
   mechanics/hybrid/       hybridens HUD: borgenärsrutan, valknappar, hur fiender ritas
   mechanics/Memory.ts     memorymekaniken (rutnät, vändning, par, effekterna "dimma" och "blanda")
   mechanics/memory/       memoryts HUD (par, drag, tid, mätare, inforuta) och symbolerna på korten (forms.ts)
@@ -390,7 +390,7 @@ src/levels/
   kapitel-1/              "Klassikerna", de tio första nivåerna
     kapitel.json          kapitelfilen
     niva-01.json … niva-10.json
-  kapitel-2/              "Civilrätten": Husbilen (nivå 3) är spelbar, övriga nio är "kommer snart"
+  kapitel-2/              "Civilrätten": nivå 1–5 är spelbara, nivå 6–10 är "kommer snart"
   _mall-*.json            mallar för nya nivåer (läses inte in)
 ```
 
@@ -435,8 +435,8 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 | 1 | `tvattvattnet` | Tvättvattnet | NJA 1982 s. 386 | Skadestånd | invaders | **spelbar** |
 | 2 | `semesterdagarna` | Semesterdagarna | NJA 1992 s. 213 | Skadestånd | invaders | **spelbar** |
 | 3 | `husbilen` | Husbilen | NJA 1996 s. 598 | Köprätt | memory | **spelbar** |
-| 4 | `oxelhacken` | Oxelhäcken | NJA 1990 s. 71 | Grannerätt | invaders | kommer snart |
-| 5 | `trahuset` | Trähuset | NJA 1985 s. 717 | Avtalsrätt | invaders | kommer snart |
+| 4 | `oxelhacken` | Oxelhäcken | NJA 1990 s. 71 | Grannerätt | invaders | **spelbar** |
+| 5 | `trahuset` | Trähuset | NJA 1985 s. 717 | Avtalsrätt | invaders | **spelbar** |
 | 6 | `testamentet` | Det sönderrivna testamentet | NJA 2017 s. 362 | Arvsrätt | memory | kommer snart |
 | 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | kommer snart |
 | 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | hybrid | kommer snart |
@@ -447,7 +447,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
   (och fyll på nivån) när den byggs.
 - Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
 - Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
-- Efter Husbilen leder domslutets knapp till kartan (nästa nivå "kommer snart").
+- Efter Trähuset leder domslutets knapp till kartan (nästa nivå "kommer snart").
 
 ### Lägga till ett kapitel
 
@@ -733,11 +733,46 @@ Semesterdagarna använder `antal` (4 förstörda, 6 lite sämre och 5 bra dagar 
 (3 förstörda dagar) och förlusterna `"matare-full"` (trovärdigheten) och `"mal-omojligt"`. Stjärnorna räknar fel
 fångster med `maxAntal: { "fel": … }`.
 
+**Växande mål och timing-klipp (kapitel 2, nivå 4 Oxelhäcken):** `vaxande` låter målen växa uppåt från en baslinje
+(`mechanics/invaders/growth.ts`). Spelaren styr verktyget längs en klipplinje och släpper fingret för att klippa:
+toppen ovanför linjen är ett rätt klipp, under linjen för tidigt, och ett mål som når maxhöjd är missat. Målen
+hör till zoner (t.ex. din och grannens halva) med egna regler. Reglerna har samma fält som strömmens, plus
+`matareMjuk` (mätaren sjunker utan att det räknas som misstag), `textEnGang` och `prat` (talbubbla första gången).
+I förkortad form:
+
+```json
+"invaders": {
+  "spelare": { "utseende": "hacksax", "y": 470, "b": 34, "h": 44 },
+  "vaxande": {
+    "baslinje": 650, "mal": [{ "x": 62, "zon": "din" }, …, { "x": 328, "zon": "granne" }],
+    "b": 18, "viloHojd": 150, "maxHojd": 270, "kortHojd": 90,
+    "fart": 30, "slutFart": 52, "intervall": 2200, "slutIntervall": 1000,
+    "klipplinje": { "y": 470, "text": "160 cm – som ni kom överens om" },
+    "zoner": {
+      "din": { "farg": "morkgron", "vidKlipp": { "poang": 10, "raknas": "klipp" },
+               "vidForTidigt": { "matare": 8, "raknas": "forTidigt", "text": "För kort! Det är inte brukligt", "ljud": "krasch" },
+               "vidMissat": { "poang": -5, "raknas": "missat", "text": "Häcken växte ifrån dig", "ton": "neutral" } },
+      "granne": { "farg": "gron", "kontur": "morkgron",
+                  "vidKlipp": { "poang": 10, "raknas": "ingrepp", "matareMjuk": 1, "text": "Ingrepp – men som vanligt",
+                                "textEnGang": true, "prat": { "x": 329, "y": 240, "text": "Låt bli!", … } }, … }
+    }
+  },
+  "summa": { "namn": "Ingrepp", "text": "{varde}", "raknare": "ingrepp" },
+  "tid": { "sekunder": 50, "etikett": "Tid kvar" },
+  "matare": { "namn": "Grannsämja", "steg": 40, "visning": "kort" },
+  "vinst": ["overlev"], "forlust": ["matare-full"]
+}
+```
+
+**Etapper (kapitel 2, nivå 5 Trähuset):** `etapper` bygger upp en bild en del i taget: del nummer N (en kulisse)
+tonas in när räknaren når N, t.ex. väggar, tak, skorsten och fönster för varje bindande avtal. Strömmens sorter kan
+ha en liten pratbubbla (`bubbla`) och textens höjd (`etikettY`).
+
 **Styrning:** spelaren drar var som helst på skärmen för att flytta markören i sidled, och släpper för att skjuta.
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
 
-**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling" och "mynt" som nivåerna kan välja i fångstreglerna. Ljudet slås av och på med högtalarknappen på kartan.
+**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch" och "hammare" som nivåerna kan välja i reglerna. Ljudet slås av och på med högtalarknappen på kartan.
 
 ### Slangbella med fysikblock (sidovy)
 

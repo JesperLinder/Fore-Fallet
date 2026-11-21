@@ -21,20 +21,36 @@ const DJUP_FRAM = 21;
 const DJUP_HANDELSE = 6;
 
 export function ritaKulisser(scene: Phaser.Scene, kulisser: Kulisse[]): void {
-  for (const k of kulisser) {
-    const djup = k.fram ? DJUP_FRAM : DJUP_BAKOM;
-    if (k.utseende) {
-      const g = scene.add.graphics().setDepth(djup);
-      ritaFigur(g, k.utseende, k.x, k.y, k.b ?? 0, k.h ?? 0, k.farg ? farg[k.farg] : undefined);
-    }
-    if (k.text) {
-      skapaText(scene, k.x, k.y + (k.textY ?? 0), k.text, 'knapp', k.textFarg ?? 'morkgron', {
+  for (const k of kulisser) ritaKulisse(scene, k);
+}
+
+/** Ritar en kulisse i en behållare med mittpunkten i (x, y), så att den kan tonas eller skalas in (t.ex. en etapp). */
+export function ritaKulisse(scene: Phaser.Scene, k: Kulisse): Phaser.GameObjects.Container {
+  const c = scene.add.container(k.x, k.y).setDepth(k.fram ? DJUP_FRAM : DJUP_BAKOM);
+  if (k.utseende) {
+    const g = scene.add.graphics();
+    ritaFigur(g, k.utseende, 0, 0, k.b ?? 0, k.h ?? 0, k.farg ? farg[k.farg] : undefined);
+    c.add(g);
+  }
+  if (k.text) {
+    c.add(
+      skapaText(scene, 0, k.textY ?? 0, k.text, 'knapp', k.textFarg ?? 'morkgron', {
         origo: [0.5, 0.5],
         storlek: k.textStorlek ?? 11,
         justering: 'center',
-      }).setDepth(djup);
-    }
+      }),
+    );
   }
+  return c;
+}
+
+/** Talbubbla med spetsen i (x, y) som visas i langd ms. Hålls inom skärmen. */
+export function visaTalbubbla(scene: Phaser.Scene, x: number, y: number, innehall: string, bakgrund: FargNamn, textFarg: FargNamn, langd: number): void {
+  const p = talbubbla(scene, 0, 0, innehall, bakgrund, textFarg).setDepth(40);
+  const halv = p.getBounds().width / 2 + 8;
+  p.setPosition(Phaser.Math.Clamp(x, halv, BREDD - halv), y).setScale(0.6);
+  scene.tweens.add({ targets: p, scale: 1, duration: 220, ease: 'Back.easeOut' });
+  scene.tweens.add({ targets: p, alpha: 0, delay: Math.max(0, langd - 400), duration: 400, onComplete: () => p.destroy() });
 }
 
 const STRECK = 28;
@@ -158,7 +174,7 @@ export class Engangshandelser {
         break;
       }
       case 'pratbubbla':
-        this.prata(steg.x, steg.y, steg.text, steg.farg, steg.textFarg, steg.langd);
+        visaTalbubbla(this.scene, steg.x, steg.y, steg.text, steg.farg, steg.textFarg, steg.langd);
         break;
       case 'vanta':
         break;
@@ -175,14 +191,5 @@ export class Engangshandelser {
     this.scene.tweens.add({ targets: g, y: k.y - Phaser.Math.Between(30, 58), x: g.x + Phaser.Math.Between(-6, 6), duration: tid, onComplete: () => g.destroy() });
     // Bubblan syns fullt större delen av vägen och tonas ut på slutet.
     this.scene.tweens.add({ targets: g, alpha: 0, delay: tid * 0.6, duration: tid * 0.4 });
-  }
-
-  private prata(x: number, y: number, innehall: string, bakgrund: FargNamn, textFarg: FargNamn, langd: number): void {
-    // Talbubbla med spetsen i (x, y), t.ex. mot bilen. Hålls inom skärmen.
-    const p = talbubbla(this.scene, 0, 0, innehall, bakgrund, textFarg).setDepth(40);
-    const halv = p.getBounds().width / 2 + 8;
-    p.setPosition(Phaser.Math.Clamp(x, halv, BREDD - halv), y).setScale(0.6);
-    this.scene.tweens.add({ targets: p, scale: 1, duration: 220, ease: 'Back.easeOut' });
-    this.scene.tweens.add({ targets: p, alpha: 0, delay: Math.max(0, langd - 400), duration: 400, onComplete: () => p.destroy() });
   }
 }

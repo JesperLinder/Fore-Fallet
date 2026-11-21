@@ -4,5 +4,226 @@
   "referens": "NJA 1990 s. 71",
   "rattsomrade": "Grannerätt",
   "mekanik": "invaders",
-  "kommerSnart": true
+  "fylgiaMal": false,
+  "tema": "ljus",
+  "uppdragstext": "Ni kom överens om 160 cm för länge sedan. Håll häcken i schack – på din halva och, om du vågar, på grannens.",
+  "fylgiaTips": "Att klippa grannens del mot hens vilja är ett ingrepp. Men gjordes det som det alltid gjorts blir det inget skadestånd.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxAntal": {
+        "forTidigt": 0,
+        "missat": 1
+      }
+    },
+    "tva": {
+      "maxAntal": {
+        "forTidigt": 1
+      }
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "beige",
+        "topp": 0
+      },
+      {
+        "farg": "gron",
+        "topp": 648,
+        "vag": 8
+      }
+    ]
+  },
+  "objekt": [],
+  "invaders": {
+    "spelare": {
+      "utseende": "hacksax",
+      "y": 470,
+      "b": 34,
+      "h": 44
+    },
+    "kulisser": [
+      {
+        "utseende": "villa",
+        "x": 74,
+        "y": 250,
+        "b": 112,
+        "h": 110
+      },
+      {
+        "utseende": "villa-granne",
+        "x": 316,
+        "y": 250,
+        "b": 112,
+        "h": 110
+      },
+      {
+        "utseende": "tomtgrans",
+        "x": 195,
+        "y": 440,
+        "h": 480
+      },
+      {
+        "x": 118,
+        "y": 690,
+        "text": "Din halva",
+        "textFarg": "ljusbeige",
+        "textStorlek": 12
+      },
+      {
+        "x": 272,
+        "y": 690,
+        "text": "Grannens halva",
+        "textFarg": "ljusbeige",
+        "textStorlek": 12
+      }
+    ],
+    "vaxande": {
+      "baslinje": 650,
+      "mal": [
+        {
+          "x": 62,
+          "zon": "din"
+        },
+        {
+          "x": 90,
+          "zon": "din"
+        },
+        {
+          "x": 118,
+          "zon": "din"
+        },
+        {
+          "x": 146,
+          "zon": "din"
+        },
+        {
+          "x": 174,
+          "zon": "din"
+        },
+        {
+          "x": 216,
+          "zon": "granne"
+        },
+        {
+          "x": 244,
+          "zon": "granne"
+        },
+        {
+          "x": 272,
+          "zon": "granne"
+        },
+        {
+          "x": 300,
+          "zon": "granne"
+        },
+        {
+          "x": 328,
+          "zon": "granne"
+        }
+      ],
+      "b": 18,
+      "viloHojd": 150,
+      "maxHojd": 270,
+      "kortHojd": 90,
+      "fart": 30,
+      "slutFart": 52,
+      "intervall": 2200,
+      "slutIntervall": 1000,
+      "fordrojning": 1200,
+      "klipplinje": {
+        "y": 470,
+        "text": "160 cm – som ni kom överens om"
+      },
+      "zoner": {
+        "din": {
+          "farg": "morkgron",
+          "vidKlipp": {
+            "poang": 10,
+            "raknas": "klipp"
+          },
+          "vidForTidigt": {
+            "matare": 8,
+            "raknas": "forTidigt",
+            "text": "För kort! Det är inte brukligt",
+            "ljud": "krasch"
+          },
+          "vidMissat": {
+            "poang": -5,
+            "raknas": "missat",
+            "text": "Häcken växte ifrån dig",
+            "ton": "neutral"
+          }
+        },
+        "granne": {
+          "farg": "gron",
+          "kontur": "morkgron",
+          "vidKlipp": {
+            "poang": 10,
+            "raknas": "ingrepp",
+            "matareMjuk": 1,
+            "text": "Ingrepp – men som vanligt",
+            "textEnGang": true,
+            "prat": {
+              "x": 329,
+              "y": 240,
+              "text": "Låt bli!",
+              "farg": "vinrod",
+              "textFarg": "ljusbeige",
+              "langd": 2600
+            }
+          },
+          "vidForTidigt": {
+            "matare": 8,
+            "raknas": "forTidigt",
+            "text": "För kort! Det är inte brukligt",
+            "ljud": "krasch"
+          },
+          "vidMissat": {
+            "poang": -5,
+            "raknas": "missat",
+            "text": "Häcken växte ifrån dig",
+            "ton": "neutral"
+          }
+        }
+      }
+    },
+    "summa": {
+      "namn": "Ingrepp",
+      "text": "{varde}",
+      "raknare": "ingrepp"
+    },
+    "tid": {
+      "sekunder": 50,
+      "etikett": "Tid kvar"
+    },
+    "matare": {
+      "namn": "Grannsämja",
+      "steg": 40,
+      "visning": "kort"
+    },
+    "vinst": [
+      "overlev"
+    ],
+    "forlust": [
+      "matare-full"
+    ]
+  },
+  "forlust": {
+    "rubrik": "Skadestånd.",
+    "orsaker": {
+      "matare-full": "Du klippte inte som ni brukade."
+    }
+  },
+  "domslut": {
+    "rubrik": "Ingrepp, men inget skadestånd",
+    "domskal": [
+      "Grannarna hade sedan länge kommit överens om att häcken i tomtgränsen skulle hållas på 160 cm.",
+      "Att toppklippa grannens del av häcken mot hens vilja var ett ingrepp i grannens äganderätt.",
+      "Skadeståndstalan ogillades ändå, bland annat eftersom häcken klipptes på det sätt som sedan många år varit brukligt."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1990s71"
+  }
 }

@@ -144,7 +144,9 @@ function byggKort(
     g.lineStyle(1, farg.gron, 1).strokeRoundedRect(x, INFO_Y, w, h, radie.m);
   };
   kortRuta(x0, b);
-  skapaText(scene, x0 + 14, INFO_Y + 12, m.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
+  const namn = skapaText(scene, x0 + 14, INFO_Y + 12, m.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
+  // Ett långt namn (t.ex. "Bolagets förtroende" bredvid ett räknarkort) krymps så att det ryms i kortet.
+  if (namn.width > b - 28) namn.setScale((b - 28) / namn.width);
   const stapelB = b - 28;
   const stapel = scene.add.graphics().setDepth(6);
   let andel = 1;

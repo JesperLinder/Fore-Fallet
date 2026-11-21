@@ -9,6 +9,7 @@ import { BREDD } from '../../config/display';
 import { arMork, avstand, farg } from '../../config/theme';
 import type { FangstStrom, FangstTyp } from '../../core/levelTypes';
 import { skapaText } from '../../ui/text';
+import { pratbubbla } from '../../ui/Badge';
 import { ritaFigur } from '../art';
 
 /** Fladder: svängning i sidled (punkter) och vickning (grader), och hur fort. */
@@ -120,7 +121,8 @@ export class Fangststrom {
     const typ = namn ? this.inst.typer[namn] : undefined;
     if (!namn || !typ) return;
     const kant = this.inst.kant ?? { vanster: avstand.l, hoger: BREDD - avstand.l };
-    const marginal = typ.b / 2 + (typ.fladder ? FLADDER_X : 0);
+    // Med pratbubbla: håll hela bubblan inom skärmen (ungefär 6,6 punkter per tecken plus kanter).
+    const marginal = Math.max(typ.b / 2, typ.bubbla ? typ.bubbla.length * 3.3 + 12 : 0) + (typ.fladder ? FLADDER_X : 0);
     const min = kant.vanster + marginal;
     const max = kant.hoger - marginal;
     // Inte rakt under förra objektet: då ser två objekt ut som ett.
@@ -134,8 +136,14 @@ export class Fangststrom {
     if (typ.etiketter?.length) {
       const etikett = Phaser.Utils.Array.GetRandom(typ.etiketter);
       const textFarg = typ.etikettFarg ?? (typ.farg && arMork(typ.farg) ? 'ljusbeige' : 'morkgron');
-      const t = skapaText(this.scene, 0, 5, etikett, 'knapp', textFarg, { origo: [0.5, 0.5], storlek: 12, bredd: typ.b - 10, justering: 'center' });
+      const t = skapaText(this.scene, 0, typ.etikettY ?? 5, etikett, 'knapp', textFarg, { origo: [0.5, 0.5], storlek: 12, bredd: typ.b - 10, justering: 'center' });
       obj.add(t);
+    }
+    if (typ.bubbla) {
+      // Liten pratbubbla ovanför objektet, t.ex. försäljarens "Det här är bindande, lova".
+      const p = pratbubbla(this.scene, 0, -typ.h / 2 - 14, typ.bubbla, 'ljusbeige', 'morkgron');
+      this.scene.children.remove(p);
+      obj.add(p);
     }
     obj.setAlpha(0);
     this.scene.tweens.add({ targets: obj, alpha: 1, duration: 200 });

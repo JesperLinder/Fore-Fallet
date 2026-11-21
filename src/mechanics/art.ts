@@ -607,6 +607,103 @@ const figurer: Record<string, Rita> = {
     g.fillStyle(farg.beige, 1).fillRoundedRect(x - B * 0.22, y - H * 0.3, B * 0.44, H * 0.16, 3);
     g.fillRoundedRect(x - B * 0.22, y + H * 0.1, B * 0.44, H * 0.16, 3);
   },
+
+  // ---------- Kapitel 2: Oxelhäcken ----------
+
+  /** Häcksax (spelaren): två blad uppåt som korsas vid klipplinjen, guldfärgade handtag nedåt. */
+  hacksax(g, x, y, b, h) {
+    const B = b || 34;
+    const H = h || 44;
+    const led = y + H * 0.05;
+    g.fillStyle(farg.morkgron, 1);
+    g.fillTriangle(x - 3, led, x + 3, led, x - B * 0.28, y - H / 2);
+    g.fillTriangle(x - 3, led, x + 3, led, x + B * 0.28, y - H / 2);
+    g.lineStyle(1, farg.ljusbeige, 1).lineBetween(x - 1, led - 2, x - B * 0.25, y - H / 2 + 3).lineBetween(x + 1, led - 2, x + B * 0.25, y - H / 2 + 3);
+    g.lineStyle(4, farg.guld, 1).lineBetween(x - 2, led, x - B * 0.36, y + H / 2 - 2).lineBetween(x + 2, led, x + B * 0.36, y + H / 2 - 2);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x, led, 3.5);
+    g.fillStyle(farg.guld, 1).fillCircle(x, led, 1.5);
+  },
+
+  /** Villa: ljus fasad med mörk kontur, mörkt tak, fönster och dörr. */
+  villa(g, x, y, b, h) {
+    ritaVilla(g, x, y, b || 112, h || 110, false);
+  },
+
+  /** Grannens villa: som villan, men grannen syns i fönstret. */
+  'villa-granne'(g, x, y, b, h) {
+    ritaVilla(g, x, y, b || 112, h || 110, true);
+  },
+
+  /** Tomtgräns: tunn streckad linje i höjdled, h lång. */
+  tomtgrans(g, x, y, _b, h) {
+    const H = h || 400;
+    g.lineStyle(1.5, farg.morkockra, 0.8);
+    streckadLinje(g, [new Phaser.Math.Vector2(x, y - H / 2), new Phaser.Math.Vector2(x, y + H / 2)], 6, 6);
+  },
+
+  // ---------- Kapitel 2: Trähuset ----------
+
+  /** Avtalsblankett: beige papper med vikt hörn, textrader och en underskriftsrad. */
+  blankett(g, x, y, b, h) {
+    ritaBlankett(g, x, y, b || 96, h || 100, false);
+  },
+
+  /** Avtalsblankett med huvudkontorets guldstämpel. */
+  'blankett-stampel'(g, x, y, b, h) {
+    ritaBlankett(g, x, y, b || 96, h || 100, true);
+  },
+
+  /** Pärm (spelaren i Trähuset): ljus pärm med guldrygg. Texten står på den. */
+  parm(g, x, y, b, h) {
+    const B = b || 120;
+    const H = h || 44;
+    g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 5);
+    g.fillStyle(farg.guld, 1).fillRoundedRect(x - B / 2, y - H / 2, 12, H, { tl: 5, bl: 5, tr: 0, br: 0 });
+    g.fillStyle(farg.morkgron, 1).fillCircle(x - B / 2 + 6, y - H * 0.22, 2).fillCircle(x - B / 2 + 6, y + H * 0.22, 2);
+  },
+
+  /** Trähusets streckade kontur (vad som ska byggas): väggar 140 × 100 och tak, mitt i (x, y). */
+  'hus-kontur'(g, x, y) {
+    g.lineStyle(1.5, farg.beige, 0.6);
+    const v = (px: number, py: number) => new Phaser.Math.Vector2(x + px, y + py);
+    streckadLinje(g, [v(-70, -20), v(-70, 80), v(70, 80), v(70, -20)], 6, 5);
+    streckadLinje(g, [v(-85, -20), v(0, -80), v(85, -20), v(-85, -20)], 6, 5);
+  },
+
+  /** Trähusets vägg (halva): stående panel i beige med bräder. */
+  'hus-vagg'(g, x, y, b, h) {
+    const B = b || 70;
+    const H = h || 100;
+    g.fillStyle(farg.beige, 1).fillRect(x - B / 2, y - H / 2, B, H);
+    g.lineStyle(1, farg.morkockra, 0.6);
+    for (let px = x - B / 2 + 10; px < x + B / 2; px += 10) g.lineBetween(px, y - H / 2, px, y + H / 2);
+  },
+
+  /** Trähusets tak: vinrött sadeltak. b = takfotens bredd, h = höjden. */
+  'hus-tak'(g, x, y, b, h) {
+    const B = b || 170;
+    const H = h || 60;
+    g.fillStyle(farg.vinrod, 1).fillTriangle(x - B / 2, y + H / 2, x, y - H / 2, x + B / 2, y + H / 2);
+    g.lineStyle(1.5, farg.beige, 1).strokeTriangle(x - B / 2, y + H / 2, x, y - H / 2, x + B / 2, y + H / 2);
+  },
+
+  /** Skorsten: liten vinröd stapel med ljus kant. */
+  'hus-skorsten'(g, x, y, b, h) {
+    const B = b || 16;
+    const H = h || 34;
+    g.fillStyle(farg.vinrod, 1).fillRect(x - B / 2, y - H / 2, B, H);
+    g.lineStyle(1.5, farg.beige, 1).strokeRect(x - B / 2, y - H / 2, B, H);
+    g.fillStyle(farg.beige, 1).fillRect(x - B / 2 - 2, y - H / 2 - 3, B + 4, 4);
+  },
+
+  /** Fönster: ljust med mörkt spröjs. */
+  'hus-fonster'(g, x, y, b, h) {
+    const B = b || 36;
+    const H = h || 36;
+    g.fillStyle(farg.ljusbeige, 1).fillRect(x - B / 2, y - H / 2, B, H);
+    g.lineStyle(3, farg.morkgron, 1).strokeRect(x - B / 2, y - H / 2, B, H);
+    g.lineBetween(x, y - H / 2, x, y + H / 2).lineBetween(x - B / 2, y, x + B / 2, y);
+  },
 };
 
 /** Kalenderblad: fyllt blad, mörk list upptill med två ringar och en tunn kontur. */
@@ -643,4 +740,56 @@ export function ritaFigur(g: Phaser.GameObjects.Graphics, namn: string, x: numbe
   }
   console.warn(`Okänt utseende "${namn}" – lägg till det i src/mechanics/art.ts`);
   g.lineStyle(1, farg.lila, 1).strokeRect(x - (b || 20) / 2, y - (h || 20) / 2, b || 20, h || 20);
+}
+
+/** Villa med fasad, sadeltak, två fönster och dörr. granne: en person syns i det högra fönstret. */
+function ritaVilla(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, granne: boolean): void {
+  const tak = h * 0.36;
+  const topp = y - h / 2;
+  g.fillStyle(farg.morkgron, 1).fillTriangle(x - b / 2 - 6, topp + tak, x, topp, x + b / 2 + 6, topp + tak);
+  g.fillStyle(farg.ljusbeige, 1).fillRect(x - b / 2, topp + tak, b, h - tak);
+  g.lineStyle(1.5, farg.morkgron, 1).strokeRect(x - b / 2, topp + tak, b, h - tak);
+  const fy = topp + tak + 12;
+  const fb = b * 0.24;
+  for (const dx of [-0.26, 0.26]) {
+    g.fillStyle(farg.beige, 1).fillRect(x + dx * b - fb / 2, fy, fb, fb);
+    g.lineStyle(1.5, farg.morkgron, 1).strokeRect(x + dx * b - fb / 2, fy, fb, fb);
+  }
+  if (granne) {
+    // Grannen i det högra fönstret: huvud och axlar.
+    const gx = x + 0.26 * b;
+    g.fillStyle(farg.morkgron, 1).fillCircle(gx, fy + fb * 0.42, fb * 0.2);
+    g.fillRoundedRect(gx - fb * 0.32, fy + fb * 0.66, fb * 0.64, fb * 0.34, { tl: 6, tr: 6, bl: 0, br: 0 });
+  }
+  g.fillStyle(farg.morkgron, 1).fillRect(x - b * 0.08, y + h / 2 - h * 0.3, b * 0.16, h * 0.3);
+}
+
+/** Avtalsblankett: papper med vikt hörn, textrader, underskriftsrad och valfri guldstämpel. */
+function ritaBlankett(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, stampel: boolean): void {
+  const l = x - b / 2;
+  const t = y - h / 2;
+  const hornet = 12;
+  g.fillStyle(farg.beige, 1).fillPoints(
+    [
+      new Phaser.Math.Vector2(l, t),
+      new Phaser.Math.Vector2(l + b - hornet, t),
+      new Phaser.Math.Vector2(l + b, t + hornet),
+      new Phaser.Math.Vector2(l + b, t + h),
+      new Phaser.Math.Vector2(l, t + h),
+    ],
+    true,
+  );
+  g.fillStyle(farg.morkockra, 0.35).fillTriangle(l + b - hornet, t, l + b - hornet, t + hornet, l + b, t + hornet);
+  g.fillStyle(farg.morkgron, 1).fillRect(l + 8, t + 9, b * 0.45, 4);
+  g.fillStyle(farg.morkockra, 0.5);
+  for (let i = 0; i < 3; i++) g.fillRect(l + 8, t + 20 + i * 8, b - 16 - (i === 2 ? 22 : 0), 2);
+  // Underskriftsrad längst ner; namnet (etiketten) står ovanför.
+  g.lineStyle(1.2, farg.morkgron, 1).lineBetween(l + 8, t + h - 9, l + b - 8, t + h - 9);
+  if (stampel) {
+    const sx = l + b - 22;
+    const sy = t + 30;
+    g.fillStyle(farg.guld, 1).fillCircle(sx, sy, 13);
+    g.lineStyle(1.5, farg.ljusbeige, 1).strokeCircle(sx, sy, 9.5);
+    fyllStjarna(g, sx, sy, 12, farg.ljusbeige);
+  }
 }

@@ -9,8 +9,8 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt';
-type Tonljud = Exclude<Ljud, 'pssst' | 'prassel'>;
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare';
+type Tonljud = Exclude<Ljud, 'pssst' | 'prassel' | 'krasch'>;
 
 interface Ton {
   /** Frekvens i Hz vid start och slut (glidning). */
@@ -85,6 +85,16 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 988, till: 988, start: 0, langd: 0.07, form: 'square', volym: 0.04 },
     { fran: 1319, till: 1319, start: 0.065, langd: 0.28, form: 'square', volym: 0.04 },
   ],
+  // Häcksaxens "snip": två korta, ljusa klick (bladen som möts).
+  snip: [
+    { fran: 3200, till: 1800, start: 0, langd: 0.018, form: 'square', volym: 0.05 },
+    { fran: 2600, till: 1400, start: 0.045, langd: 0.022, form: 'square', volym: 0.06 },
+  ],
+  // Hammarslag: ett torrt klick och en kort, dov smäll.
+  hammare: [
+    { fran: 1100, till: 600, start: 0, langd: 0.02, form: 'square', volym: 0.06 },
+    { fran: 190, till: 85, start: 0, langd: 0.1, form: 'triangle', volym: 0.28 },
+  ],
   vinst: [
     { fran: 523, till: 523, start: 0, langd: 0.14, form: 'triangle', volym: 0.13 },
     { fran: 659, till: 659, start: 0.12, langd: 0.14, form: 'triangle', volym: 0.13 },
@@ -122,6 +132,10 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   // Kassans pling hörs vid varje betjänad kund och ligger därför, som flippet, ett par dB under de andra.
   pling: 0.43,
   mynt: 1.56,
+  // Snippet hörs vid varje klipp och ligger som flippet; kraschen ligger med flit ett par dB över de andra.
+  snip: 2.09,
+  krasch: 0.46,
+  hammare: 0.75,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };
@@ -194,6 +208,10 @@ export function renderaLjud(ctx: BaseAudioContext, ljud: Ljud, mal: AudioNode, n
     spelaPrassel(ctx, mal, nu, niva);
     return;
   }
+  if (ljud === 'krasch') {
+    spelaKrasch(ctx, mal, nu, niva);
+    return;
+  }
   for (const ton of LJUD[ljud]) {
     const osc = ctx.createOscillator();
     const forstarkning = ctx.createGain();
@@ -229,6 +247,38 @@ function spelaBrus(ctx: BaseAudioContext, mal: AudioNode, t0: number, niva: numb
   kalla.connect(filter).connect(forstarkning).connect(mal);
   kalla.start(t0);
   kalla.stop(t0 + langd);
+}
+
+/** Krasch: ett kort brusutbrott som mörknar (grenar som knäcks) och en dov smäll under. */
+function spelaKrasch(ctx: BaseAudioContext, mal: AudioNode, t0: number, niva: number): void {
+  const langd = 0.4;
+  const buffert = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * langd), ctx.sampleRate);
+  const data = buffert.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (Math.random() < 0.3 ? 1 : 0.4);
+  const kalla = ctx.createBufferSource();
+  kalla.buffer = buffert;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(5000, t0);
+  filter.frequency.exponentialRampToValueAtTime(400, t0 + langd);
+  const forstarkning = ctx.createGain();
+  forstarkning.gain.setValueAtTime(0.0001, t0);
+  forstarkning.gain.exponentialRampToValueAtTime(0.3 * niva, t0 + 0.01);
+  forstarkning.gain.exponentialRampToValueAtTime(0.0001, t0 + langd);
+  kalla.connect(filter).connect(forstarkning).connect(mal);
+  kalla.start(t0);
+  kalla.stop(t0 + langd);
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(140, t0);
+  osc.frequency.exponentialRampToValueAtTime(50, t0 + 0.25);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.35 * niva, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3);
+  osc.connect(g).connect(mal);
+  osc.start(t0);
+  osc.stop(t0 + 0.32);
 }
 
 /** Pappersprassel: brus i korta, ojämna knaster genom ett bandpassfilter. */

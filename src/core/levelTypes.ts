@@ -486,12 +486,20 @@ export interface InvadersInstallningar {
   /**
    * Räknare i ett kort bredvid mätaren (kräver matare.visning "kort"), t.ex. "Skadestånd 2 000 kr".
    * Visar round(totalt × antal fångade / antal), där antal fångade är räknaren "raknare". {varde} byts mot värdet.
+   * Utan totalt och antal visas räknaren som den är (t.ex. "Ingrepp 2").
    */
-  summa?: { namn: string; text: string; raknare: string; totalt: number; antal: number };
+  summa?: { namn: string; text: string; raknare: string; totalt?: number; antal?: number };
   /** Vinst "mal": räknaren har nått antal. Förlust "mal-omojligt": det finns inte tillräckligt många kvar i strömmen. */
   mal?: { raknare: string; antal: number };
   /** Förlust "for-manga": räknaren har gått över max, t.ex. { "raknare": "missad", "max": 8 }. */
   forManga?: { raknare: string; max: number };
+  /** Växande mål och timing-klipp (valfritt): mål växer uppåt och klipps vid en klipplinje. Se VaxandeInstallningar. */
+  vaxande?: VaxandeInstallningar;
+  /**
+   * En bild som byggs upp en del i taget (valfritt): del nummer N visas när räknaren "raknare" når N,
+   * t.ex. väggar, tak och skorsten på ett trähus. Delarna är kulisser.
+   */
+  etapper?: { raknare: string; delar: Kulisse[] };
   /** Fallande hot som ska skjutas ner innan de når botten (valfritt). */
   hot?: HotInstallningar;
   /**
@@ -831,6 +839,10 @@ export interface FangstTyp {
   /** Text på objektet; med flera väljs en slumpvis, t.ex. ["Lite regn", "Kort försening"]. */
   etiketter?: string[];
   etikettFarg?: FargNamn;
+  /** Textens läge i höjdled relativt objektets mitt. Standard: 5. */
+  etikettY?: number;
+  /** Liten pratbubbla ovanför objektet, t.ex. "Det här är bindande, lova". */
+  bubbla?: string;
   /** Objektet fladdrar lätt i sidled och vickar när det faller (t.ex. kalenderblad). */
   fladder?: boolean;
   onFangst?: FangstRegel;
@@ -850,8 +862,60 @@ export interface FangstRegel {
   text?: string;
   /** "bra" (guld) eller "neutral" (mörkgrön) bubbla när regeln inte är ett misstag. Standard: bra. */
   ton?: 'bra' | 'neutral';
+  /** Visa "text" bara första gången regeln används. */
+  textEnGang?: boolean;
+  /**
+   * Steg på mätaren utan att det räknas som ett misstag: bara en kort markering, ingen blink eller skakning
+   * (t.ex. grannsämjan sjunker lite vid ett ingrepp).
+   */
+  matareMjuk?: number;
+  /** Talbubbla första gången regeln används, t.ex. grannen i fönstret: "Låt bli!". (x, y) = spetsen. */
+  prat?: { x: number; y: number; text: string; farg: FargNamn; textFarg: FargNamn; langd: number };
   /** Ljud, t.ex. "pling" eller "mynt". Standard vid fångst: "fanga". */
   ljud?: Ljud;
+}
+
+/**
+ * Växande mål och timing-klipp (invaders): målen (t.ex. häckens stammar) växer uppåt från en baslinje.
+ * Spelaren styr verktyget (spelare) längs klipplinjen och släpper fingret för att klippa målet under verktyget.
+ * Bedömning: toppen ovanför linjen = rätt klipp (vidKlipp). Toppen under linjen = för tidigt (vidForTidigt).
+ * Ett mål som når maxhöjd utan att klippas = missat (vidMissat). Varje mål hör till en zon med egna regler.
+ */
+export interface VaxandeInstallningar {
+  /** Marknivån (y) som målen växer upp från. */
+  baslinje: number;
+  /** Målens mittpunkter i sidled och zon (nyckel i zoner). */
+  mal: { x: number; zon: string }[];
+  /** Ett måls bredd. */
+  b: number;
+  /** Höjd (punkter över baslinjen) i vila, efter ett rätt klipp. Ska vara under klipplinjen. */
+  viloHojd: number;
+  /** Höjd där målet räknas som missat (vidMissat) och klipps tillbaka av sig själv. */
+  maxHojd: number;
+  /** Höjd efter ett för tidigt klipp (målet växer sakta tillbaka till viloHojd). */
+  kortHojd: number;
+  /** Tillväxt (punkter per sekund) i början och i slutet; tempot ändras jämnt över nivåns tid. */
+  fart: number;
+  slutFart?: number;
+  /** Tid (ms) mellan att ett nytt, slumpvis valt mål börjar växa, i början och i slutet, och före det första. */
+  intervall: number;
+  slutIntervall?: number;
+  fordrojning?: number;
+  /** Klipplinjen: höjd (y) och valfri text vid linjen, t.ex. "160 cm – som ni kom överens om". */
+  klipplinje: { y: number; text?: string; textX?: number };
+  /** Hur långt från verktygets mitt ett mål får stå för att klippas (standard: halva målbredden + 6). */
+  rackvidd?: number;
+  /** Zonerna: utseende och regler. */
+  zoner: Record<string, VaxandeZon>;
+}
+
+export interface VaxandeZon {
+  /** Målets färg och valfri mörk kontur. */
+  farg: FargNamn;
+  kontur?: FargNamn;
+  vidKlipp?: FangstRegel;
+  vidForTidigt?: FangstRegel;
+  vidMissat?: FangstRegel;
 }
 
 /** En fast figur bakom spelet, valfritt med text. Utan utseende blir det bara text. */
