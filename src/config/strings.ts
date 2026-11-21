@@ -53,6 +53,8 @@ export const text = {
     stjarnor: (antal: string, max: number) => `${antal} / ${max} stjärnor`,
     nasta: (nr: number, titel: string) => `Nu väntar kapitel ${nr}: ${titel}`,
     tillNasta: 'Till nästa kapitel',
+    /** Efter det sista kapitlet: vidare till grattisskärmen. */
+    vidare: 'Vidare',
     /** Den lilla knappen på kartan när kapitlet är klarat. */
     kartknapp: 'Du klarade kapitlet',
   },

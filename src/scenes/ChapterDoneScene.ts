@@ -1,13 +1,13 @@
 /**
- * "Kapitel klart": den kortare skärmen efter ett kapitel som inte är det sista (efter det sista visas
- * grattisskärmen med länken till karriärsidan). Kapitlets stjärna i accentfärgen, kapitlets stjärnor och
- * knappen "Till nästa kapitel", som öppnar nästa kapitels karta.
+ * "Kapitel klart": skärmen efter ett klarat kapitel. Kapitlets stjärna i accentfärgen, kapitlets stjärnor och
+ * knappen "Till nästa kapitel", som öppnar nästa kapitels karta. Efter det sista kapitlet heter knappen "Vidare"
+ * och leder till grattisskärmen med länken till karriärsidan.
  */
 import { BasScen } from './BaseScene';
 import { arMork, avstand, farg } from '../config/theme';
 import { BREDD, MITT_X } from '../config/display';
 import { text } from '../config/strings';
-import { allaKapitel, hamtaKapitel, kapitelMaxStjarnor, kapitelStjarnor, nastaKapitel } from '../core/levels';
+import { allaKapitel, arSistaKapitlet, hamtaKapitel, kapitelMaxStjarnor, kapitelStjarnor, nastaKapitel } from '../core/levels';
 import { framsteg } from '../core/progress';
 import { spela } from '../core/sound';
 import { skapaText } from '../ui/text';
@@ -47,8 +47,10 @@ export class ChapterDoneScene extends BasScen {
       skapaText(this, MITT_X, 580, text.kapitelKlart.nasta(nasta.nummer, nasta.titel), 'brod', 'beige', { origo: [0.5, 0.5], bredd: b, justering: 'center' });
     }
 
-    new Knapp(this, MITT_X, 690, text.kapitelKlart.tillNasta, { bredd: b, hojd: 56, variant: 'guld' }, () =>
-      nasta ? this.bytTill('Map', { kapitel: nasta.id }) : this.bytTill('Kapitel'),
+    // Efter det sista kapitlet: vidare till grattisskärmen (med länken till karriärsidan).
+    const sista = arSistaKapitlet(k);
+    new Knapp(this, MITT_X, 690, sista ? text.kapitelKlart.vidare : text.kapitelKlart.tillNasta, { bredd: b, hojd: 56, variant: 'guld' }, () =>
+      sista ? this.bytTill('Grattis', { kapitel: k.id }) : nasta ? this.bytTill('Map', { kapitel: nasta.id }) : this.bytTill('Kapitel'),
     );
   }
 }

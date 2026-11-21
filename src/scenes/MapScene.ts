@@ -150,18 +150,29 @@ export class MapScene extends BasScen {
     }
 
     if (niva.kartmarke) {
-      // Märket ("Memory", "Boss") efter titeln, eller efter referensraden om det inte får plats.
+      // Märket ("Memory", "Boss") efter titeln, eller efter referensraden om det inte får plats. Flera märken
+      // (t.ex. "Boss" och "Final") står i rad med ett litet mellanrum.
       const hogerGrans = KORT_B - (niva.kommerSnart && lage === 'last' ? 74 : guld ? 92 : 76);
-      const m = marke(this, titel.x + titel.width + 8, 22, niva.kartmarke.text, niva.kartmarke.farg, morkText(niva.kartmarke.farg));
-      if (m.x + m.width > hogerGrans) {
-        m.setPosition(referens.x + referens.width + 8, 46);
-        if (m.x + m.width > hogerGrans) {
+      const lista = Array.isArray(niva.kartmarke) ? niva.kartmarke : [niva.kartmarke];
+      const marken = lista.map((mk) => marke(this, 0, 22, mk.text, mk.farg, morkText(mk.farg)));
+      const bredd = marken.reduce((summa, m) => summa + m.width, 0) + (marken.length - 1) * 6;
+      const placera = (x: number, y: number): void => {
+        let mx = x;
+        for (const m of marken) {
+          m.setPosition(mx, y);
+          mx += m.width + 6;
+        }
+      };
+      placera(titel.x + titel.width + 8, 22);
+      if (titel.x + titel.width + 8 + bredd > hogerGrans) {
+        placera(referens.x + referens.width + 8, 46);
+        if (referens.x + referens.width + 8 + bredd > hogerGrans) {
           // Får inte plats någonstans: kortare referensrad (utan rättsområdet).
           referens.setText(niva.referens ?? '');
-          m.setX(referens.x + referens.width + 8);
+          placera(referens.x + referens.width + 8, 46);
         }
       }
-      kort.add(m);
+      kort.add(marken);
     }
 
     // Höger sida: stjärnor eller "Spela".

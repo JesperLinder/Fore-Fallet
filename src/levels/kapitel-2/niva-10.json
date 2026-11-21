@@ -3,10 +3,417 @@
   "titel": "Potatispartiet",
   "referens": "NJA 1982 s. 301",
   "rattsomrade": "Köprätt",
-  "mekanik": "boss",
-  "kommerSnart": true,
-  "kartmarke": {
-    "text": "Boss",
-    "farg": "guld"
+  "mekanik": "invaders",
+  "kartmarke": [
+    {
+      "text": "Boss",
+      "farg": "guld"
+    },
+    {
+      "text": "Final",
+      "farg": "beige"
+    }
+  ],
+  "rubrikmarke": "BOSS",
+  "mellanstopp": "BOSS – NJA 1982 s. 301",
+  "fylgiaMal": false,
+  "tema": "ljus",
+  "uppdragstext": "Du är köpman och har köpt 12 500 kg utsädespotatis till sex odlare. Snart hamnar du på sjukhus. Se till att någon kan agera åt dig.",
+  "fylgiaTips": "Du behöver inte bryta plomberingen. Men tänk på vad som händer om du blir sjuk.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "minAntal": {
+        "fullmakt": 1
+      },
+      "maxAntal": {
+        "oppnad": 0
+      }
+    },
+    "tva": {
+      "minAntal": {
+        "telefon": 1
+      }
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "ljusbeige",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "faser": [
+    {
+      "invaders": {
+        "spelare": {
+          "utseende": "lastpall",
+          "y": 748,
+          "b": 96,
+          "h": 30
+        },
+        "hornruta": {
+          "rubrik": "Datum",
+          "text": "19 april 1977"
+        },
+        "strom": {
+          "typer": {
+            "sack": {
+              "utseende": "potatissack",
+              "b": 50,
+              "h": 58,
+              "etiketter": [
+                "Plomberad"
+              ],
+              "etikettY": 14,
+              "etikettFarg": "morkgron",
+              "onFangst": {
+                "raknas": "sackar"
+              },
+              "lagra": {
+                "knapp": "Öppna",
+                "y": 168,
+                "utseendeEfter": "potatissack-oppnad",
+                "regel": {
+                  "text": "Plomberingen bröts – den måste göras om under tillsyn",
+                  "poang": -50,
+                  "raknas": "oppnad",
+                  "ton": "neutral"
+                }
+              }
+            },
+            "fullmakt": {
+              "utseende": "fullmakt",
+              "b": 72,
+              "h": 44,
+              "etiketter": [
+                "Fullmakt – Ombud"
+              ],
+              "etikettY": -2,
+              "etikettFarg": "morkgron",
+              "fart": 250,
+              "onFangst": {
+                "raknas": "fullmakt",
+                "text": "Fullmakten sparad till senare"
+              }
+            }
+          },
+          "antal": {
+            "sack": 10
+          },
+          "planerade": [
+            {
+              "typ": "fullmakt",
+              "vid": 7000
+            }
+          ],
+          "intervall": 1700,
+          "fordrojning": 800,
+          "fart": 150,
+          "y": 236
+        },
+        "musik": "boss-d",
+        "slutText": "Säckarna gick vidare till sex odlare.",
+        "vinst": [
+          "strom-slut"
+        ],
+        "forlust": []
+      }
+    },
+    {
+      "mellanstopp": "1 maj 1977",
+      "tema": "mork",
+      "fylgiaTips": "En köpman som klagomål når måste reklamera genast. Sjukhus är ingen ursäkt – du skulle ha ordnat ett ombud.",
+      "bana": {
+        "lager": [
+          {
+            "farg": "vinrod",
+            "topp": 0
+          }
+        ]
+      },
+      "invaders": {
+        "spelare": {
+          "utseende": "sjukhussang",
+          "y": 592,
+          "b": 100,
+          "h": 50
+        },
+        "skott": {
+          "lage": "slapp",
+          "intervall": 220,
+          "fart": 900,
+          "utseende": "reklamation"
+        },
+        "kulisser": [
+          {
+            "utseende": "potatisboss",
+            "x": 170,
+            "y": 300,
+            "b": 150,
+            "h": 170
+          },
+          {
+            "x": 170,
+            "y": 402,
+            "text": "Reklamationsfristen",
+            "textFarg": "ljusbeige",
+            "textStorlek": 14
+          },
+          {
+            "x": 195,
+            "y": 634,
+            "text": "Du ligger på sjukhus",
+            "textFarg": "beige",
+            "textStorlek": 12
+          }
+        ],
+        "tidslinje": {
+          "fran": "1977-04-19",
+          "till": "1977-05-16",
+          "startDatum": "1977-05-01",
+          "sekunderPerDag": 2.5,
+          "y": 112,
+          "markeringar": [
+            {
+              "datum": "1977-04-19",
+              "etikett": "19 apr"
+            },
+            {
+              "datum": "1977-05-01",
+              "etikett": "1 maj"
+            },
+            {
+              "datum": "1977-05-13",
+              "etikett": "13 maj"
+            },
+            {
+              "datum": "1977-05-16",
+              "etikett": "16 maj"
+            }
+          ],
+          "text": "Klagomål från odlarna kommer in. Reklamera till säljaren – genast.",
+          "handelser": [
+            {
+              "datum": "1977-05-01",
+              "steg": [
+                {
+                  "gor": "flagga",
+                  "namn": "klagomal",
+                  "langd": 0
+                },
+                {
+                  "gor": "pratbubbla",
+                  "x": 96,
+                  "y": 236,
+                  "text": "Odlare 1: ”Rötan har kommit!”",
+                  "farg": "ljusbeige",
+                  "textFarg": "morkgron",
+                  "langd": 2600,
+                  "efter": 700
+                },
+                {
+                  "gor": "pratbubbla",
+                  "x": 120,
+                  "y": 296,
+                  "text": "Odlare 2: ”Här också!”",
+                  "farg": "ljusbeige",
+                  "textFarg": "morkgron",
+                  "langd": 2400
+                }
+              ]
+            },
+            {
+              "datum": "1977-05-13",
+              "steg": [
+                {
+                  "gor": "text",
+                  "text": "Fyra odlare till klagar",
+                  "y": 440,
+                  "farg": "ljusbeige",
+                  "textFarg": "morkgron",
+                  "langd": 1500
+                }
+              ]
+            },
+            {
+              "datum": "1977-05-14",
+              "steg": [
+                {
+                  "gor": "text",
+                  "text": "Utskriven från sjukhuset",
+                  "y": 470,
+                  "farg": "gron",
+                  "textFarg": "ljusbeige",
+                  "langd": 1500
+                }
+              ]
+            }
+          ],
+          "slutDatum": "1977-05-17",
+          "vidSlut": "forlust"
+        },
+        "genast": {
+          "namn": "Genast",
+          "startFlagga": "klagomal",
+          "sekunder": 6,
+          "tomFlagga": "genast-tom",
+          "x": 292,
+          "y": 246,
+          "r": 28,
+          "ljud": "stoppur"
+        },
+        "knappar": [
+          {
+            "text": "Ombudet reklamerar",
+            "x": 104,
+            "y": 694,
+            "b": 176,
+            "variant": "guld",
+            "villkor": [
+              {
+                "krav": [
+                  "fullmakt",
+                  "telefon"
+                ],
+                "annars": "Du har inget ombud"
+              },
+              {
+                "inte": "genast-tom",
+                "annars": "För sent"
+              }
+            ],
+            "handling": "vinst"
+          },
+          {
+            "text": "Utse ombud nu",
+            "x": 286,
+            "y": 694,
+            "b": 176,
+            "variant": "kontur",
+            "villkor": [
+              {
+                "krav": [
+                  "klagomal"
+                ],
+                "annars": "Från 1 maj"
+              },
+              {
+                "inte": "fullmakt",
+                "annars": "Ombud finns redan"
+              },
+              {
+                "inte": "telefon",
+                "annars": "Ombud utsett"
+              },
+              {
+                "inte": "utser",
+                "annars": "Fånga telefonen!"
+              },
+              {
+                "inte": "genast-tom",
+                "annars": "För sent"
+              }
+            ],
+            "handling": {
+              "slapp": "telefon",
+              "flagga": "utser"
+            }
+          },
+          {
+            "text": "Reklamera själv",
+            "x": 195,
+            "y": 756,
+            "b": 352,
+            "variant": "kontur",
+            "villkor": [
+              {
+                "krav": [
+                  "datum:1977-05-14"
+                ],
+                "annars": "Du ligger på sjukhus"
+              },
+              {
+                "krav": [
+                  "datum:1977-05-16"
+                ],
+                "annars": "Från 16 maj"
+              }
+            ],
+            "handling": "forlust"
+          }
+        ],
+        "strom": {
+          "typer": {
+            "telefon": {
+              "utseende": "telefon",
+              "b": 40,
+              "h": 40,
+              "fart": 130,
+              "onFangst": {
+                "raknas": "telefon",
+                "text": "Ombud utsett",
+                "taBortFlagga": "utser",
+                "ljud": "pling"
+              },
+              "onPass": {
+                "taBortFlagga": "utser",
+                "text": "Telefonen hann ner",
+                "ton": "neutral"
+              }
+            }
+          },
+          "intervall": 1000000000,
+          "fart": 130,
+          "y": 200
+        },
+        "hot": {
+          "utseende": "rutten-potatis",
+          "b": 22,
+          "h": 18,
+          "start": "slumpvis-overst",
+          "fran": {
+            "x": 170,
+            "y": 392,
+            "spridning": 80
+          },
+          "fart": 120,
+          "intervall": 1500,
+          "fordrojning": 1500,
+          "botten": {
+            "matare": 1
+          }
+        },
+        "matare": {
+          "namn": "Tålamod",
+          "steg": 20,
+          "visning": "procent"
+        },
+        "musik": "boss-d",
+        "vinst": [
+          "knapp"
+        ],
+        "forlust": []
+      }
+    }
+  ],
+  "forlust": {
+    "rubrik": "För sent.",
+    "orsaker": {
+      "tid-slut": "15 dagar efter de första klagomålen. Precis som för köpmannen i fallet."
+    }
+  },
+  "domslut": {
+    "rubrik": "Du reklamerade i tid",
+    "underrubrik": "Det gjorde inte köpmannen i fallet. Han förlorade.",
+    "domskal": [
+      "Potatisen hade röta redan vid leveransen, men köpmannen behövde inte bryta de statliga plomberna för att undersöka den.",
+      "När odlarna klagade den 1 maj borde han omedelbart ha undersökt saken närmare. Att han låg på sjukhus ursäktade honom inte: en köpman måste ordna så att någon kan agera för honom.",
+      "Reklamationen den 16 maj, 15 dagar efter de första klagomålen, kom för sent."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/1982s301"
   }
 }

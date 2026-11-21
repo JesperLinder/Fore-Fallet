@@ -895,6 +895,105 @@ const figurer: Record<string, Rita> = {
     g.lineStyle(1.2, farg.lila, 1).strokeRoundedRect(x - B / 2, y - H / 2, B, H, 4);
     g.fillStyle(farg.lila, 0.5).fillTriangle(x + B / 2 - 10, y - H / 2, x + B / 2, y - H / 2, x + B / 2, y - H / 2 + 10);
   },
+
+  // ---------- Kapitel 2: Potatispartiet ----------
+
+  /** Potatissäck med en röd statlig plomb. Texten ("Plomberad") läggs ovanpå. */
+  potatissack(g, x, y, b, h) {
+    ritaSack(g, x, y, b || 50, h || 58, false);
+  },
+
+  /** Potatissäck där plomberingen brutits. */
+  'potatissack-oppnad'(g, x, y, b, h) {
+    ritaSack(g, x, y, b || 50, h || 58, true);
+  },
+
+  /** Lastpall (spelaren i fas 1). */
+  lastpall(g, x, y, b, h) {
+    const B = b || 90;
+    const H = h || 30;
+    g.fillStyle(farg.morkockra, 1);
+    g.fillRect(x - B / 2, y - H / 2, B, H * 0.28).fillRect(x - B / 2, y + H / 2 - H * 0.28, B, H * 0.28);
+    for (const dx of [-0.42, 0, 0.42]) g.fillRect(x + dx * B - 6, y - H / 2, 12, H);
+    g.lineStyle(1, farg.morkgron, 0.5).strokeRect(x - B / 2, y - H / 2, B, H);
+  },
+
+  /** Fullmakt: ljust papper med guldsigill. Texten läggs ovanpå. */
+  fullmakt(g, x, y, b, h) {
+    const B = b || 70;
+    const H = h || 44;
+    g.fillStyle(farg.ljusbeige, 1).fillRect(x - B / 2, y - H / 2, B, H);
+    g.lineStyle(1.5, farg.morkgron, 1).strokeRect(x - B / 2, y - H / 2, B, H);
+    g.fillStyle(farg.guld, 1).fillCircle(x + B / 2 - 9, y + H / 2 - 9, 6);
+  },
+
+  /** Telefon (ombudet utses): en mörk lur på en guldbas. */
+  telefon(g, x, y, b) {
+    const B = b || 40;
+    g.fillStyle(farg.guld, 1).fillRoundedRect(x - B / 2, y - B * 0.05, B, B * 0.5, 6);
+    g.fillStyle(farg.morkgron, 1).fillRoundedRect(x - B / 2 - 2, y - B * 0.4, B + 4, B * 0.22, 6);
+    g.fillCircle(x - B / 2 + 2, y - B * 0.26, B * 0.13).fillCircle(x + B / 2 - 2, y - B * 0.26, B * 0.13);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x, y + B * 0.2, B * 0.13);
+    g.fillStyle(farg.ljusbeige, 1).fillCircle(x, y + B * 0.2, B * 0.06);
+  },
+
+  /** Rutten potatis (bossens skott): beige med mörka fläckar. */
+  'rutten-potatis'(g, x, y, b) {
+    const B = b || 22;
+    g.fillStyle(farg.beige, 1).fillEllipse(x, y, B, B * 0.78);
+    g.lineStyle(1.2, farg.morkockra, 1).strokeEllipse(x, y, B, B * 0.78);
+    g.fillStyle(farg.morkockra, 1).fillCircle(x - B * 0.18, y - B * 0.08, B * 0.12).fillCircle(x + B * 0.2, y + B * 0.1, B * 0.09);
+    g.fillStyle(farg.gron, 0.7).fillCircle(x + B * 0.05, y - B * 0.2, B * 0.07);
+  },
+
+  /** Sjukhussäng med köpmannen (spelaren i fas 2). */
+  sjukhussang(g, x, y, b, h) {
+    const B = b || 100;
+    const H = h || 50;
+    const topp = y - H / 2;
+    g.fillStyle(farg.ljusbeige, 1).fillRect(x - B / 2 + 4, y - H * 0.05, B - 8, H * 0.3);
+    g.fillStyle(farg.beige, 1).fillRoundedRect(x - B / 2 + 22, y - H * 0.2, B - 30, H * 0.3, 6);
+    g.lineStyle(3, farg.ljusbeige, 1);
+    g.lineBetween(x - B / 2 + 4, topp + 4, x - B / 2 + 4, y + H / 2).lineBetween(x + B / 2 - 4, y - H * 0.15, x + B / 2 - 4, y + H / 2);
+    g.lineBetween(x - B / 2 + 4, y + H * 0.25, x + B / 2 - 4, y + H * 0.25);
+    // Köpmannen: huvud på kudden.
+    g.fillStyle(farg.beige, 1).fillCircle(x - B / 2 + 18, y - H * 0.12, H * 0.2);
+    g.lineStyle(1.2, farg.morkgron, 1).strokeCircle(x - B / 2 + 18, y - H * 0.12, H * 0.2);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x - B / 2 + 21, y - H * 0.15, 1.5);
+  },
+
+  /** Bossen: en stor beige potatissäck med ögon och bistra ögonbryn. */
+  potatisboss(g, x, y, b, h) {
+    const B = b || 150;
+    const H = h || 170;
+    const topp = y - H / 2;
+    g.fillStyle(farg.beige, 1).fillEllipse(x, y + H * 0.06, B, H * 0.88);
+    g.fillTriangle(x - B * 0.2, topp + H * 0.12, x + B * 0.2, topp + H * 0.12, x, topp + H * 0.02);
+    g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(x - B * 0.24, topp + H * 0.08, B * 0.48, H * 0.06, 4);
+    // Fläckar (röta).
+    g.fillStyle(farg.morkockra, 1).fillCircle(x - B * 0.32, y - H * 0.02, 4).fillCircle(x + B * 0.3, y + H * 0.22, 3).fillCircle(x - B * 0.12, y + H * 0.3, 4);
+    // Ögon och bistra ögonbryn.
+    const oy = y - H * 0.05;
+    for (const dx of [-0.18, 0.18]) {
+      g.fillStyle(farg.ljusbeige, 1).fillCircle(x + dx * B, oy, B * 0.075);
+      g.lineStyle(2, farg.morkgron, 1).strokeCircle(x + dx * B, oy, B * 0.075);
+      g.fillStyle(farg.morkgron, 1).fillCircle(x + dx * B, oy + 2, B * 0.035);
+    }
+    g.lineStyle(4, farg.morkgron, 1);
+    g.lineBetween(x - B * 0.28, oy - B * 0.14, x - B * 0.08, oy - B * 0.08);
+    g.lineBetween(x + B * 0.28, oy - B * 0.14, x + B * 0.08, oy - B * 0.08);
+    g.lineStyle(3, farg.morkgron, 1);
+    g.beginPath();
+    g.arc(x, oy + H * 0.2, B * 0.12, Math.PI * 1.15, Math.PI * 1.85);
+    g.strokePath();
+  },
+
+  /** Reklamation (spelarens skott): ett litet papper. */
+  reklamation(g, x, y) {
+    g.fillStyle(farg.ljusbeige, 1).fillRect(x - 5, y - 7, 10, 14);
+    g.lineStyle(1, farg.guld, 1).strokeRect(x - 5, y - 7, 10, 14);
+    g.lineBetween(x - 3, y - 3, x + 3, y - 3).lineBetween(x - 3, y + 1, x + 2, y + 1);
+  },
 };
 
 /** Kalenderblad: fyllt blad, mörk list upptill med två ringar och en tunn kontur. */
@@ -1022,4 +1121,20 @@ function ritaKurskort(g: Phaser.GameObjects.Graphics, x: number, y: number, b: n
   g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 6);
   g.lineStyle(1.2, farg.morkgron, 1).strokeRoundedRect(x - B / 2, y - H / 2, B, H, 6);
   return { B, H, iy: y - H * 0.18 };
+}
+
+/** Potatissäck: beige säck med knuten topp och en röd plomb (bruten: plomben öppen och lite röta som syns). */
+function ritaSack(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number, oppnad: boolean): void {
+  const topp = y - h / 2;
+  g.fillStyle(farg.beige, 1).fillRoundedRect(x - b / 2, topp + h * 0.18, b, h * 0.82, { tl: 10, tr: 10, bl: 6, br: 6 });
+  g.fillTriangle(x - b * 0.3, topp + h * 0.2, x + b * 0.3, topp + h * 0.2, x, topp);
+  g.lineStyle(1.2, farg.morkockra, 1).strokeRoundedRect(x - b / 2, topp + h * 0.18, b, h * 0.82, { tl: 10, tr: 10, bl: 6, br: 6 });
+  g.lineStyle(2, farg.morkockra, 1).lineBetween(x - b * 0.18, topp + h * 0.2, x + b * 0.18, topp + h * 0.2);
+  if (oppnad) {
+    g.lineStyle(2, farg.vinrod, 1).lineBetween(x + b * 0.12, topp + h * 0.12, x + b * 0.28, topp + h * 0.04);
+    g.fillStyle(farg.morkockra, 1).fillCircle(x - b * 0.15, topp + h * 0.1, 3).fillCircle(x + b * 0.05, topp + h * 0.06, 2.5);
+  } else {
+    g.fillStyle(farg.vinrod, 1).fillCircle(x + b * 0.2, topp + h * 0.2, 4.5);
+    g.lineStyle(1.5, farg.vinrod, 1).lineBetween(x + b * 0.2, topp + h * 0.2, x + b * 0.32, topp + h * 0.34);
+  }
 }

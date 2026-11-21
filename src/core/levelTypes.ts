@@ -4,7 +4,7 @@
  * på kartan) eller Niva (fullständig, spelbar nivå). En ny nivå ska aldrig kräva ny kod – bara en ny fil.
  */
 import type { FargNamn } from '../config/theme';
-import type { Ljud } from './sound';
+import type { Ljud, Slinga } from './sound';
 
 /** "boss" är reserverad för kapitel 2:s bossnivå (Potatispartiet), som inte är byggd än. */
 export type MekanikTyp = 'slingshot' | 'invaders' | 'hybrid' | 'memory' | 'boss';
@@ -40,7 +40,7 @@ export interface NivaPlatshallare {
   /** Rättsområde, t.ex. "Köprätt". Visas på kartan efter referensen i stället för mekanikens namn. */
   rattsomrade?: string;
   /** Märke på kartan efter titeln, t.ex. { "text": "Memory", "farg": "lila" } eller { "text": "Boss", "farg": "guld" }. */
-  kartmarke?: { text: string; farg: FargNamn };
+  kartmarke?: { text: string; farg: FargNamn } | { text: string; farg: FargNamn }[];
   /** Nivån är inte byggd än: visas låst på kartan med "Kommer snart" (även i testläget). */
   kommerSnart?: boolean;
 }
@@ -510,6 +510,16 @@ export interface InvadersInstallningar {
   forManga?: { raknare: string; max: number };
   /** En boss i form av en faktura överst, med rader som livsstaplar och en summa som räknas ner (valfritt). */
   faktura?: FakturaInstallningar;
+  /** Tidslinje med datum som tickar fram, och händelser knutna till datum (valfritt). Se TidslinjeInstallningar. */
+  tidslinje?: TidslinjeInstallningar;
+  /** Genast-mätaren: börjar tömmas när en flagga sätts, och sätter en annan flagga när den är tom (valfritt). */
+  genast?: GenastInstallningar;
+  /** Villkorade knappar (valfritt): aktiva bara när villkoren är uppfyllda, annars tonade med en förklaring. */
+  knappar?: VillkoradKnapp[];
+  /** Musik under spelet, t.ex. "boss-d" (en slinga i core/sound.ts). */
+  musik?: Slinga;
+  /** Pratbubbla när nivån (eller fasen) är vunnen, t.ex. "Säckarna gick vidare till sex odlare." */
+  slutText?: string;
   /** Växande mål och timing-klipp (valfritt): mål växer uppåt och klipps vid en klipplinje. Se VaxandeInstallningar. */
   vaxande?: VaxandeInstallningar;
   /**
@@ -577,8 +587,9 @@ export interface InvadersInstallningar {
    * Alla villkor måste vara uppfyllda för vinst. "alla-klara" = varje bricka bortskjuten eller släppt igenom.
    * "overlev" = tiden har gått ut utan förlust (kräver "tid"). "mal" = räknaren i "mal" har nått sitt antal.
    * "knapp" = spelaren tryckte på knappen som en fångstregel visade (FangstRegel.knapp), t.ex. "Hoppa av kursen".
+   * "strom-slut" = strömmen (med "antal") är slut: allt har fångats eller passerat, även planerade objekt.
    */
-  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara' | 'overlev' | 'mal' | 'knapp')[];
+  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara' | 'overlev' | 'mal' | 'knapp' | 'strom-slut')[];
   /** Något av villkoren ger förlust. */
   forlust: ForlustOrsak[];
   /** Vid vinst: brickor och fångstobjekt med "plats" flyttas till en rad på denna höjd. */
@@ -710,6 +721,8 @@ export interface HotInstallningar {
   slutIntervall?: number;
   /** Väntetid innan första hotet (ms). Standard: intervall. */
   fordrojning?: number;
+  /** Valfritt: släpp hoten från en punkt (t.ex. bossen), spridda slumpvis i sidled. Ersätter start/y. */
+  fran?: { x: number; y: number; spridning: number };
   /** Vad som händer när ett hot når spelaren. (Med "typer" gäller typens vidBotten i stället.) */
   botten: BottenRegel;
   /**
@@ -736,6 +749,60 @@ export interface HotTyp {
   vidTraff?: FangstRegel & { studsa?: boolean; avdrag?: { rad: number; belopp: number } };
   /** När objektet når spelarens höjd. */
   vidBotten?: FangstRegel;
+}
+
+/**
+ * Tidslinje (invaders): datumet tickar fram från startDatum, en dag per sekunderPerDag. Linjen överst visar
+ * spannet fran–till med markeringar. Varje passerat datum sätter flaggan "datum:ÅÅÅÅ-MM-DD". Händelserna spelas när
+ * deras datum nås (stegen som i engångshändelser, t.ex. pratbubblor och flaggor). Vid slutDatum avgörs nivån med
+ * vidSlut (t.ex. förlust), om den inte redan är avgjord. Datum skrivs "1977-05-01".
+ */
+export interface TidslinjeInstallningar {
+  fran: string;
+  till: string;
+  startDatum: string;
+  sekunderPerDag: number;
+  markeringar: { datum: string; etikett: string }[];
+  /** Linjens höjd (y för linjen). */
+  y: number;
+  /** Valfri rad under linjen, t.ex. "Klagomål från odlarna kommer in. Reklamera till säljaren – genast." */
+  text?: string;
+  handelser?: { datum: string; steg: HandelseSteg[] }[];
+  slutDatum?: string;
+  vidSlut?: 'forlust';
+}
+
+/** Genast-mätaren: ett stoppur som töms på "sekunder" när flaggan "startFlagga" sätts. */
+export interface GenastInstallningar {
+  namn: string;
+  startFlagga: string;
+  sekunder: number;
+  /** Flaggan som sätts när mätaren är tom, t.ex. "genast-tom". */
+  tomFlagga: string;
+  /** Stoppurets mittpunkt och radie. */
+  x: number;
+  y: number;
+  r: number;
+  /** Ljud som tickar medan mätaren töms (ett per halv sekund), t.ex. "stoppur". */
+  ljud?: Ljud;
+}
+
+/**
+ * En villkorad knapp: aktiv bara när alla villkor är uppfyllda. Annars tonad, med förklaringen från det första
+ * villkoret som inte är uppfyllt. Villkoret "krav" kräver att någon av flaggorna är satt, "inte" att flaggan inte
+ * är satt. En flagga räknas som satt om en regel eller händelse satt den, eller om en räknare med samma namn är
+ * större än noll (även från en tidigare fas). Passerade datum på tidslinjen ger flaggor som "datum:1977-05-16".
+ */
+export interface VillkoradKnapp {
+  text: string;
+  x: number;
+  y: number;
+  b: number;
+  /** "guld" (standard) eller "kontur". */
+  variant?: 'guld' | 'kontur';
+  villkor: { krav?: string[]; inte?: string; annars: string }[];
+  /** "vinst", "forlust", eller släpp ett objekt ur strömmen (t.ex. en telefon som ska fångas) och sätt en flagga. */
+  handling: 'vinst' | 'forlust' | { slapp?: string; flagga?: string };
 }
 
 /**
@@ -920,6 +987,13 @@ export interface FangstTyp {
   bubbla?: string;
   /** Objektet fladdrar lätt i sidled och vickar när det faller (t.ex. kalenderblad). */
   fladder?: boolean;
+  /** Egen fallhastighet (punkter per sekund) i stället för strömmens, t.ex. ett papper som är lätt att missa. */
+  fart?: number;
+  /**
+   * Fångade objekt läggs i ett lager (en rad på skärmen) i stället för att försvinna, var och en med en liten knapp.
+   * Ett tryck på knappen tillämpar regeln (en gång per objekt), t.ex. "Öppna" en plomberad säck.
+   */
+  lagra?: { knapp: string; regel: FangstRegel; utseendeEfter?: string; y?: number };
   onFangst?: FangstRegel;
   onPass?: FangstRegel;
 }
@@ -946,6 +1020,9 @@ export interface FangstRegel {
   matareMjuk?: number;
   /** Visa en knapp med den här texten (en gång). Med vinstvillkoret "knapp" avslutar ett tryck nivån eller fasen. */
   knapp?: string;
+  /** Sätter respektive tar bort en flagga (för villkorade knappar), t.ex. "ombud". */
+  flagga?: string;
+  taBortFlagga?: string;
   /** Talbubbla första gången regeln används, t.ex. grannen i fönstret: "Låt bli!". (x, y) = spetsen. */
   prat?: { x: number; y: number; text: string; farg: FargNamn; textFarg: FargNamn; langd: number };
   /** Ljud, t.ex. "pling" eller "mynt". Standard vid fångst: "fanga". */
@@ -1045,6 +1122,10 @@ export type HandelseSteg = (
   | { gor: 'visa'; id?: string; utseende: string; x: number; y: number; b?: number; h?: number; fran?: Punkt; text?: string; textFarg?: FargNamn; textY?: number }
   /** Byter utseende på en figur (en kulisse eller en tidigare figur med samma id), t.ex. en lärare som blir illamående. */
   | { gor: 'byt'; id: string; utseende: string }
+  /** Sätter en flagga (för villkorade knappar och genast-mätaren), t.ex. "klagomal". */
+  | { gor: 'flagga'; namn: string }
+  /** En kort pratbubbla mitt på skärmen (som vid träffar), t.ex. "Utskriven från sjukhuset". */
+  | { gor: 'text'; text: string; y?: number; farg?: FargNamn; textFarg?: FargNamn }
   /**
    * Tonar ner ett band av skärmen (från topp till botten, y) med en halvgenomskinlig färg, så att det som visas
    * sedan (t.ex. linsen) syns tydligt. Det som ligger utanför bandet, och ringar från "lys", påverkas inte.

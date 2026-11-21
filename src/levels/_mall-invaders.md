@@ -210,6 +210,21 @@ Strömmen har också `etikettY` (textens höjd på objektet) och `bubbla` (liten
 
 Se även "Nivåer med faser" i README: en nivå kan ha flera faser i följd med egna `invaders`-inställningar.
 
+### Potatispartiet: tidslinje, genast-mätare, villkorade knappar och lager (valfritt)
+| Fält | Vad det gör |
+|---|---|
+| `tidslinje` | `fran`, `till`, `startDatum` ("ÅÅÅÅ-MM-DD"), `sekunderPerDag`, `y`, `markeringar` (`datum`, `etikett`), valfri `text`, `handelser` (`datum` och `steg`), `slutDatum` och `vidSlut: "forlust"`. Varje passerat datum sätter flaggan `datum:ÅÅÅÅ-MM-DD`. |
+| `genast` | Stoppuret: `namn`, `startFlagga`, `sekunder`, `tomFlagga`, `x`, `y`, `r`, valfritt `ljud` (tickar). |
+| `knappar` | Villkorade knappar: `text`, `x`, `y`, `b`, `variant`, `villkor` (`krav` = någon av flaggorna, `inte` = flaggan får inte vara satt, `annars` = förklaringen på den tonade knappen) och `handling` (`"vinst"`, `"forlust"` eller `{ "slapp", "flagga" }`). |
+| `flagga`, `taBortFlagga` (i en regel) | Sätter eller tar bort en flagga. En räknare över noll räknas också som en satt flagga, även från en tidigare fas. |
+| Händelsesteg `flagga`, `text` | `{ "gor": "flagga", "namn" }` sätter en flagga; `{ "gor": "text", "text", "y", "farg", "textFarg" }` visar en pratbubbla. |
+| `strom.typer.*.lagra` | `{ "knapp": "Öppna", "regel": {…}, "utseendeEfter": "potatissack-oppnad", "y": 168 }`: fångade objekt läggs i en rad med en liten knapp. |
+| `strom.typer.*.fart` | Egen fallhastighet för sorten. |
+| `vinst: ["strom-slut"]` | Vinst när strömmen (med `antal`) är slut, även planerade objekt. |
+| `hot.fran` | `{ "x", "y", "spridning" }`: släpp hoten från en punkt (t.ex. bossen). |
+| `slutText` | Pratbubbla när nivån eller fasen är vunnen. |
+| `musik` | Musikslinga under spelet, t.ex. `"boss-d"`. |
+
 ### Kulisser, rullande väg och engångshändelser (valfritt)
 | Fält | Vad det gör |
 |---|---|

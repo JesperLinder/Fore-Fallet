@@ -118,12 +118,13 @@ export class SeasonScene extends BasScen {
     }
   }
 
-  /** "Fortsätt": grattis/"Kapitel klart" första gången kapitlet är klarat, annars kapitlets karta. */
+  /** "Fortsätt": "Kapitel klart" (och efter sista kapitlet grattis) första gången kapitlet är klarat, annars kartan. */
   private ritaFortsatt(y: number): number {
     const h = 56;
     const k = this.kapitel;
     new Knapp(this, MITT_X, y + h / 2, text.sasong.fortsatt, { bredd: INNER_B, hojd: h, variant: 'konturMork', kanTryckas: () => !this.scroll?.arDrag() }, () => {
-      if (arKapitelKlarat(k) && !framsteg.harSettKapitelKlart(k.id)) this.bytTill(arSistaKapitlet(k) ? 'Grattis' : 'KapitelKlart', { kapitel: k.id });
+      // Först "Kapitel klart"; efter det sista kapitlet går den vidare till grattisskärmen.
+      if (arKapitelKlarat(k) && !framsteg.harSettKapitelKlart(k.id)) this.bytTill('KapitelKlart', { kapitel: k.id });
       else this.bytTill('Map', { kapitel: k.id });
     });
     return y + h;

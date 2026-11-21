@@ -296,12 +296,13 @@ scripts/                  kontroller (platshållare, bygget, store-texter) och i
 - **Säsongen klar** (`SeasonScene`, efter domslutet i kapitlets sista nivå) visar kapitlets nivåer och stjärnor
   och har två knappar:
   - **Dela resultat**, som delar länken `lankar.dela`;
-  - **Fortsätt**, som första gången kapitlet är klarat leder till Grattis (sista kapitlet) eller Kapitel klart
-    (övriga kapitel), och annars till kapitlets karta.
+  - **Fortsätt**, som första gången kapitlet är klarat leder till Kapitel klart (och efter det sista kapitlet
+    vidare till Grattis), och annars till kapitlets karta.
 
   Efter det sista spelbara kapitlet står "Säsong N kommer" längst ner.
 - **Kapitel klart** (`ChapterDoneScene`): kapitlets stjärna i accentfärgen, kapitlets stjärnor och knappen
-  **Till nästa kapitel**. Kan nås igen från kartan via "Du klarade kapitlet".
+  **Till nästa kapitel**. Efter det sista kapitlet heter knappen **Vidare** och leder till Grattis. Kan nås igen
+  från kartan via "Du klarade kapitlet".
 - **Grattis** (`CongratsScene`) visas när det sista spelbara kapitlet är klarat (alla nivåer minst en stjärna,
   halvvägsvinst räknas).
   - Den kan också nås från kartan via knappen "Du klarade hela spelet" under listan.
@@ -390,7 +391,7 @@ src/levels/
   kapitel-1/              "Klassikerna", de tio första nivåerna
     kapitel.json          kapitelfilen
     niva-01.json … niva-10.json
-  kapitel-2/              "Civilrätten": nivå 1–9 är spelbara, nivå 10 är "kommer snart"
+  kapitel-2/              "Civilrätten": alla tio nivåer är spelbara
   _mall-*.json            mallar för nya nivåer (läses inte in)
 ```
 
@@ -419,12 +420,12 @@ src/levels/
 dess nivåer har minst en stjärna (halvvägsvinst räknas). Inom ett kapitel låses en nivå upp när den föregående har
 minst en stjärna (`STJARNOR_FOR_NASTA` i `src/core/levels.ts`). I testläget (`?debug=1`) är allt upplåst.
 
-**Efter ett kapitel:** sista nivån leder till "Säsongen klar" för kapitlet. Därifrån leder "Fortsätt" första gången till:
+**Efter ett kapitel:** sista nivån leder till "Säsongen klar" för kapitlet. Därifrån leder "Fortsätt" första gången till
+**Kapitel klart**:
 
-- **Grattis** (med länken till karriärsidan) om det är det sista färdiga kapitlet, alltså om inget senare kapitel
-  har alla sina nivåer spelbara. Så länge kapitel 2 inte är färdigbyggt gäller det kapitel 1, precis som innan
-  kapitel 2 fanns.
-- **Kapitel klart** (kortare, med knappen "Till nästa kapitel") efter övriga kapitel.
+- Efter det sista färdiga kapitlet (inget senare kapitel har alla sina nivåer spelbara, i dag kapitel 2) heter
+  knappen "Vidare" och leder till **Grattis** med länken till karriärsidan.
+- Efter övriga kapitel (i dag kapitel 1) heter knappen "Till nästa kapitel" och öppnar nästa kapitels karta.
 
 Båda kan nås igen från kapitlets karta, via knappen under listan.
 
@@ -441,13 +442,13 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 | 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | **spelbar** |
 | 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | invaders, två faser | **spelbar** |
 | 9 | `tva-testamenten` | De två testamentena | NJA 2022 s. 509 | Arvsrätt | memory | **spelbar** |
-| 10 | `potatispartiet` | Potatispartiet | NJA 1982 s. 301 | Köprätt | boss | kommer snart |
+| 10 | `potatispartiet` | Potatispartiet | NJA 1982 s. 301 | Köprätt | invaders, två faser (boss och final) | **spelbar** |
 
 - Nivåer med `"kommerSnart": true` visas låsta med "Kommer snart" på kartan, **även i testläget**. Ta bort fältet
   (och fyll på nivån) när den byggs.
 - Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
 - Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
-- Efter De två testamentena leder domslutets knapp till kartan (nästa nivå "kommer snart").
+- Kartan visar `kartmarke` efter titeln: ett märke, eller flera i en lista, t.ex. "Boss" och "Final" på nivå 10.
 
 ### Lägga till ett kapitel
 
@@ -562,6 +563,54 @@ Nytt i invaders för Friskvårdskursen:
 - `faktura`: en boss i form av en faktura (`mechanics/invaders/invoice.ts`) med rader som livsstaplar och
   "Summa att betala" som räknas ner. Summan kan inte gå under golvet (raderna minus alla avdrag i fasen); när golvet
   nås lyser summan guld. Skott som träffar fakturan studsar, och `studsText` visas första gången.
+
+### Tidslinje, villkorade knappar och genast-mätare
+
+Används i Potatispartiet (kapitel 2, nivå 10, fas 2). Koden finns i `mechanics/invaders/timeline.ts`. Allt är valfritt
+i `invaders` och påverkar inte nivåer som inte använder det.
+
+- **Flaggor:** villkoren läser flaggor. En flagga är satt om en regel (`"flagga"` i en fångstregel, `"taBortFlagga"`
+  tar bort den), en händelse (steget `{ "gor": "flagga", "namn": … }`) eller en knapp satt den, eller om en räknare
+  med samma namn är större än noll, även från en tidigare fas (t.ex. `fullmakt` från fas 1).
+- **`tidslinje`:** datumet tickar fram från `startDatum`, en dag per `sekunderPerDag`. Linjen överst visar `fran`–`till`
+  med `markeringar`, och dagens datum under. Varje passerat datum sätter flaggan `datum:ÅÅÅÅ-MM-DD`. `handelser` är
+  engångshändelser knutna till ett datum (samma steg som `handelser`, plus `flagga` och `text`). Vid `slutDatum` ger
+  `"vidSlut": "forlust"` förlust om nivån inte redan är avgjord.
+- **`genast`:** genast-mätaren som ett stoppur (`x`, `y`, `r`). Den börjar tömmas när flaggan `startFlagga` sätts,
+  töms på `sekunder`, tickar hörbart (`ljud`) och sätter flaggan `tomFlagga` när den är tom.
+- **`knappar`:** villkorade knappar (`text`, `x`, `y`, `b`, `variant` "guld" eller "kontur"). `villkor` är en lista
+  som prövas i ordning: `krav` (någon av flaggorna måste vara satt) eller `inte` (flaggan får inte vara satt), med
+  `annars` = förklaringen som visas på den tonade knappen, t.ex. "Du ligger på sjukhus". `handling`: `"vinst"`,
+  `"forlust"`, eller `{ "slapp": "telefon", "flagga": "utser" }` (släpp ett objekt ur strömmen och sätt en flagga).
+
+```json
+"tidslinje": {
+  "fran": "1977-04-19", "till": "1977-05-16", "startDatum": "1977-05-01", "sekunderPerDag": 2.5, "y": 112,
+  "markeringar": [{ "datum": "1977-04-19", "etikett": "19 apr" }, …, { "datum": "1977-05-16", "etikett": "16 maj" }],
+  "handelser": [{ "datum": "1977-05-01", "steg": [{ "gor": "flagga", "namn": "klagomal", "langd": 0 },
+                                                  { "gor": "pratbubbla", "text": "Odlare 1: ”Rötan har kommit!”", … }] }, …],
+  "slutDatum": "1977-05-17", "vidSlut": "forlust"
+},
+"genast": { "namn": "Genast", "startFlagga": "klagomal", "sekunder": 6, "tomFlagga": "genast-tom", "x": 292, "y": 246, "r": 28, "ljud": "stoppur" },
+"knappar": [
+  { "text": "Ombudet reklamerar", "x": 104, "y": 694, "b": 176, "handling": "vinst",
+    "villkor": [{ "krav": ["fullmakt", "telefon"], "annars": "Du har inget ombud" }, { "inte": "genast-tom", "annars": "För sent" }] },
+  { "text": "Utse ombud nu", "x": 286, "y": 694, "b": 176, "variant": "kontur", "handling": { "slapp": "telefon", "flagga": "utser" },
+    "villkor": [{ "krav": ["klagomal"], "annars": "Från 1 maj" }, { "inte": "fullmakt", "annars": "Ombud finns redan" }, …] },
+  { "text": "Reklamera själv", "x": 195, "y": 756, "b": 352, "variant": "kontur", "handling": "forlust",
+    "villkor": [{ "krav": ["datum:1977-05-14"], "annars": "Du ligger på sjukhus" }, { "krav": ["datum:1977-05-16"], "annars": "Från 16 maj" }] }
+]
+```
+
+Övrigt nytt i invaders för Potatispartiet:
+- `strom.typer.*.lagra`: fångade objekt läggs i ett lager (en rad) med en liten knapp, t.ex. "Öppna" på en plomberad
+  säck. Ett tryck tillämpar `regel` en gång och kan byta utseende (`utseendeEfter`).
+- `strom.typer.*.fart`: egen fallhastighet, t.ex. fullmakten som är lätt att missa.
+- Vinstvillkoret `"strom-slut"`: strömmen (med `antal`) är slut, även planerade objekt.
+- `hot.fran`: hoten släpps från en punkt (t.ex. bossen), spridda i sidled.
+- `slutText`: en pratbubbla när nivån eller fasen är vunnen, t.ex. "Säckarna gick vidare till sex odlare."
+- `musik`: bossmusik under spelet ("boss-d").
+- Med faser räknas tidigare fasers räknare in i stjärnkraven (t.ex. `minAntal: { "fullmakt": 1 }` från fas 1).
 
 Objekt med `utseende` (t.ex. `"bil"`, `"golfboll"`) hämtar figuren från `src/mechanics/art.ts`.
 Behövs en helt ny figur är det enda stället som kräver kod. Alternativt kan den läggas som bild i `public/assets/`,
@@ -863,7 +912,7 @@ I förkortad form:
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
 
-**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch", "hammare", "plopp", "ding", det dova ackordet "avslojande", "avdrag" (ett omvänt kaching) och "nyckel" (nyckelpar i memory) som nivåerna kan välja i reglerna och händelserna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
+**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch", "hammare", "plopp", "ding", det dova ackordet "avslojande", "avdrag" (ett omvänt kaching), "nyckel" (nyckelpar i memory) och "stoppur" (genast-mätaren). Bossmusiken finns i två tonarter: "boss" (Flytdockan) och "boss-d" (Potatispartiet, invaders `musik`) som nivåerna kan välja i reglerna och händelserna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
 
 ### Slangbella med fysikblock (sidovy)
 

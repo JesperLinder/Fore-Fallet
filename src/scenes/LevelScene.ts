@@ -201,6 +201,8 @@ export class LevelScene extends BasScen {
       this.time.delayedCall(400, () => this.scene.restart({ id: this.niva.id, fas: this.fas + 1, arv } satisfies LevelData));
       return;
     }
+    // Med faser räknas också tidigare fasers räknare (t.ex. fullmakten från fas 1) in i stjärnkraven.
+    if (faser) r = { ...r, antal: { ...this.arv, ...(r.antal ?? {}) } };
     const stjarnor = beraknaStjarnor(this.niva, r);
     const guld = beraknaGuld(this.niva, r);
     framsteg.sparaResultat(this.niva.id, stjarnor);

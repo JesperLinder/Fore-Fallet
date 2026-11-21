@@ -117,7 +117,11 @@ export class FallandeHot {
     let x: number;
     let y: number;
     const kallor = this.kallor();
-    if (this.inst.start === 'fran-fiende' && kallor.length > 0) {
+    if (this.inst.fran) {
+      // Från en punkt (t.ex. bossen), spridda i sidled.
+      x = this.inst.fran.x + Phaser.Math.Between(-this.inst.fran.spridning, this.inst.fran.spridning);
+      y = this.inst.fran.y;
+    } else if (this.inst.start === 'fran-fiende' && kallor.length > 0) {
       const k = Phaser.Utils.Array.GetRandom(kallor);
       x = k.x;
       y = k.y + 18;

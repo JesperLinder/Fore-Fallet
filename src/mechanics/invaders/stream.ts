@@ -80,7 +80,7 @@ export class Fangststrom {
     const s = dt / 1000;
     this.aktiva = this.aktiva.filter((o) => {
       o.t += s;
-      o.obj.y += this.inst.fart * s;
+      o.obj.y += (o.typ.fart ?? this.inst.fart) * s;
       if (o.typ.fladder) {
         o.obj.x = o.bas + Math.sin(o.t * FLADDER_FART + o.fas) * FLADDER_X;
         o.obj.angle = Math.sin(o.t * FLADDER_FART + o.fas + 0.7) * FLADDER_VINKEL;
@@ -90,7 +90,8 @@ export class Fangststrom {
       if (Math.abs(o.obj.x - sp.x) < sp.b / 2 + b * 0.3 && Math.abs(o.obj.y - sp.y) < sp.h / 2 + h * 0.3) {
         fangade.push(o);
         this.planeradKlar(o.typNamn, true);
-        this.scene.tweens.add({ targets: o.obj, x: sp.x, y: sp.y, scale: 0.35, alpha: 0, angle: 0, duration: 220, onComplete: () => o.obj.destroy() });
+        // Objekt som lagras (typ.lagra) flyttas av Invaders.ts till lagret; övriga sugs in i spelaren.
+        if (!o.typ.lagra) this.scene.tweens.add({ targets: o.obj, x: sp.x, y: sp.y, scale: 0.35, alpha: 0, angle: 0, duration: 220, onComplete: () => o.obj.destroy() });
         return false;
       }
       if (o.obj.y - h / 2 > sp.y + sp.h / 2 + 8) {
@@ -105,6 +106,16 @@ export class Fangststrom {
   }
 
   /** Antal objekt kvar (inte släppta än eller fortfarande i luften) vars typ uppfyller villkoret. */
+  /** Sant när en omgång ("antal") är slut: inget kvar att släppa, inget i luften och alla planerade objekt klara. */
+  slut(): boolean {
+    return this.ko !== null && this.ko.length === 0 && this.aktiva.length === 0 && this.planerade.every((p) => p.klar);
+  }
+
+  /** Släpper ett objekt av en viss sort direkt (t.ex. telefonen när spelaren utser ett ombud). */
+  slappNu(typ: string): void {
+    this.slapp(typ);
+  }
+
   kvar(villkor: (typ: FangstTyp) => boolean): number {
     const ejSlappta = this.ko?.filter((n) => this.inst.typer[n] && villkor(this.inst.typer[n])).length ?? Infinity;
     return ejSlappta + this.aktiva.filter((o) => villkor(o.typ)).length;
@@ -160,6 +171,11 @@ export class Fangststrom {
       const etikett = Phaser.Utils.Array.GetRandom(typ.etiketter);
       const textFarg = typ.etikettFarg ?? (typ.farg && arMork(typ.farg) ? 'ljusbeige' : 'morkgron');
       const t = skapaText(this.scene, 0, typ.etikettY ?? 5, etikett, 'knapp', textFarg, { origo: [0.5, 0.5], storlek: 12, bredd: typ.b - 10, justering: 'center' });
+      // Ett ord som är bredare än hela objektet (t.ex. "Plomberad" på en säck) ska inte brytas mitt i: krymp texten.
+      t.setWordWrapWidth(null);
+      const langst = Math.max(...etikett.split(' ').map((ord) => t.setText(ord).width));
+      t.setText(etikett).setWordWrapWidth(typ.b - 10);
+      if (langst > typ.b) t.setFontSize(Math.max(8, Math.floor((12 * (typ.b - 10)) / langst)));
       obj.add(t);
     }
     if (typ.bubbla) {

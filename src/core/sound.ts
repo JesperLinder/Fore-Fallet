@@ -9,7 +9,7 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick' | 'plopp' | 'ding' | 'avslojande' | 'avdrag' | 'nyckel';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick' | 'plopp' | 'ding' | 'avslojande' | 'avdrag' | 'nyckel' | 'stoppur';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel' | 'krasch'>;
 
 interface Ton {
@@ -125,6 +125,11 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 3520, till: 3520, start: 0.07, langd: 0.35, form: 'sine', volym: 0.06 },
     { fran: 5274, till: 5274, start: 0.07, langd: 0.12, form: 'sine', volym: 0.015 },
   ],
+  // Stoppurets tick: ett torrt, metalliskt klick.
+  stoppur: [
+    { fran: 2600, till: 2200, start: 0, langd: 0.012, form: 'square', volym: 0.05 },
+    { fran: 1200, till: 1100, start: 0.004, langd: 0.03, form: 'triangle', volym: 0.08 },
+  ],
   // Hammarslag: ett torrt klick och en kort, dov smäll.
   hammare: [
     { fran: 1100, till: 600, start: 0, langd: 0.02, form: 'square', volym: 0.06 },
@@ -178,6 +183,8 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   avslojande: 0.26,
   avdrag: 1.15,
   nyckel: 0.79,
+  // Stoppuret tickar två gånger i sekunden och ligger därför, som flippet, ett par dB under de andra.
+  stoppur: 2.24,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };
@@ -356,6 +363,8 @@ function spelaPrassel(ctx: BaseAudioContext, mal: AudioNode, t0: number, niva: n
 export const SLINGOR = {
   boss: { noter: [55, 55, 65.4, 49], takt: 0.42, form: 'sawtooth' as OscillatorType, volym: 0.074 },
   'boss-ljus': { noter: [110, 130.8, 146.8, 130.8], takt: 0.32, form: 'triangle' as OscillatorType, volym: 0.068 },
+  /** Bossmusiken från Flytdockan, en kvart upp (D i stället för A), för Potatispartiet. */
+  'boss-d': { noter: [73.4, 73.4, 87.3, 65.4], takt: 0.42, form: 'sawtooth' as OscillatorType, volym: 0.074 },
 };
 export type Slinga = keyof typeof SLINGOR;
 

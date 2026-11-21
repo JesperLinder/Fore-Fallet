@@ -117,9 +117,11 @@ export class Engangshandelser {
   private storlek = new Map<string, [number, number]>();
   private bubblor: Bubbelkalla[] = [];
 
+  /** hjalp: hur stegen "flagga" och "text" utförs (sätts av Invaders.ts). */
   constructor(
     private scene: Phaser.Scene,
     lista: Engangshandelse[],
+    private hjalp?: { flagga: (namn: string) => void; text: (text: string, y?: number, farg?: FargNamn, textFarg?: FargNamn) => void },
   ) {
     // Händelser med start "vinst" väntar tills startaVinst() anropas.
     this.spelningar = lista.map((h) => ({ h, i: 0, nasta: h.start === 'vinst' ? Infinity : h.start }));
@@ -214,6 +216,12 @@ export class Engangshandelser {
         visaTalbubbla(this.scene, steg.x, steg.y, steg.text, steg.farg, steg.textFarg, steg.langd);
         break;
       case 'vanta':
+        break;
+      case 'flagga':
+        this.hjalp?.flagga(steg.namn);
+        break;
+      case 'text':
+        this.hjalp?.text(steg.text, steg.y, steg.farg, steg.textFarg);
         break;
       case 'tona': {
         // Under ringarna från "lys" (djup 22) och det som visas med "visa", över spelplanen och spelaren.
