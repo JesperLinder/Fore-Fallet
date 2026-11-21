@@ -9,7 +9,7 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick' | 'plopp' | 'ding' | 'avslojande';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick' | 'plopp' | 'ding' | 'avslojande' | 'avdrag';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel' | 'krasch'>;
 
 interface Ton {
@@ -112,6 +112,13 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 164.8, till: 164.8, start: 0.06, langd: 1.4, form: 'triangle', volym: 0.12 },
     { fran: 55, till: 55, start: 0, langd: 1.2, form: 'sine', volym: 0.18 },
   ],
+  // Avdrag: ett omvänt "kaching" – ett litet klick och tre ljusa toner som faller.
+  avdrag: [
+    { fran: 2400, till: 1600, start: 0, langd: 0.015, form: 'square', volym: 0.03 },
+    { fran: 1568, till: 1568, start: 0.01, langd: 0.08, form: 'triangle', volym: 0.1 },
+    { fran: 1175, till: 1175, start: 0.08, langd: 0.08, form: 'triangle', volym: 0.1 },
+    { fran: 784, till: 740, start: 0.16, langd: 0.2, form: 'triangle', volym: 0.11 },
+  ],
   // Hammarslag: ett torrt klick och en kort, dov smäll.
   hammare: [
     { fran: 1100, till: 600, start: 0, langd: 0.02, form: 'square', volym: 0.06 },
@@ -163,6 +170,7 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   // Dinget hörs ofta (var 1 000:e portion) och ligger ett par dB under de andra.
   ding: 0.65,
   avslojande: 0.26,
+  avdrag: 1.15,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };

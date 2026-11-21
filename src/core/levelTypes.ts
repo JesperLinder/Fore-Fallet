@@ -86,7 +86,19 @@ export interface Niva extends NivaPlatshallare {
   mellanstopp?: string;
   /** Läggs till efter referensen i nivåetiketten, t.ex. "Final" ger "NIVÅ 10 · HD 2023 · FINAL". */
   overrubrikTillagg?: string;
+  /**
+   * Valfria faser i följd (t.ex. Friskvårdskursen: kursen, sedan fakturan). Varje fas ersätter nivåns fält med sina
+   * egna (mekanik, tema, bana, invaders …). När en fas vinns startar nästa; vinsten i sista fasen ger domslutet.
+   * Förlust i en fas ger förlustskärmen, och "Försök igen" börjar om från fas 1. Räknarna från tidigare faser
+   * följer med (t.ex. antal kurstillfällen) och kan användas i senare faser.
+   */
+  faser?: Fas[];
+  /** Starta mekaniken direkt utan startrutan "Din fylgia viskar" (t.ex. fas 2 efter mellanstoppet). */
+  utanStart?: boolean;
 }
+
+/** En fas i en nivå med faser: fälten ersätter nivåns. mellanstopp visas som svart skärm innan fasen. */
+export type Fas = Partial<Omit<Niva, 'id' | 'nummer' | 'titel' | 'referens' | 'faser' | 'domslut' | 'stjarnkrav' | 'stjarngranser' | 'guldstjarna' | 'resultat' | 'rattsomrade' | 'kartmarke' | 'kommerSnart'>>;
 
 export interface StjarnKrav {
   /** Högst så här många misstag. */
@@ -496,6 +508,8 @@ export interface InvadersInstallningar {
   mal?: { raknare: string; antal: number };
   /** Förlust "for-manga": räknaren har gått över max, t.ex. { "raknare": "missad", "max": 8 }. */
   forManga?: { raknare: string; max: number };
+  /** En boss i form av en faktura överst, med rader som livsstaplar och en summa som räknas ner (valfritt). */
+  faktura?: FakturaInstallningar;
   /** Växande mål och timing-klipp (valfritt): mål växer uppåt och klipps vid en klipplinje. Se VaxandeInstallningar. */
   vaxande?: VaxandeInstallningar;
   /**
@@ -532,7 +546,8 @@ export interface InvadersInstallningar {
   skydd?: SkyddData[];
   /** Nedräkning (valfritt). dold: klockan går men visas inte. */
   tid?: { sekunder: number; etikett: string; dold?: boolean };
-  matare: {
+  /** Mätaren. Valfri: utan mätare ritas ingen (och "matare-full" kan inte inträffa). */
+  matare?: {
     namn: string;
     /** Antal steg innan mätaren är full. */
     steg: number;
@@ -544,7 +559,7 @@ export interface InvadersInstallningar {
      * "kort": ett kort under rubriken med en guldstapel som börjar full och krymper (t.ex. "Försäkringen").
      * "antal": en räknare uppe till höger: namnet (t.ex. "INTRÅNG") över en vinröd siffra. Tar klockans plats.
      */
-    visning?: 'steg' | 'procent' | 'kort' | 'antal';
+    visning?: 'steg' | 'procent' | 'kort' | 'antal' | 'ingen';
     /**
      * "misstag" (standard): mätaren visar misstagen (och "matare-full" ger förlust).
      * "fyll": mätaren börjar tom och fylls av fångstregler med "fyll", t.ex. "Vanlig service" när kunder betjänas.
@@ -561,8 +576,9 @@ export interface InvadersInstallningar {
   /**
    * Alla villkor måste vara uppfyllda för vinst. "alla-klara" = varje bricka bortskjuten eller släppt igenom.
    * "overlev" = tiden har gått ut utan förlust (kräver "tid"). "mal" = räknaren i "mal" har nått sitt antal.
+   * "knapp" = spelaren tryckte på knappen som en fångstregel visade (FangstRegel.knapp), t.ex. "Hoppa av kursen".
    */
-  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara' | 'overlev' | 'mal')[];
+  vinst: ('fel-borta' | 'alla-fangade' | 'alla-klara' | 'overlev' | 'mal' | 'knapp')[];
   /** Något av villkoren ger förlust. */
   forlust: ForlustOrsak[];
   /** Vid vinst: brickor och fångstobjekt med "plats" flyttas till en rad på denna höjd. */
@@ -694,8 +710,53 @@ export interface HotInstallningar {
   slutIntervall?: number;
   /** Väntetid innan första hotet (ms). Standard: intervall. */
   fordrojning?: number;
-  /** Vad som händer när ett hot når spelaren. */
+  /** Vad som händer när ett hot når spelaren. (Med "typer" gäller typens vidBotten i stället.) */
   botten: BottenRegel;
+  /**
+   * Valfritt: hot i flera sorter med egna regler (t.ex. besparingar som ska skjutas och kostnadsposter som inte ska).
+   * "antal" anger hur många av varje sort som släpps, i slumpad ordning. Utan typer fungerar hot som förut.
+   */
+  typer?: Record<string, HotTyp>;
+  antal?: Record<string, number>;
+}
+
+/** En sort av fallande hot (se HotInstallningar.typer). */
+export interface HotTyp {
+  utseende: string;
+  b: number;
+  h: number;
+  /** Färg för figurer som kan färgas. */
+  farg?: FargNamn;
+  /** Text under (eller på) objektet; med flera väljs en slumpvis. */
+  etiketter?: string[];
+  etikettFarg?: FargNamn;
+  /** Textens läge i höjdled relativt mitten (standard: under objektet). */
+  etikettY?: number;
+  /** Vid träff. studsa: skottet studsar tillbaka och objektet ligger kvar. avdrag: drar av från fakturans rad (index). */
+  vidTraff?: FangstRegel & { studsa?: boolean; avdrag?: { rad: number; belopp: number } };
+  /** När objektet når spelarens höjd. */
+  vidBotten?: FangstRegel;
+}
+
+/**
+ * Fakturan (invaders): en stor faktura överst med rader som var sin livsstapel och "Summa att betala" längst ner.
+ * Avdrag (från hotens vidTraff.avdrag) krymper radens stapel och räknar ner summan. Summan kan inte gå under
+ * golvet: raderna minus alla avdrag som finns i fasen. När golvet nås lyser summan guld. Skott som träffar
+ * fakturan studsar; första gången visas studsText.
+ */
+export interface FakturaInstallningar {
+  rubrik: string;
+  /** Raderna. belopp: fast belopp. perArv: belopp per räknat i en tidigare fas, t.ex. kurstillfällen × 900 kr. */
+  rader: { etikett: string; belopp?: number; perArv?: { raknare: string; belopp: number } }[];
+  summaEtikett: string;
+  /** Mittpunkt och storlek. */
+  x: number;
+  y: number;
+  b: number;
+  h: number;
+  studsText?: string;
+  /** Ljud när fakturan dyker upp, t.ex. "prassel". */
+  ljud?: Ljud;
 }
 
 /**
@@ -836,6 +897,11 @@ export interface FangstStrom {
   y: number;
   /** Objekten släpps slumpvis mellan dessa x (standard: skärmens kanter med marginal). */
   kant?: { vanster: number; hoger: number };
+  /**
+   * Objekt som släpps vid en bestämd tid (ms från start), utöver strömmen, t.ex. ett jobberbjudande efter 15 s.
+   * igenEfter: missas det släpps ett nytt så här många ms senare (tills det fångats).
+   */
+  planerade?: { typ: string; vid: number; igenEfter?: number }[];
 }
 
 export interface FangstTyp {
@@ -878,6 +944,8 @@ export interface FangstRegel {
    * (t.ex. grannsämjan sjunker lite vid ett ingrepp).
    */
   matareMjuk?: number;
+  /** Visa en knapp med den här texten (en gång). Med vinstvillkoret "knapp" avslutar ett tryck nivån eller fasen. */
+  knapp?: string;
   /** Talbubbla första gången regeln används, t.ex. grannen i fönstret: "Låt bli!". (x, y) = spetsen. */
   prat?: { x: number; y: number; text: string; farg: FargNamn; textFarg: FargNamn; langd: number };
   /** Ljud, t.ex. "pling" eller "mynt". Standard vid fångst: "fanga". */

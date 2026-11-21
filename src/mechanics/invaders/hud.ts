@@ -31,18 +31,23 @@ export interface InvadersHud {
   fangstPlats: (index: number) => Phaser.Math.Vector2;
 }
 
-export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar, tema: 'ljus' | 'mork' = 'mork'): InvadersHud {
+type Matare = NonNullable<InvadersInstallningar['matare']>;
+
+export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar & { matare: Matare }, tema: 'ljus' | 'mork' = 'mork'): InvadersHud {
   const synligTid = inst.tid && !inst.tid.dold ? inst.tid : undefined;
+  // Utan mätare men med summa: räknarkortet (och klockan) som kort under rubriken, utan mätarkort.
+  const utanMatare = inst.matare.visning === 'ingen';
+  const kortLayout = inst.matare.visning === 'kort' || (utanMatare && !!inst.summa);
   // Med korten (visning "kort") står klockan i ett eget kort, annars uppe till höger.
-  let visaTid: InvadersHud['visaTid'] = synligTid && inst.matare.visning !== 'kort' ? byggTid(scene, synligTid) : () => {};
+  let visaTid: InvadersHud['visaTid'] = synligTid && !kortLayout ? byggTid(scene, synligTid) : () => {};
   if (inst.info?.length) byggInfo(scene, inst.info);
   let tak = inst.infotext ? byggInfotext(scene, inst.infotext, tema) : INFO_Y + INFO_H;
   let visaRaknare: InvadersHud['visaRaknare'] = () => {};
   let visaSumma: InvadersHud['visaSumma'] = () => {};
   let matare;
-  if (inst.matare.visning === 'kort') {
+  if (kortLayout) {
     const raknare = inst.dekor?.raknare ?? (inst.summa ? { namn: inst.summa.namn, text: inst.summa.text } : undefined);
-    const kort = byggKort(scene, inst.matare, raknare, synligTid);
+    const kort = byggKort(scene, inst.matare, raknare, synligTid, utanMatare);
     matare = kort;
     visaRaknare = kort.visaRaknare;
     visaSumma = kort.visaSumma;
@@ -50,7 +55,8 @@ export function byggHud(scene: Phaser.Scene, inst: InvadersInstallningar, tema: 
     tak = kort.tak;
   } else {
     const v = inst.matare.visning;
-    matare = v === 'procent' ? byggProcent(scene, inst.matare) : v === 'antal' ? byggAntal(scene, inst.matare) : byggMatare(scene, inst.matare);
+    const ingen = { visaMatare: (_s: number) => {}, markeraMatare: () => {} };
+    matare = v === 'ingen' ? ingen : v === 'procent' ? byggProcent(scene, inst.matare) : v === 'antal' ? byggAntal(scene, inst.matare) : byggMatare(scene, inst.matare);
   }
   return {
     tak,
@@ -125,9 +131,10 @@ export function byggInfotext(scene: Phaser.Scene, innehall: string, tema: 'ljus'
  */
 function byggKort(
   scene: Phaser.Scene,
-  m: InvadersInstallningar['matare'],
+  m: Matare,
   raknare?: { namn: string; text: string },
   tid?: NonNullable<InvadersInstallningar['tid']>,
+  utanMatare = false,
 ) {
   const x0 = avstand.l;
   const mellan = 10;
@@ -135,16 +142,17 @@ function byggKort(
   const helB = BREDD - x0 * 2;
   // Bredder: klockkortet är smalast, räknaren mellanstor, mätaren tar resten.
   const tidB = tid ? 92 : 0;
-  const rakB = raknare ? (tid ? 106 : (helB - mellan) / 2) : 0;
-  const b = helB - (tidB ? tidB + mellan : 0) - (rakB ? rakB + mellan : 0);
+  // Utan mätare tar räknaren mätarens plats (allt utom klockan).
+  const rakB = raknare ? (utanMatare ? helB - (tidB ? tidB + mellan : 0) : tid ? 106 : (helB - mellan) / 2) : 0;
+  const b = utanMatare ? 0 : helB - (tidB ? tidB + mellan : 0) - (rakB ? rakB + mellan : 0);
   const g = scene.add.graphics().setDepth(5);
   // Samma kortstil som mätarkortet i hörnet (ui/HeaderCard.ts): guld och lila text klarar kontrastkravet där.
   const kortRuta = (x: number, w: number): void => {
     g.fillStyle(farg.morkgron, 1).fillRoundedRect(x, INFO_Y, w, h, radie.m);
     g.lineStyle(1, farg.gron, 1).strokeRoundedRect(x, INFO_Y, w, h, radie.m);
   };
-  kortRuta(x0, b);
-  const namn = skapaText(scene, x0 + 14, INFO_Y + 12, m.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
+  if (b > 0) kortRuta(x0, b);
+  const namn = skapaText(scene, x0 + 14, INFO_Y + 12, b > 0 ? m.namn : '', 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
   // Ett långt namn (t.ex. "Bolagets förtroende" bredvid ett räknarkort) krymps så att det ryms i kortet.
   if (namn.width > b - 28) namn.setScale((b - 28) / namn.width);
   const stapelB = b - 28;
@@ -152,6 +160,7 @@ function byggKort(
   let andel = 1;
   const ritaStapel = (fyll: number) => {
     stapel.clear();
+    if (b <= 0) return;
     stapel.fillStyle(farg.gron, 1).fillRoundedRect(x0 + 14, INFO_Y + 36, stapelB, 8, 4);
     if (andel > 0) stapel.fillStyle(fyll, 1).fillRoundedRect(x0 + 14, INFO_Y + 36, Math.max(8, stapelB * andel), 8, 4);
   };
@@ -159,7 +168,7 @@ function byggKort(
   let visaRaknare = (_kvar: number, _totalt: number) => {};
   let visaSumma = (_text: string) => {};
   if (raknare) {
-    const rx = x0 + b + mellan;
+    const rx = b > 0 ? x0 + b + mellan : x0;
     kortRuta(rx, rakB);
     skapaText(scene, rx + 14, INFO_Y + 12, raknare.namn, 'overrubrik', 'beige', { storlek: 11 }).setDepth(6);
     const varde = skapaText(scene, rx + 14, INFO_Y + 28, '', 'rubrik', 'ljusbeige', { storlek: 18 }).setDepth(6);
@@ -194,7 +203,7 @@ function byggKort(
 }
 
 /** Mätare som procent kvar uppe till höger, t.ex. "God tro 100 %". Tar klockans plats. */
-function byggProcent(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
+function byggProcent(scene: Phaser.Scene, m: Matare) {
   const kort = hornkort(scene, m.namn, 'guld');
   return {
     visaMatare: (steg: number) => {
@@ -213,7 +222,7 @@ function byggProcent(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
  * Räknare uppe till höger: namnet ("INTRÅNG") över antalet steg (misstag). Siffran är ljus vid noll och lila
  * därefter (vinrött syns inte på det mörka kortet).
  */
-function byggAntal(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
+function byggAntal(scene: Phaser.Scene, m: Matare) {
   const kort = hornkort(scene, m.namn);
   return {
     visaMatare: (steg: number) => {
@@ -224,7 +233,7 @@ function byggAntal(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
   };
 }
 
-function byggMatare(scene: Phaser.Scene, m: InvadersInstallningar['matare']) {
+function byggMatare(scene: Phaser.Scene, m: Matare) {
   const x0 = avstand.l;
   const b = BREDD - x0 * 2;
   const mitt = MATARRAD_Y + MATARRAD_H / 2;

@@ -32,6 +32,8 @@ export interface MekanikKontext {
   /** Tipsrutan längst ner – mekaniken kan tona ner den medan spelaren siktar. */
   tips: Phaser.GameObjects.Container;
   avsluta: (resultat: MekanikResultat) => void;
+  /** Räknarna från tidigare faser (nivåer med faser), t.ex. { "kurstillfallen": 12 }. */
+  arv?: Record<string, number>;
 }
 
 export interface Mekanik {

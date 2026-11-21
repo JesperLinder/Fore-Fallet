@@ -24,6 +24,9 @@ import { testknapparNiva } from '../debug/Testpanel';
 
 export interface LevelData {
   id: string;
+  /** Nivåer med faser: vilken fas (0 = första) och räknarna från tidigare faser. */
+  fas?: number;
+  arv?: Record<string, number>;
 }
 
 export interface DomslutData {
@@ -41,6 +44,9 @@ export class LevelScene extends BasScen {
   private pausLager?: Phaser.GameObjects.Container;
   /** Nivån är avgjord (domslut eller förlust på väg): ingen paus längre. */
   private slut = false;
+  /** Nivåer med faser: aktuell fas och räknarna från tidigare faser. */
+  private fas = 0;
+  private arv: Record<string, number> = {};
 
   constructor() {
     super({
@@ -53,11 +59,15 @@ export class LevelScene extends BasScen {
   }
 
   create(data: LevelData): void {
-    const niva = hamtaNiva(data.id);
-    if (!niva || !arUpplast(niva)) {
+    const grund = hamtaNiva(data.id);
+    if (!grund || !arUpplast(grund)) {
       this.scene.start('Map');
       return;
     }
+    // Med faser: fasens fält ersätter nivåns (mekanik, tema, bana, invaders …).
+    this.fas = grund.faser ? Phaser.Math.Clamp(data.fas ?? 0, 0, grund.faser.length - 1) : 0;
+    this.arv = data.arv ?? {};
+    const niva: Niva = grund.faser ? { ...grund, ...grund.faser[this.fas] } : grund;
     this.niva = niva;
     sattAktivtKapitel(kapitelFor(niva.id));
     this.forberedKamera('ljusbeige');
@@ -67,7 +77,7 @@ export class LevelScene extends BasScen {
     this.ritaRubrik();
 
     const tips = tipsPanel(this, niva.uppdragstext, niva.fylgiaTips);
-    this.mekanik = skapaMekanik({ scene: this, niva, tips, avsluta: (r) => this.nivanKlar(r) });
+    this.mekanik = skapaMekanik({ scene: this, niva, tips, avsluta: (r) => this.nivanKlar(r), arv: this.arv });
     this.slut = false;
     this.pausLager = undefined;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.mekanik.forstor());
@@ -184,6 +194,13 @@ export class LevelScene extends BasScen {
       this.time.delayedCall(600, () => this.visaForlust(r.forlust!));
       return;
     }
+    // En vunnen fas som inte är den sista: nästa fas startar, med räknarna hittills.
+    const faser = this.niva.faser;
+    if (faser && this.fas < faser.length - 1) {
+      const arv = { ...this.arv, ...(r.antal ?? {}) };
+      this.time.delayedCall(400, () => this.scene.restart({ id: this.niva.id, fas: this.fas + 1, arv } satisfies LevelData));
+      return;
+    }
     const stjarnor = beraknaStjarnor(this.niva, r);
     const guld = beraknaGuld(this.niva, r);
     framsteg.sparaResultat(this.niva.id, stjarnor);
@@ -196,7 +213,7 @@ export class LevelScene extends BasScen {
   private visaForlust(orsak: ForlustOrsak): void {
     this.slut = true;
     const f = this.niva.forlust;
-    const matarNamn = this.niva.invaders?.matare.namn ?? '';
+    const matarNamn = this.niva.invaders?.matare?.namn ?? '';
     const forklaring = f?.orsaker?.[orsak] ?? text.forlust.orsaker[orsak](matarNamn);
 
     const tacke = this.add.rectangle(MITT_X, HOJD / 2, BREDD, HOJD, farg.morkgron, 0.75).setInteractive();

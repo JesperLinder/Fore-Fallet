@@ -390,7 +390,7 @@ src/levels/
   kapitel-1/              "Klassikerna", de tio första nivåerna
     kapitel.json          kapitelfilen
     niva-01.json … niva-10.json
-  kapitel-2/              "Civilrätten": nivå 1–7 är spelbara, nivå 8–10 är "kommer snart"
+  kapitel-2/              "Civilrätten": nivå 1–8 är spelbara, nivå 9–10 är "kommer snart"
   _mall-*.json            mallar för nya nivåer (läses inte in)
 ```
 
@@ -439,7 +439,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 | 5 | `trahuset` | Trähuset | NJA 1985 s. 717 | Avtalsrätt | invaders | **spelbar** |
 | 6 | `testamentet` | Det sönderrivna testamentet | NJA 2017 s. 362 | Arvsrätt | memory | **spelbar** |
 | 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | **spelbar** |
-| 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | hybrid | kommer snart |
+| 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | invaders, två faser | **spelbar** |
 | 9 | `tva-testamenten` | De två testamentena | NJA 2022 s. 509 | Arvsrätt | memory | kommer snart |
 | 10 | `potatispartiet` | Potatispartiet | NJA 1982 s. 301 | Köprätt | boss | kommer snart |
 
@@ -447,7 +447,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
   (och fyll på nivån) när den byggs.
 - Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
 - Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
-- Efter Salmonellan i skolköket leder domslutets knapp till kartan (nästa nivå "kommer snart").
+- Efter Friskvårdskursen leder domslutets knapp till kartan (nästa nivå "kommer snart").
 
 ### Lägga till ett kapitel
 
@@ -499,7 +499,69 @@ Se `src/core/levelTypes.ts` för alla fält med kommentarer.
 | `hybrid` | kastfysik, projektiler, mål, studsyta, fiender och faragräns (se nedan) |
 | `forlust` | rubrik (och valfria orsakstexter) på förlustskärmen |
 | `objekt` | `utslag`, `mal` (målyta med poäng), `hinder` (skadestånd, sänker mätaren, kan nollställa stjärnorna), `zon`, `linje`, `etikett`, `dekor` (valfritt `b`/`h`), `text`, och i sidovy `block` (fysikblock) och `plattform` |
+| `faser` | valfritt: faser i följd, där varje fas har egna fält (`mekanik`, `tema`, `bana`, `invaders` …) som ersätter nivåns. Se "Nivåer med faser" nedan. |
+| `utanStart` | valfritt: mekaniken startar direkt utan startrutan (t.ex. fas 2, efter `mellanstopp`) |
+| `mellanstopp` | valfritt: svart skärm med en rad text i en sekund innan nivån (eller fasen) visas, t.ex. "Två veckor senare…" |
 | `domslut` | `rubrik`, `underrubrik` (valfri kursiv rad), `text` (valfri), `domskal` (3 st), `fylgiaruta` (lila ruta, bara Fylgia-mål), `lankTillFallet`, `utfall` per antal stjärnor, och `vunnet`/`inteVunnet` för halvvägsvinst (utan `inteVunnet` visas bara Vunnet-rutan, i full bredd) |
+
+### Nivåer med faser
+
+En nivå kan ha flera faser i följd, t.ex. Friskvårdskursen (kapitel 2, nivå 8): först kursen, sedan fakturan.
+Varje fas i `faser` ersätter nivåns fält med sina egna: `mekanik`, `tema`, `bana`, `invaders` (eller `memory`,
+`slangbella`, `hybrid`), `uppdragstext`, `fylgiaTips`, `mellanstopp` och `utanStart`. Det som står direkt i nivån
+(titel, referens, stjärnkrav, domslut) gäller hela nivån.
+
+- När en fas vinns startar nästa (LevelScene startar om sig själv med nästa fas). Vinsten i sista fasen ger stjärnor
+  och domslut, räknat på den fasens resultat.
+- Förlust i en fas ger förlustskärmen; "Försök igen" börjar om från fas 1.
+- Räknarna från tidigare faser följer med (`arv`) och kan användas senare, t.ex. fakturans rad
+  `"perArv": { "raknare": "kurstillfallen", "belopp": 900 }` (kurstillfällen från fas 1 × 900 kr).
+- `mellanstopp` på en fas visar en svart skärm med texten innan fasen; `utanStart: true` hoppar över startrutan.
+
+```json
+"mekanik": "invaders",
+"stjarnkrav": { "tre": { "minAntal": { "besparing": 8 }, "maxAntal": { "studs": 0 } }, "tva": { "minAntal": { "besparing": 6 } }, "en": {} },
+"faser": [
+  { "invaders": {
+      "spelare": { "utseende": "traningsvaska", "y": 740, "b": 80, "h": 44 },
+      "strom": { "typer": { "tavla": { "utseende": "kurs-tavla", "b": 90, "h": 62, "etiketter": ["Anatomi", "Kost"], "etikettY": 14,
+                                      "onFangst": { "raknas": "kurstillfallen" } }, …,
+                           "kuvert": { "utseende": "kuvert", "b": 150, "h": 66, "etiketter": ["Jobberbjudande – fast anställning!"],
+                                       "onFangst": { "knapp": "Hoppa av kursen" } } },
+                 "vikter": { "hantel": 1, "matta": 1, "tavla": 2 },
+                 "planerade": [{ "typ": "kuvert", "vid": 15000, "igenEfter": 4000 }], … },
+      "summa": { "namn": "Kurstillfällen", "text": "{varde}", "raknare": "kurstillfallen" },
+      "vinst": ["knapp"], "forlust": [] } },
+  { "mellanstopp": "Två veckor senare…", "utanStart": true, "tema": "mork", "bana": { "lager": [{ "farg": "morkgron", "topp": 0 }] },
+    "invaders": {
+      "spelare": { "utseende": "textmarkor", "y": 736, "b": 30, "h": 48 },
+      "skott": { "lage": "slapp", "intervall": 200, "fart": 1000 },
+      "faktura": { "rubrik": "Faktura – Friskvårdsutbildningen", "summaEtikett": "Summa att betala",
+                   "rader": [{ "etikett": "Utnyttjad del", "perArv": { "raknare": "kurstillfallen", "belopp": 900 } },
+                             { "etikett": "Arbete som ändå måste utföras", "belopp": 6500 },
+                             { "etikett": "Utebliven vinst", "belopp": 12000 }],
+                   "x": 195, "y": 226, "b": 342, "h": 252, "studsText": "Avbeställa får du. Gratis är det inte.", "ljud": "prassel" },
+      "hot": { "start": "slumpvis-overst", "y": 378, "fart": 95, "intervall": 2200, …,
+               "typer": { "plats": { "utseende": "mynt-gron", "b": 36, "h": 36, "etiketter": ["Platsen fylldes av någon annan"],
+                                     "vidTraff": { "text": "Avdrag – utbildaren sparade det", "raknas": "besparing", "ljud": "avdrag",
+                                                   "avdrag": { "rad": 2, "belopp": 3000 } } }, …,
+                          "kostnad": { "utseende": "kostnadspapper", "b": 112, "h": 44, "etiketter": ["Redan utnyttjat", …], "etikettY": 0,
+                                       "vidTraff": { "studsa": true, "text": "Det får du betala", "ton": "neutral", "raknas": "studs" } } },
+               "antal": { "material": 3, "lunch": 3, "plats": 2, "kostnad": 6 } },
+      "tid": { "sekunder": 35, "etikett": "Tid kvar" },
+      "vinst": ["overlev"], "forlust": [] } }
+]
+```
+
+Nytt i invaders för Friskvårdskursen:
+- `matare` är valfri: utan mätare ritas ingen, och med `summa` står räknarkortet ensamt under rubriken.
+- `strom.planerade`: objekt som släpps vid en bestämd tid (och igen efter `igenEfter` ms om de missas).
+- Regeln `knapp` visar en knapp när objektet fångas; med vinstvillkoret `"knapp"` avslutar ett tryck fasen.
+- `hot.typer` och `hot.antal`: fallande hot i flera sorter med egna regler (`vidTraff`, `vidBotten`), bland annat
+  `studsa` (skottet studsar tillbaka) och `avdrag` (drar av från fakturans rad).
+- `faktura`: en boss i form av en faktura (`mechanics/invaders/invoice.ts`) med rader som livsstaplar och
+  "Summa att betala" som räknas ner. Summan kan inte gå under golvet (raderna minus alla avdrag i fasen); när golvet
+  nås lyser summan guld. Skott som träffar fakturan studsar, och `studsText` visas första gången.
 
 Objekt med `utseende` (t.ex. `"bil"`, `"golfboll"`) hämtar figuren från `src/mechanics/art.ts`.
 Behövs en helt ny figur är det enda stället som kräver kod. Alternativt kan den läggas som bild i `public/assets/`,
@@ -801,7 +863,7 @@ I förkortad form:
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
 
-**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch", "hammare", "plopp", "ding" och det dova ackordet "avslojande" som nivåerna kan välja i reglerna och händelserna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
+**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch", "hammare", "plopp", "ding", det dova ackordet "avslojande" och "avdrag" (ett omvänt kaching) som nivåerna kan välja i reglerna och händelserna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
 
 ### Slangbella med fysikblock (sidovy)
 

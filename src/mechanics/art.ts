@@ -824,6 +824,77 @@ const figurer: Record<string, Rita> = {
     g.arc(x, y, R - 12, Math.PI * 1.1, Math.PI * 1.4);
     g.strokePath();
   },
+
+  // ---------- Kapitel 2: Friskvårdskursen ----------
+
+  /** Träningsväska (spelaren i fas 1): mörkgrön bag med guldrem och handtag. */
+  traningsvaska(g, x, y, b, h) {
+    const B = b || 80;
+    const H = h || 44;
+    g.lineStyle(4, farg.morkgron, 1);
+    g.beginPath();
+    g.arc(x, y - H / 2 + 4, B * 0.2, Math.PI, 0, false);
+    g.strokePath();
+    g.fillStyle(farg.morkgron, 1).fillRoundedRect(x - B / 2, y - H / 2 + 4, B, H - 4, H * 0.35);
+    g.fillStyle(farg.guld, 1).fillRect(x - B / 2 + 6, y + 2, B - 12, 4);
+    g.fillStyle(farg.gron, 1).fillCircle(x - B / 2 + 10, y - H / 2 + 16, 4).fillCircle(x + B / 2 - 10, y - H / 2 + 16, 4);
+  },
+
+  /** Kurstillfälle med hantel: ljust kort med ikonen upptill. Texten läggs under ikonen. */
+  'kurs-hantel'(g, x, y, b, h) {
+    const { B, iy } = ritaKurskort(g, x, y, b, h);
+    g.fillStyle(farg.morkgron, 1).fillRect(x - B * 0.2, iy - 2, B * 0.4, 4);
+    g.fillRoundedRect(x - B * 0.27, iy - 8, 7, 16, 2).fillRoundedRect(x + B * 0.27 - 7, iy - 8, 7, 16, 2);
+  },
+
+  /** Kurstillfälle med träningsmatta (ihoprullad). */
+  'kurs-matta'(g, x, y, b, h) {
+    const { B, iy } = ritaKurskort(g, x, y, b, h);
+    g.fillStyle(farg.lila, 1).fillRoundedRect(x - B * 0.26, iy - 6, B * 0.52, 12, 6);
+    g.fillStyle(farg.morkgron, 1).fillCircle(x + B * 0.26 - 6, iy, 4);
+    g.fillStyle(farg.lila, 1).fillCircle(x + B * 0.26 - 6, iy, 2);
+  },
+
+  /** Kurstillfälle med tavla (teori). */
+  'kurs-tavla'(g, x, y, b, h) {
+    const { B, iy } = ritaKurskort(g, x, y, b, h);
+    g.fillStyle(farg.gron, 1).fillRect(x - B * 0.22, iy - 9, B * 0.44, 15);
+    g.lineStyle(1.2, farg.ljusbeige, 1).lineBetween(x - B * 0.15, iy - 4, x + B * 0.05, iy - 4).lineBetween(x - B * 0.15, iy + 1, x + B * 0.12, iy + 1);
+    g.lineStyle(2, farg.morkgron, 1).lineBetween(x - B * 0.12, iy + 6, x - B * 0.18, iy + 11).lineBetween(x + B * 0.12, iy + 6, x + B * 0.18, iy + 11);
+  },
+
+  /** Guldfärgat kuvert (jobberbjudandet). Texten läggs ovanpå. */
+  kuvert(g, x, y, b, h) {
+    const B = b || 150;
+    const H = h || 66;
+    g.fillStyle(farg.guld, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 6);
+    g.lineStyle(1.5, farg.morkockra, 1).strokeRoundedRect(x - B / 2, y - H / 2, B, H, 6);
+    g.lineStyle(1.2, farg.morkockra, 0.6);
+    g.beginPath();
+    g.moveTo(x - B / 2 + 4, y - H / 2 + 4);
+    g.lineTo(x, y - H * 0.05);
+    g.lineTo(x + B / 2 - 4, y - H / 2 + 4);
+    g.strokePath();
+  },
+
+  /** Grönt mynt (en besparing). */
+  'mynt-gron'(g, x, y, b) {
+    const r = (b || 36) / 2;
+    g.fillStyle(farg.gron, 1).fillCircle(x, y, r);
+    g.lineStyle(2.5, farg.guld, 1).strokeCircle(x, y, r - 1.5);
+    g.lineStyle(1, farg.beige, 0.8).strokeCircle(x, y, r - 6);
+    g.fillStyle(farg.guld, 1).fillRect(x - 2, y - r * 0.45, 4, r * 0.9);
+    g.fillRect(x - r * 0.35, y - r * 0.25, r * 0.7, 3).fillRect(x - r * 0.35, y + r * 0.1, r * 0.7, 3);
+  },
+
+  /** Vinrött papper (en kostnadspost). Texten läggs ovanpå. */
+  kostnadspapper(g, x, y, b, h) {
+    const B = b || 110;
+    const H = h || 44;
+    g.fillStyle(farg.vinrod, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 4);
+    g.lineStyle(1.2, farg.lila, 1).strokeRoundedRect(x - B / 2, y - H / 2, B, H, 4);
+    g.fillStyle(farg.lila, 0.5).fillTriangle(x + B / 2 - 10, y - H / 2, x + B / 2, y - H / 2, x + B / 2, y - H / 2 + 10);
+  },
 };
 
 /** Kalenderblad: fyllt blad, mörk list upptill med två ringar och en tunn kontur. */
@@ -942,4 +1013,13 @@ function ritaLarare(g: Phaser.GameObjects.Graphics, x: number, y: number, b: num
     g.fillStyle(farg.ljusbeige, 1).fillTriangle(dx - 3, dy, dx + 3, dy, dx, dy - 6).fillCircle(dx, dy + 1, 3);
     g.lineStyle(1, farg.gron, 1).strokeCircle(dx, dy + 1, 3);
   }
+}
+
+/** Kurskort: ljust kort med tunn kontur. Returnerar storleken och var ikonen ska stå (iy). */
+function ritaKurskort(g: Phaser.GameObjects.Graphics, x: number, y: number, b: number, h: number): { B: number; H: number; iy: number } {
+  const B = b || 90;
+  const H = h || 62;
+  g.fillStyle(farg.ljusbeige, 1).fillRoundedRect(x - B / 2, y - H / 2, B, H, 6);
+  g.lineStyle(1.2, farg.morkgron, 1).strokeRoundedRect(x - B / 2, y - H / 2, B, H, 6);
+  return { B, H, iy: y - H * 0.18 };
 }

@@ -3,6 +3,299 @@
   "titel": "Friskvårdskursen",
   "referens": "NJA 2002 s. 644",
   "rattsomrade": "Avtalsrätt",
-  "mekanik": "hybrid",
-  "kommerSnart": true
+  "mekanik": "invaders",
+  "fylgiaMal": false,
+  "tema": "ljus",
+  "uppdragstext": "Du har anmält dig till en utbildning till friskvårdskonsulent. Gå på kursen – och se vad som händer när du hoppar av.",
+  "fylgiaTips": "Du får hoppa av. Men du betalar för det du redan använt, för arbete som ändå måste göras och – om du saknar godtagbart skäl – för utbildarens uteblivna vinst. Bara det utbildaren sparade dras av.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "minAntal": {
+        "besparing": 8
+      },
+      "maxAntal": {
+        "studs": 0
+      }
+    },
+    "tva": {
+      "minAntal": {
+        "besparing": 6
+      }
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "ljusbeige",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "faser": [
+    {
+      "invaders": {
+        "spelare": {
+          "utseende": "traningsvaska",
+          "y": 740,
+          "b": 80,
+          "h": 44
+        },
+        "strom": {
+          "typer": {
+            "hantel": {
+              "utseende": "kurs-hantel",
+              "b": 90,
+              "h": 62,
+              "etiketter": [
+                "Gruppträning"
+              ],
+              "etikettY": 14,
+              "onFangst": {
+                "raknas": "kurstillfallen"
+              }
+            },
+            "matta": {
+              "utseende": "kurs-matta",
+              "b": 90,
+              "h": 62,
+              "etiketter": [
+                "Stretching"
+              ],
+              "etikettY": 14,
+              "onFangst": {
+                "raknas": "kurstillfallen"
+              }
+            },
+            "tavla": {
+              "utseende": "kurs-tavla",
+              "b": 90,
+              "h": 62,
+              "etiketter": [
+                "Anatomi",
+                "Kost"
+              ],
+              "etikettY": 14,
+              "onFangst": {
+                "raknas": "kurstillfallen"
+              }
+            },
+            "kuvert": {
+              "utseende": "kuvert",
+              "b": 150,
+              "h": 66,
+              "etiketter": [
+                "Jobberbjudande – fast anställning!"
+              ],
+              "etikettY": 8,
+              "etikettFarg": "morkgron",
+              "onFangst": {
+                "knapp": "Hoppa av kursen",
+                "text": "Jobberbjudande!",
+                "ljud": "jubel"
+              }
+            }
+          },
+          "vikter": {
+            "hantel": 1,
+            "matta": 1,
+            "tavla": 2
+          },
+          "planerade": [
+            {
+              "typ": "kuvert",
+              "vid": 15000,
+              "igenEfter": 4000
+            }
+          ],
+          "intervall": 1100,
+          "fordrojning": 700,
+          "fart": 140,
+          "y": 176
+        },
+        "summa": {
+          "namn": "Kurstillfällen",
+          "text": "{varde}",
+          "raknare": "kurstillfallen"
+        },
+        "vinst": [
+          "knapp"
+        ],
+        "forlust": []
+      }
+    },
+    {
+      "mellanstopp": "Två veckor senare…",
+      "utanStart": true,
+      "tema": "mork",
+      "bana": {
+        "lager": [
+          {
+            "farg": "morkgron",
+            "topp": 0
+          }
+        ]
+      },
+      "invaders": {
+        "spelare": {
+          "utseende": "textmarkor",
+          "y": 736,
+          "b": 30,
+          "h": 48
+        },
+        "skott": {
+          "lage": "slapp",
+          "intervall": 200,
+          "fart": 1000
+        },
+        "faktura": {
+          "rubrik": "Faktura – Friskvårdsutbildningen",
+          "rader": [
+            {
+              "etikett": "Utnyttjad del",
+              "perArv": {
+                "raknare": "kurstillfallen",
+                "belopp": 900
+              }
+            },
+            {
+              "etikett": "Arbete som ändå måste utföras",
+              "belopp": 6500
+            },
+            {
+              "etikett": "Utebliven vinst",
+              "belopp": 12000
+            }
+          ],
+          "summaEtikett": "Summa att betala",
+          "x": 195,
+          "y": 226,
+          "b": 342,
+          "h": 252,
+          "studsText": "Avbeställa får du. Gratis är det inte.",
+          "ljud": "prassel"
+        },
+        "hot": {
+          "utseende": "mynt-gron",
+          "b": 36,
+          "h": 36,
+          "start": "slumpvis-overst",
+          "y": 378,
+          "fart": 95,
+          "intervall": 2200,
+          "fordrojning": 1500,
+          "botten": {},
+          "typer": {
+            "material": {
+              "utseende": "mynt-gron",
+              "b": 36,
+              "h": 36,
+              "etiketter": [
+                "Kursmaterial som inte trycktes"
+              ],
+              "vidTraff": {
+                "text": "Avdrag – utbildaren sparade det",
+                "raknas": "besparing",
+                "ljud": "avdrag",
+                "avdrag": {
+                  "rad": 2,
+                  "belopp": 600
+                }
+              },
+              "vidBotten": {
+                "raknas": "missadBesparing"
+              }
+            },
+            "lunch": {
+              "utseende": "mynt-gron",
+              "b": 36,
+              "h": 36,
+              "etiketter": [
+                "Lunch som inte serverades"
+              ],
+              "vidTraff": {
+                "text": "Avdrag – utbildaren sparade det",
+                "raknas": "besparing",
+                "ljud": "avdrag",
+                "avdrag": {
+                  "rad": 2,
+                  "belopp": 400
+                }
+              },
+              "vidBotten": {
+                "raknas": "missadBesparing"
+              }
+            },
+            "plats": {
+              "utseende": "mynt-gron",
+              "b": 36,
+              "h": 36,
+              "etiketter": [
+                "Platsen fylldes av någon annan"
+              ],
+              "vidTraff": {
+                "text": "Avdrag – utbildaren sparade det",
+                "raknas": "besparing",
+                "ljud": "avdrag",
+                "avdrag": {
+                  "rad": 2,
+                  "belopp": 3000
+                }
+              },
+              "vidBotten": {
+                "raknas": "missadBesparing"
+              }
+            },
+            "kostnad": {
+              "utseende": "kostnadspapper",
+              "b": 112,
+              "h": 44,
+              "etiketter": [
+                "Redan utnyttjat",
+                "Ändå utfört",
+                "Jobbet är inget skäl"
+              ],
+              "etikettY": 0,
+              "etikettFarg": "ljusbeige",
+              "vidTraff": {
+                "studsa": true,
+                "text": "Det får du betala",
+                "ton": "neutral",
+                "raknas": "studs"
+              }
+            }
+          },
+          "antal": {
+            "material": 3,
+            "lunch": 3,
+            "plats": 2,
+            "kostnad": 6
+          }
+        },
+        "instruktion": {
+          "text": "Skjut ner det utbildaren sparade",
+          "y": 600
+        },
+        "tid": {
+          "sekunder": 35,
+          "etikett": "Tid kvar"
+        },
+        "vinst": [
+          "overlev"
+        ],
+        "forlust": []
+      }
+    }
+  ],
+  "domslut": {
+    "rubrik": "Avbeställt – men inte gratis",
+    "domskal": [
+      "Ingen lag var direkt tillämplig på kursavtalet, så HD hämtade ledning från konsumenttjänstlagens regler om avbeställning.",
+      "Deltagaren fick hoppa av, men skulle betala för det han redan utnyttjat och för arbete som ändå måste utföras.",
+      "Att han fått fast anställning var inget godtagbart skäl, så utbildaren hade också rätt till ersättning för utebliven vinst – med avdrag för det utbildaren sparade."
+    ],
+    "lankTillFallet": "https://lagen.nu/dom/nja/2002s644"
+  }
 }

@@ -36,11 +36,17 @@ import { framsteg } from '../core/progress';
 import { Fangststrom } from './invaders/stream';
 import { Engangshandelser, RullandeVag, ritaKulisse, ritaKulisser, visaTalbubbla } from './invaders/scenery';
 import { VaxandeMalen } from './invaders/growth';
+import { Faktura } from './invaders/invoice';
+import { Knapp } from '../ui/Button';
 
 const SKOTT_B = 5;
 const SKOTT_H = 14;
 /** Minsta tid mellan två färgblinkar – håller blinkandet under tre gånger per sekund. */
 const MIN_BLINK_MS = 400;
+
+type Matare = NonNullable<InvadersInstallningar['matare']>;
+/** Utan mätare: en osynlig mätare som aldrig blir full. */
+const INGEN_MATARE: Matare = { namn: '', steg: Number.MAX_SAFE_INTEGER, visning: 'ingen' };
 
 /** Nivåer som bara har fångstobjekt (strom) saknar brickor: då används ett tomt rutnät. */
 const INGA_BRICKOR: BrickInstallningar = {
@@ -63,7 +69,7 @@ interface Skydd {
 export class Invaders implements Mekanik {
   private scene: Phaser.Scene;
   private niva: Niva;
-  private inst: InvadersInstallningar & { brickor: BrickInstallningar };
+  private inst: InvadersInstallningar & { brickor: BrickInstallningar; matare: Matare };
   private hud: InvadersHud;
   private rutnat: Rutnat;
   private fangst: Fangst[];
@@ -91,6 +97,9 @@ export class Invaders implements Mekanik {
   private visadEnGang = new Set<object>();
   /** Den scriptade avslutningen (handelser med start "vinst") pågår: spelet står still. */
   private slutscen = false;
+  private faktura?: Faktura;
+  /** Fakturans studstext visas bara första gången. */
+  private fakturaStudsVisad = false;
 
   private startad = false;
   private pausad = false;
@@ -117,7 +126,7 @@ export class Invaders implements Mekanik {
     this.scene = kontext.scene;
     this.niva = kontext.niva;
     if (!this.niva.invaders) throw new Error(`Nivån "${this.niva.id}" saknar "invaders"-inställningar`);
-    this.inst = { ...this.niva.invaders, brickor: this.niva.invaders.brickor ?? INGA_BRICKOR };
+    this.inst = { ...this.niva.invaders, brickor: this.niva.invaders.brickor ?? INGA_BRICKOR, matare: this.niva.invaders.matare ?? INGEN_MATARE };
     this.tidKvar = this.inst.tid?.sekunder ?? Infinity;
 
     this.hud = byggHud(this.scene, this.inst, this.niva.tema ?? 'ljus');
@@ -138,6 +147,15 @@ export class Invaders implements Mekanik {
     });
     if (this.inst.etapper) this.etapper = this.inst.etapper.delar.map((d) => ritaKulisse(this.scene, d).setAlpha(0));
     if (this.inst.vaxande) this.vaxande = new VaxandeMalen(this.scene, this.inst.vaxande);
+    if (this.inst.faktura) {
+      // Golvet: alla avdrag som finns i fasen (hotens sorter × antal), per fakturarad.
+      const avdrag: number[] = [];
+      for (const [namn, typ] of Object.entries(this.inst.hot?.typer ?? {})) {
+        const a = typ.vidTraff?.avdrag;
+        if (a) avdrag[a.rad] = (avdrag[a.rad] ?? 0) + a.belopp * (this.inst.hot?.antal?.[namn] ?? 1);
+      }
+      this.faktura = new Faktura(this.scene, this.inst.faktura, this.kontext.arv ?? {}, avdrag);
+    }
     this.ritaInstruktion();
 
     this.sikte = this.scene.add.graphics().setDepth(8);
@@ -170,7 +188,14 @@ export class Invaders implements Mekanik {
         this.scene.tweens.add({ targets: t, alpha: 1, duration: 300 });
       }
     });
-    if (intro) {
+    if (this.niva.utanStart) {
+      // Ingen startruta (t.ex. fas 2): spelet börjar när mellanstoppet tonats bort.
+      this.kontext.tips.setVisible(false);
+      this.scene.time.delayedCall(this.niva.mellanstopp ? 1350 : 0, () => {
+        this.startad = true;
+        if (this.inst.tipsUnderSpel) spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'ljus');
+      });
+    } else if (intro) {
       this.kontext.tips.setVisible(false);
       visaIntro(this.scene, intro, () => {
         this.kontext.tips.setVisible(true);
@@ -346,8 +371,26 @@ export class Invaders implements Mekanik {
 
   /** Hanterar träff mot skydd eller bricka. Returnerar true om skottet ska försvinna. */
   private skottTraffar(x: number, y: number): boolean {
-    if (this.hot?.traff(x, y)) {
-      spela('traff');
+    const hotTraff = this.hot?.traff(x, y);
+    if (hotTraff) {
+      const vt = hotTraff.typ?.vidTraff;
+      if (!hotTraff.typ) spela('traff');
+      else {
+        if (vt?.studsa) this.studsa(x, y);
+        else if (!vt?.ljud) spela('traff');
+        this.tillampa(vt, false, hotTraff.x, hotTraff.y - 40);
+        if (vt?.avdrag) this.faktura?.dra(vt.avdrag.rad, vt.avdrag.belopp);
+      }
+      return true;
+    }
+    if (this.faktura?.traff(x, y)) {
+      // Fakturan går inte att skjuta bort: skottet studsar (texten bara första gången).
+      this.studsa(x, y);
+      this.faktura.skaka();
+      if (!this.fakturaStudsVisad && this.inst.faktura?.studsText) {
+        this.fakturaStudsVisad = true;
+        this.popup(MITT_X, this.faktura.nedersta() + 28, this.inst.faktura.studsText, 'ljusbeige', 'morkgron');
+      }
       return true;
     }
     const raddad = this.dekor?.traff(x, y);
@@ -400,6 +443,13 @@ export class Invaders implements Mekanik {
     if (regel.misstag || regel.matare) this.registreraMisstag(regel.matare ?? 0, regel.text, mitt.x, textY);
     else if (regel.text && (regel.poang ?? 0) < 0) this.popup(mitt.x, textY, regel.text, 'morkgron', 'ljusbeige');
     else if (regel.text) this.popup(mitt.x, textY, regel.text, 'guld', 'morkgron');
+  }
+
+  /** Ett skott som studsar tillbaka: en kort guldstav som faller och tonas bort. */
+  private studsa(x: number, y: number): void {
+    spela('duns');
+    const s = this.scene.add.rectangle(x, y, SKOTT_B, SKOTT_H, farg.guld).setDepth(15);
+    this.scene.tweens.add({ targets: s, y: y + 70, angle: 25, alpha: 0, duration: 320, ease: 'Quad.easeIn', onComplete: () => s.destroy() });
   }
 
   private rakna(namn?: string): void {
@@ -496,11 +546,13 @@ export class Invaders implements Mekanik {
       const ljud = r?.ljud ?? (fangad ? 'fanga' : undefined);
       if (ljud) spela(ljud);
       if (text) {
-        if (r?.ton === 'neutral') this.popup(x, y, text, 'morkgron', 'ljusbeige');
+        // Neutral bubbla: mörkgrön, eller grön på mörk bakgrund (annars syns den inte).
+        if (r?.ton === 'neutral') this.popup(x, y, text, this.niva.tema === 'mork' ? 'gron' : 'morkgron', 'ljusbeige');
         else this.popup(x, y, text, 'guld', 'morkgron');
       }
     }
     if (!r) return;
+    if (r.knapp && forsta) this.visaKnapp(r.knapp);
     if (r.prat && forsta) visaTalbubbla(this.scene, r.prat.x, r.prat.y, r.prat.text, r.prat.farg, r.prat.textFarg, r.prat.langd);
     if (r.matareMjuk && this.inst.matare.lage !== 'fyll') {
       // Mätaren sjunker utan att det räknas som ett misstag: bara en kort markering.
@@ -515,6 +567,17 @@ export class Invaders implements Mekanik {
       this.hud.visaMatare(this.fyllSteg);
     }
     if (r.raknas && r.raknas === this.inst.etapper?.raknare) this.visaEtapp((this.antal[r.raknas] ?? 0) - 1);
+  }
+
+  /** Knappen från en fångstregel (t.ex. "Hoppa av kursen"). Med vinstvillkoret "knapp" avslutar ett tryck nivån/fasen. */
+  private visaKnapp(etikett: string): void {
+    const k = new Knapp(this.scene, MITT_X, HOJD * 0.5, etikett, { bredd: 240, variant: 'guld' }, () => {
+      if (!this.aktiv() || !this.inst.vinst.includes('knapp')) return;
+      k.destroy();
+      this.vinna();
+    }).setDepth(50);
+    k.setScale(0.7);
+    this.scene.tweens.add({ targets: k, scale: 1, duration: 260, ease: 'Back.easeOut' });
   }
 
   /** Räknarkortet med summan, t.ex. "1 333 kr". */
@@ -552,7 +615,7 @@ export class Invaders implements Mekanik {
     this.sikte.clear();
     if (!this.fingerNere || !this.inst.skott) return; // sköldläget har inget sikte
     const brickTopp = this.inst.brickor.skottGenom ? 0 : this.rutnat.nedersta() + 8;
-    const topp = Math.max(brickTopp, (this.hot?.nedersta() ?? 0) + 8, this.hud.tak);
+    const topp = Math.max(brickTopp, (this.hot?.nedersta() ?? 0) + 8, (this.faktura?.nedersta() ?? 0) + 8, this.hud.tak);
     const botten = this.spelare.y - this.inst.spelare.h / 2 - 10;
     if (botten <= topp) return;
     this.sikte.lineStyle(2, farg.guld, 0.9);
@@ -651,6 +714,8 @@ export class Invaders implements Mekanik {
     const allaKlara = !v.includes('alla-klara') || this.rutnat.allaKlara();
     const overlevt = !v.includes('overlev') || this.tidKvar <= 0;
     const malKlart = !v.includes('mal') || malNatt;
+    // Vinstvillkoret "knapp" avgörs bara av knappen (visaKnapp).
+    if (v.includes('knapp')) return;
     if (felBorta && allaFangade && allaKlara && overlevt && malKlart) this.vinna();
   }
 
@@ -746,7 +811,10 @@ export class Invaders implements Mekanik {
     if (!this.hot || !this.inst.hot) return;
     const sp = this.inst.spelare;
     const forlopp = this.inst.tid ? 1 - this.tidKvar / this.inst.tid.sekunder : 0;
-    const nadde = this.hot.uppdatera(dt, forlopp, sp.y - sp.h / 2);
+    const alla = this.hot.uppdatera(dt, forlopp, sp.y - sp.h / 2);
+    // Hot av en sort (hot.typer) följer sortens vidBotten; övriga hot.botten som förut.
+    for (const h of alla) if (h.typ) this.tillampa(h.typ.vidBotten, false, h.x, sp.y - sp.h / 2 - 34);
+    const nadde = alla.filter((h) => !h.typ);
     if (nadde.length === 0) return;
     const regel = this.inst.hot.botten;
     for (let i = 0; i < nadde.length; i++) {

@@ -117,7 +117,7 @@ Block som stoppar spelarens skott och slits ner.
 | `misstag`, `misstagText` | Bara med `fangst`: `{ "fangstMissad": 1 }` steg på mätaren och valfri pratbubbla när ett fångstobjekt missas. |
 | `info` | Valfritt. Rutan under rubriken. Den första posten står till vänster, den sista till höger. `serif: true` sätter värdet i serif, som "KROGKUNG". |
 | `instruktion` | Valfritt. Kort text på planen (`text`, `y`) som tonas bort efter 6 sekunder. |
-| `vinst` | Alla villkor måste gälla: `"fel-borta"` (alla brickor vars typ har `skaBort` är borta), `"alla-fangade"` (alla fångstobjekt fångade), `"alla-klara"` (varje bricka bortskjuten eller släppt igenom), `"overlev"` (tiden har gått ut utan förlust, kräver `tid`) och/eller `"mal"` (räknaren i `mal` har nått sitt antal). |
+| `vinst` | `"knapp"`: spelaren tryckte på knappen från en regel (avgör ensamt). Annars måste alla villkor gälla: `"fel-borta"` (alla brickor vars typ har `skaBort` är borta), `"alla-fangade"` (alla fångstobjekt fångade), `"alla-klara"` (varje bricka bortskjuten eller släppt igenom), `"overlev"` (tiden har gått ut utan förlust, kräver `tid`) och/eller `"mal"` (räknaren i `mal` har nått sitt antal). |
 | `forlust` | Något av villkoren ger förlust: `"matare-full"`, `"tid-slut"`, `"botten"` (en bricka når spelaren), `"for-manga"` (räknaren i `forManga` har gått över `max`) eller `"mal-omojligt"` (det finns inte längre tillräckligt många kvar i `strom` för att nå `mal`). |
 | `slutrad` | Valfritt. `{ "y" }`. Vid vinst flyttas allt med `plats` till en rad på den höjden, t.ex. KROGKUNG. |
 
@@ -198,6 +198,17 @@ Nya fält i reglerna (gäller även strömmen): `matareMjuk` (steg på mätaren 
 | `etapper` | `{ "raknare", "delar": [kulisser] }`: del nummer N tonas in när räknaren når N, t.ex. väggar, tak, skorsten och fönster på trähuset i nivå 5 (`trahuset`). |
 
 Strömmen har också `etikettY` (textens höjd på objektet) och `bubbla` (liten pratbubbla ovanför objektet) per sort, och `summa` utan `totalt` och `antal` visar räknaren som den är (t.ex. "Ingrepp 2").
+
+### Friskvårdskursen: planerade objekt, knapp, hot i flera sorter och faktura (valfritt)
+| Fält | Vad det gör |
+|---|---|
+| `matare` | Valfri. Utan mätare ritas ingen mätare (och `"matare-full"` kan inte inträffa). Med `summa` står räknarkortet ensamt under rubriken. |
+| `strom.planerade` | Objekt som släpps vid en bestämd tid, utöver strömmen: `[{ "typ": "kuvert", "vid": 15000, "igenEfter": 4000 }]`. Missas det släpps ett nytt `igenEfter` ms senare, tills det fångats. |
+| `knapp` (i en regel) | Visar en knapp med texten när regeln används första gången, t.ex. `"Hoppa av kursen"`. Med vinstvillkoret `"knapp"` avslutar ett tryck nivån (eller fasen). |
+| `hot.typer`, `hot.antal` | Hot i flera sorter: per sort `utseende`, `b`, `h`, valfritt `farg`, `etiketter` (under objektet, eller på det med `etikettY`), `etikettFarg`, `vidTraff` och `vidBotten` (samma fält som strömmens regler). `vidTraff.studsa: true`: skottet studsar och objektet ligger kvar. `vidTraff.avdrag: { "rad", "belopp" }`: drar av från fakturans rad. `antal` anger hur många av varje sort som släpps, i slumpad ordning. `utseende`, `b`, `h` och `botten` i `hot` krävs fortfarande men används inte för sorterna. |
+| `faktura` | En boss överst: `rubrik`, `rader` (`etikett` och `belopp`, eller `perArv: { "raknare", "belopp" }` för en räknare från en tidigare fas), `summaEtikett`, `x`, `y`, `b`, `h`, `studsText` (visas första gången ett skott studsar mot fakturan) och `ljud` när den dyker upp. Summan kan inte gå under golvet: raderna minus alla avdrag som finns i fasen. När golvet nås lyser summan guld. |
+
+Se även "Nivåer med faser" i README: en nivå kan ha flera faser i följd med egna `invaders`-inställningar.
 
 ### Kulisser, rullande väg och engångshändelser (valfritt)
 | Fält | Vad det gör |

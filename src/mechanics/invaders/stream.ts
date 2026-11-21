@@ -41,6 +41,9 @@ export class Fangststrom {
   private ko: string[] | null;
   private tillNasta: number;
   private sistaX = -Infinity;
+  /** Strömmens egen klocka (ms) och de planerade objekten (t.ex. jobberbjudandet). */
+  private tid = 0;
+  private planerade: { typ: string; nasta: number; igenEfter?: number; ute: boolean; klar: boolean }[];
 
   constructor(
     private scene: Phaser.Scene,
@@ -48,6 +51,7 @@ export class Fangststrom {
   ) {
     this.ko = inst.antal ? Phaser.Utils.Array.Shuffle(Object.entries(inst.antal).flatMap(([typ, n]) => Array<string>(n).fill(typ))) : null;
     this.tillNasta = inst.fordrojning ?? inst.intervall;
+    this.planerade = (inst.planerade ?? []).map((p) => ({ typ: p.typ, nasta: p.vid, igenEfter: p.igenEfter, ute: false, klar: false }));
     for (const namn of [...Object.keys(inst.antal ?? {}), ...Object.keys(inst.vikter ?? {})]) {
       if (!inst.typer[namn]) console.warn(`Okänd fångsttyp "${namn}" – lägg till den i strom.typer`);
     }
@@ -58,6 +62,13 @@ export class Fangststrom {
    * i detta steg. forlopp (0–1) = hur långt nivån kommit, för tempoökningen. dt i ms.
    */
   uppdatera(dt: number, forlopp: number, sp: Spelplats): { fangade: StromObjekt[]; passerade: StromObjekt[] } {
+    this.tid += dt;
+    for (const p of this.planerade) {
+      if (!p.klar && !p.ute && this.tid >= p.nasta) {
+        p.ute = true;
+        this.slapp(p.typ);
+      }
+    }
     this.tillNasta -= dt;
     if (this.tillNasta <= 0) {
       this.slapp();
@@ -78,11 +89,13 @@ export class Fangststrom {
       // Lite förlåtande: objektet räknas som fångat när en bra bit av det når spelaren.
       if (Math.abs(o.obj.x - sp.x) < sp.b / 2 + b * 0.3 && Math.abs(o.obj.y - sp.y) < sp.h / 2 + h * 0.3) {
         fangade.push(o);
+        this.planeradKlar(o.typNamn, true);
         this.scene.tweens.add({ targets: o.obj, x: sp.x, y: sp.y, scale: 0.35, alpha: 0, angle: 0, duration: 220, onComplete: () => o.obj.destroy() });
         return false;
       }
       if (o.obj.y - h / 2 > sp.y + sp.h / 2 + 8) {
         passerade.push(o);
+        this.planeradKlar(o.typNamn, false);
         this.scene.tweens.add({ targets: o.obj, alpha: 0, y: o.obj.y + 16, duration: 250, onComplete: () => o.obj.destroy() });
         return false;
       }
@@ -99,9 +112,19 @@ export class Fangststrom {
 
   stoppa(): void {
     this.ko = [];
+    this.planerade.forEach((p) => (p.klar = true));
     this.tillNasta = Infinity;
     for (const o of this.aktiva) this.scene.tweens.add({ targets: o.obj, alpha: 0, duration: 200, onComplete: () => o.obj.destroy() });
     this.aktiva = [];
+  }
+
+  /** Ett planerat objekt fångades (klart) eller missades (ett nytt släpps igenEfter ms senare, om det anges). */
+  private planeradKlar(typ: string, fangad: boolean): void {
+    const p = this.planerade.find((x) => x.typ === typ && x.ute);
+    if (!p) return;
+    p.ute = false;
+    if (fangad || p.igenEfter === undefined) p.klar = true;
+    else p.nasta = this.tid + p.igenEfter;
   }
 
   private nastaTyp(): string | undefined {
@@ -116,8 +139,8 @@ export class Fangststrom {
     return vikter[0]?.[0];
   }
 
-  private slapp(): void {
-    const namn = this.nastaTyp();
+  private slapp(planerad?: string): void {
+    const namn = planerad ?? this.nastaTyp();
     const typ = namn ? this.inst.typer[namn] : undefined;
     if (!namn || !typ) return;
     const kant = this.inst.kant ?? { vanster: avstand.l, hoger: BREDD - avstand.l };
