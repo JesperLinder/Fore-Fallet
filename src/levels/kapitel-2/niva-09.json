@@ -4,9 +4,217 @@
   "referens": "NJA 2022 s. 509",
   "rattsomrade": "Arvsrätt",
   "mekanik": "memory",
-  "kommerSnart": true,
   "kartmarke": {
     "text": "Memory",
     "farg": "lila"
+  },
+  "rubrikmarke": "Memory",
+  "rubrikmarkeFarg": "lila",
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Det senaste testamentet är sönderrivet. Gäller det gamla igen? Visa att det finns kvar och att det var hennes yttersta vilja. Den här gången måste det vara styrkt.",
+  "fylgiaTips": "Ett återkallat testamente kan väckas till liv – men bara om det finns kvar och uttrycker testatorns yttersta vilja. Och den som påstår det måste styrka det.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxMisstag": 4
+    },
+    "tva": {
+      "maxMisstag": 8
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "memory": {
+    "kolumner": 4,
+    "rader": 4,
+    "kort": [
+      {
+        "etikett": "2012 års testamente",
+        "par": "bankfack",
+        "farg": "beige",
+        "bevisvarde": 14,
+        "kant": "guld",
+        "kantBredd": 1.5
+      },
+      {
+        "etikett": "Ligger i bankfacket",
+        "par": "bankfack",
+        "farg": "beige",
+        "bevisvarde": 14
+      },
+      {
+        "etikett": "Tre kopior av 2012",
+        "par": "kopior",
+        "farg": "beige",
+        "bevisvarde": 14,
+        "kant": "guld",
+        "kantBredd": 1.5
+      },
+      {
+        "etikett": "I ett kuvert hemma",
+        "par": "kopior",
+        "farg": "beige",
+        "bevisvarde": 14
+      },
+      {
+        "etikett": "2017 års testamente",
+        "par": "sonderrivet",
+        "farg": "beige",
+        "bevisvarde": 8,
+        "kant": "guld",
+        "kantBredd": 1.5
+      },
+      {
+        "etikett": "Hittat sönderrivet",
+        "par": "sonderrivet",
+        "farg": "beige",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "Kopia av 2017",
+        "par": "kopia2017",
+        "farg": "beige",
+        "bevisvarde": 8,
+        "kant": "guld",
+        "kantBredd": 1.5
+      },
+      {
+        "etikett": "'Gäller inte längre'",
+        "par": "kopia2017",
+        "farg": "beige",
+        "bevisvarde": 8,
+        "citat": true
+      },
+      {
+        "etikett": "Advokaten: riv 2012!",
+        "par": "advokaten",
+        "farg": "beige",
+        "bevisvarde": 22
+      },
+      {
+        "etikett": "'Det ligger bra där det ligger'",
+        "par": "advokaten",
+        "farg": "beige",
+        "bevisvarde": 22,
+        "citat": true
+      },
+      {
+        "etikett": "'Man vet aldrig vad som händer'",
+        "par": "med-flit",
+        "farg": "beige",
+        "bevisvarde": 22,
+        "citat": true
+      },
+      {
+        "etikett": "Sparade 2012 med flit",
+        "par": "med-flit",
+        "farg": "beige",
+        "bevisvarde": 22
+      },
+      {
+        "etikett": "Arvingarna ska inte ärva",
+        "par": "arvingarna",
+        "farg": "beige",
+        "bevisvarde": 22
+      },
+      {
+        "etikett": "Sa det länge – även nära slutet",
+        "par": "arvingarna",
+        "farg": "beige",
+        "bevisvarde": 22
+      },
+      {
+        "etikett": "Formkrav",
+        "par": "forsiktighet",
+        "farg": "vinrod",
+        "bevisvarde": 0,
+        "effekt": {
+          "typ": "blanda",
+          "text": "HD: var mycket försiktig"
+        }
+      },
+      {
+        "etikett": "Stor försiktighet",
+        "par": "forsiktighet",
+        "farg": "vinrod",
+        "bevisvarde": 0,
+        "effekt": {
+          "typ": "blanda",
+          "text": "HD: var mycket försiktig"
+        }
+      }
+    ],
+    "hud": {
+      "par": "Par",
+      "missar": "Felvändningar",
+      "placering": "under"
+    },
+    "tid": {
+      "sekunder": 90,
+      "etikett": "Tid kvar"
+    },
+    "bevis": {
+      "namn": "Bevisbörda: din",
+      "start": 0,
+      "perPar": 10,
+      "perMiss": 3,
+      "trosklar": [
+        {
+          "varde": 55,
+          "etikett": "Övervägande sannolikt",
+          "notis": "Räcker inte den här gången.",
+          "streckad": true
+        },
+        {
+          "varde": 85,
+          "etikett": "Styrkt",
+          "text": "Styrkt. Hennes yttersta vilja."
+        }
+      ],
+      "vinsttroskel": 1
+    },
+    "nyckelpar": {
+      "par": [
+        "bankfack"
+      ],
+      "text": "Men finns testamentet kvar?"
+    },
+    "vinst": "bevis",
+    "forlust": [
+      "tid-slut"
+    ],
+    "vandTillbakaMs": 800,
+    "tipsUnderSpel": true,
+    "baksida": {
+      "farg": "gron",
+      "kant": "morkgron",
+      "stjarna": "guld"
+    },
+    "vandLjud": "prassel"
+  },
+  "forlust": {
+    "rubrik": "Inte styrkt.",
+    "orsaker": {
+      "tid-slut": "Allmänna arvsordningen gäller. Bevisbördan var din."
+    }
+  },
+  "domslut": {
+    "rubrik": "2012 års testamente gäller igen",
+    "domskal": [
+      "En återkallelse av ett testamente kan tas tillbaka, men bara om testamentshandlingen finns i behåll och det framgår att den uttrycker testatorns yttersta vilja. Domstolar ska vara mycket försiktiga.",
+      "Den som påstår att återkallelsen tagits tillbaka har bevisbördan, och det vanliga beviskravet gäller.",
+      "Hon hade länge sagt att arvingarna inte skulle ärva, och hon sparade medvetet 2012 års testamente trots att hennes advokat uppmanade henne att riva det. Det var hennes yttersta vilja."
+    ],
+    "fotnot": "Jämför nivå 6: där räckte övervägande sannolikt. Här krävdes mer.",
+    "lankTillFallet": "https://lagen.nu/dom/nja/2022s509"
   }
 }

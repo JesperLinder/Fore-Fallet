@@ -143,7 +143,8 @@
           {
             "varde": 55,
             "etikett": "[VINSTTRÖSKEL]",
-            "text": "[TEXT VID PASSAGEN]"
+            "text": "[TEXT VID PASSAGEN]",
+            "notis": "[VALFRI RAD UNDER ETIKETTEN]"
           },
           {
             "varde": 90,
@@ -174,8 +175,39 @@
           "farg": "beige",
           "kant": "guld",
           "bevisvarde": 15
+        },
+        {
+          "etikett": "[CITAT]",
+          "par": "bevis1",
+          "farg": "beige",
+          "citat": true,
+          "bevisvarde": 15
+        },
+        {
+          "etikett": "[TESTAMENTSKORT]",
+          "par": "bevis2",
+          "farg": "beige",
+          "kant": "guld",
+          "kantBredd": 1.5,
+          "bevisvarde": 14
+        },
+        {
+          "etikett": "[SPECIALKORT]",
+          "par": "special",
+          "farg": "vinrod",
+          "bevisvarde": 0,
+          "effekt": {
+            "typ": "blanda",
+            "text": "[TEXT NÄR KORTET VÄNDS]"
+          }
         }
-      ]
+      ],
+      "nyckelpar": {
+        "par": [
+          "[PARNYCKEL]"
+        ],
+        "text": "[TEXT NÄR TRÖSKELN NÅS UTAN NYCKELPARET]"
+      }
     }
   },
   "forlust": {

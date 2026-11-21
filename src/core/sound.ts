@@ -9,7 +9,7 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick' | 'plopp' | 'ding' | 'avslojande' | 'avdrag';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick' | 'plopp' | 'ding' | 'avslojande' | 'avdrag' | 'nyckel';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel' | 'krasch'>;
 
 interface Ton {
@@ -119,6 +119,12 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 1175, till: 1175, start: 0.08, langd: 0.08, form: 'triangle', volym: 0.1 },
     { fran: 784, till: 740, start: 0.16, langd: 0.2, form: 'triangle', volym: 0.11 },
   ],
+  // Nyckelpar hittat: ett kort, klingande ljud (två ljusa toner, som en nyckel mot glas).
+  nyckel: [
+    { fran: 2637, till: 2637, start: 0, langd: 0.25, form: 'triangle', volym: 0.07 },
+    { fran: 3520, till: 3520, start: 0.07, langd: 0.35, form: 'sine', volym: 0.06 },
+    { fran: 5274, till: 5274, start: 0.07, langd: 0.12, form: 'sine', volym: 0.015 },
+  ],
   // Hammarslag: ett torrt klick och en kort, dov smäll.
   hammare: [
     { fran: 1100, till: 600, start: 0, langd: 0.02, form: 'square', volym: 0.06 },
@@ -171,6 +177,7 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   ding: 0.65,
   avslojande: 0.26,
   avdrag: 1.15,
+  nyckel: 0.79,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };

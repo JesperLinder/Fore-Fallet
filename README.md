@@ -390,7 +390,7 @@ src/levels/
   kapitel-1/              "Klassikerna", de tio första nivåerna
     kapitel.json          kapitelfilen
     niva-01.json … niva-10.json
-  kapitel-2/              "Civilrätten": nivå 1–8 är spelbara, nivå 9–10 är "kommer snart"
+  kapitel-2/              "Civilrätten": nivå 1–9 är spelbara, nivå 10 är "kommer snart"
   _mall-*.json            mallar för nya nivåer (läses inte in)
 ```
 
@@ -440,14 +440,14 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 | 6 | `testamentet` | Det sönderrivna testamentet | NJA 2017 s. 362 | Arvsrätt | memory | **spelbar** |
 | 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | **spelbar** |
 | 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | invaders, två faser | **spelbar** |
-| 9 | `tva-testamenten` | De två testamentena | NJA 2022 s. 509 | Arvsrätt | memory | kommer snart |
+| 9 | `tva-testamenten` | De två testamentena | NJA 2022 s. 509 | Arvsrätt | memory | **spelbar** |
 | 10 | `potatispartiet` | Potatispartiet | NJA 1982 s. 301 | Köprätt | boss | kommer snart |
 
 - Nivåer med `"kommerSnart": true` visas låsta med "Kommer snart" på kartan, **även i testläget**. Ta bort fältet
   (och fyll på nivån) när den byggs.
 - Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
 - Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
-- Efter Friskvårdskursen leder domslutets knapp till kartan (nästa nivå "kommer snart").
+- Efter De två testamentena leder domslutets knapp till kartan (nästa nivå "kommer snart").
 
 ### Lägga till ett kapitel
 
@@ -863,7 +863,7 @@ I förkortad form:
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
 
-**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch", "hammare", "plopp", "ding", det dova ackordet "avslojande" och "avdrag" (ett omvänt kaching) som nivåerna kan välja i reglerna och händelserna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
+**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch", "hammare", "plopp", "ding", det dova ackordet "avslojande", "avdrag" (ett omvänt kaching) och "nyckel" (nyckelpar i memory) som nivåerna kan välja i reglerna och händelserna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
 
 ### Slangbella med fysikblock (sidovy)
 
@@ -1022,6 +1022,13 @@ inforutan, teckenförklaringen och vinst- och förlustvillkoren. Stjärnorna rä
 - Korten är minst 72 punkter höga, och ett tredje kort går inte att vända medan två är uppe.
 - Vändningen är en 3D-vändning på cirka 250 ms. Med reducerad rörelse i telefonens inställningar blir den en toning.
 - Ljud: "flipp" när ett kort vänds, ett ljust ackord vid par och ett dovt ljud vid miss.
+
+**Nyckelpar (kapitel 2, nivå 9 De två testamentena):** `nyckelpar: { "par": [...], "text": "..." }` gör vissa par
+nödvändiga för vinst med `"vinst": "bevis"`. Når mätaren vinsttröskeln innan nyckelparen är hittade visas `text`
+("Men finns testamentet kvar?") och spelet fortsätter tills de hittas eller tiden tar slut. Hittade nyckelpar får en
+liten guldnyckel i hörnet och ett klingande ljud ("nyckel"). Nytt i samma nivå: `citat` (kort i Newsreader kursiv),
+`kantBredd` (tunn guldram), `bevisvarde: 0`, tröskelns `notis` (liten rad under etiketten) och effektens `text`.
+Vinsttröskeln är här "Styrkt" (85 %, `vinsttroskel: 1`), och "Övervägande sannolikt" är en svagare streckad linje.
 
 **Bevismätare med trösklar (kapitel 2, nivå 6 Det sönderrivna testamentet):** `bevis` ger en stapel i procent
 överst som stiger vid hittade par (kortens `bevisvarde`, annars `perPar`) och sjunker vid felvändningar (`perMiss`).

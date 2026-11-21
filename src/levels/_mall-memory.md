@@ -52,10 +52,11 @@ Ta bort det som inte behövs.
 | `antal` | Antal likadana kort, standard 1. Ett par av två likadana kort: `"antal": 2`. Två olika kort som är ett par skrivs som två rader med samma `par`. |
 | `farg` | Framsidans färg, standard `ljusbeige`. På mörka färger (`morkgron`, `gron`, `vinrod`, `morkockra`) blir texten ljus. |
 | `form` | Valfri symbol ovanför texten: `tak`, `golv`, `dorr`, `fonster`, `vagg`, `horn`, `lukt`, `droppe`, `pratbubbla`, `stjarna`, `cirkel`. Nya symboler läggs till i `src/mechanics/memory/forms.ts`. |
-| `kant` | Valfri färgad kant när kortet är vänt, t.ex. `"guld"`. |
+| `kant` | Valfri färgad kant när kortet är vänt, t.ex. `"guld"`. `kantBredd` ändrar bredden (standard 3), t.ex. 1,5 för en tunn guldram. |
+| `citat` | Valfritt: `true` sätter texten i Newsreader kursiv, för citatkort som `'Det ligger bra där det ligger'`. |
 | `effekt` | Valfri specialeffekt när kortet vänds upp, se nedan. |
 | `del` | Valfritt: `"vanster"` eller `"hoger"` gör kortet till en halva av ett sönderrivet papper, med ojämn rivkant på den sida där halvorna möts, texten i serif och etiketten VÄNSTER/HÖGER. Båda halvorna i ett par får samma rivkant. När paret hittas glider halvorna ihop till en hel remsa och tillbaka, och ligger sedan nedtonade. |
-| `bevisvarde` | Valfritt: hur många procent paret flyttar bevismätaren (det högsta av parets två kort gäller). Standard: `bevis.perPar`. |
+| `bevisvarde` | Valfritt: hur många procent paret flyttar bevismätaren (det högsta av parets två kort gäller). `0` = paret flyttar inte mätaren. Standard: `bevis.perPar`. |
 
 ### Bevismätare med trösklar (valfritt)
 
@@ -67,9 +68,17 @@ Se kapitel 2, nivå 6 (`testamentet`). I `_mall-memory.json` ligger ett exempel 
 | `namn` | Etiketten över stapeln, t.ex. `"Bevisbörda: din"`. |
 | `start` | Startvärde i procent (standard 0). |
 | `perPar`, `perMiss` | Procent upp per hittat par (om korten inte har `bevisvarde`) och procent ner per felvändning. Mätaren går inte under 0 eller över 100. |
-| `trosklar` | Tröskellinjerna: `{ "varde": 55, "etikett": "Övervägande sannolikt", "text": "…", "streckad": false }`. Etiketten står under linjen. `text` visas som en guldbubbla när mätaren passerar tröskeln uppåt. `streckad: true` ger en svagare streckad linje. |
+| `trosklar` | Tröskellinjerna: `{ "varde": 55, "etikett": "Övervägande sannolikt", "text": "…", "streckad": false, "notis": "…" }`. Etiketten står under linjen (ligger två linjer nära varandra flyttas etiketterna isär). `notis` är en liten kursiv rad under etiketten, t.ex. "Räcker inte den här gången." `text` visas som en guldbubbla när mätaren passerar tröskeln uppåt. `streckad: true` ger en svagare streckad linje. |
 | `vinsttroskel` | Index i `trosklar` för tröskeln som avgör vinsten (med `"vinst": "bevis"`). När den passeras avslutas nivån med vinst strax efter texten, även om par återstår. Passeras flera trösklar i samma drag visas alla texter. |
 | `text` | Valfri rad under stapeln, t.ex. `"Varje par flyttar stapeln. Förbi första strecket räcker."` |
+
+**Nyckelpar** (`nyckelpar: { "par": ["bankfack"], "text": "Men finns testamentet kvar?" }`): paren med de här
+parnycklarna måste vara hittade för vinst, även om mätaren redan nått vinsttröskeln. Når mätaren tröskeln innan dess
+visas `text` i stället för tröskelns text, och spelet fortsätter tills nyckelparen hittas (då vinner man direkt, med
+tröskelns text, om mätaren fortfarande är över tröskeln) eller tiden tar slut. Hittade nyckelpar får en liten
+guldnyckel i hörnet och ett klingande ljud. Se kapitel 2, nivå 9 (`tva-testamenten`).
+
+En effekt kan ha `text` (en guldbubbla när kortet vänds), t.ex. `{ "typ": "blanda", "text": "HD: var mycket försiktig" }`.
 
 Stjärnorna kan räknas på felvändningar med `maxMisstag`. Ett "tick" hörs när mätaren stiger.
 

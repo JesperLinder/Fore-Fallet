@@ -1128,9 +1128,9 @@ export interface BevisInstallningar {
   perMiss: number;
   /**
    * Tröskellinjerna: värde i procent, etikett under linjen och valfri text (pratbubbla) när mätaren passerar den.
-   * streckad: svagare, streckad linje (t.ex. "Styrkt").
+   * streckad: svagare, streckad linje (t.ex. "Styrkt"). notis: en liten rad under etiketten, t.ex. "Räcker inte den här gången."
    */
-  trosklar: { varde: number; etikett: string; text?: string; streckad?: boolean }[];
+  trosklar: { varde: number; etikett: string; text?: string; streckad?: boolean; notis?: string }[];
   /** Index i trosklar för tröskeln som ger vinst (med vinst "bevis"). */
   vinsttroskel: number;
   /** Valfri rad under stapeln, t.ex. "Varje par flyttar stapeln. Förbi första strecket räcker." */
@@ -1154,6 +1154,8 @@ export interface MemoryKort {
   form?: string;
   /** Valfri färgad kant när kortet är vänt, t.ex. "guld". */
   kant?: FargNamn;
+  /** Kantens bredd i punkter (standard 3), t.ex. 1.5 för en tunn guldram. */
+  kantBredd?: number;
   /** Valfri effekt när kortet vänds upp (se MemoryEffekt). */
   effekt?: MemoryEffekt;
   /**
@@ -1161,8 +1163,13 @@ export interface MemoryKort {
    * halvorna möts, texten i serif och en liten etikett (VÄNSTER/HÖGER). När paret hittas glider halvorna ihop.
    */
   del?: 'vanster' | 'hoger';
-  /** Bevisvärde: hur många procent paret flyttar bevismätaren (standard bevis.perPar). Gäller det högsta av parets två kort. */
+  /**
+   * Bevisvärde: hur många procent paret flyttar bevismätaren (standard bevis.perPar). Gäller det högsta av parets
+   * två kort. 0 = paret flyttar inte mätaren alls.
+   */
   bevisvarde?: number;
+  /** Citatkort: texten i Newsreader kursiv. */
+  citat?: boolean;
 }
 
 /**
@@ -1174,6 +1181,8 @@ export interface MemoryEffekt {
   typ: string;
   sekunder?: number;
   avstand?: number;
+  /** Valfri text (guldbubbla) när effekten körs, t.ex. "HD: var mycket försiktig". */
+  text?: string;
 }
 
 export interface MemoryInstallningar {
@@ -1199,6 +1208,12 @@ export interface MemoryInstallningar {
    * (index i trosklar), även om par återstår. Se BevisInstallningar.
    */
   bevis?: BevisInstallningar;
+  /**
+   * Nyckelpar (valfritt): parnycklar som måste vara hittade för vinst med "bevis", även om mätaren redan nått
+   * vinsttröskeln. Når mätaren tröskeln innan dess visas text, och spelet fortsätter tills nyckelparen hittas
+   * eller tiden tar slut. Hittade nyckelpar får en liten guldnyckel i hörnet.
+   */
+  nyckelpar?: { par: string[]; text: string };
   /** Vinstvillkor: "alla-par" (alla par hittade) eller "bevis" (bevismätaren passerade vinsttröskeln). */
   vinst: 'alla-par' | 'bevis';
   /** Förlustvillkor: "tid-slut" (tiden tog slut) och/eller "matare-full" (mätaren full). */

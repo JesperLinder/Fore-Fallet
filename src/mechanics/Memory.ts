@@ -211,23 +211,28 @@ export class Memory implements Mekanik {
     const textFarg: FargNamn = mork ? 'ljusbeige' : 'morkgron';
     const bakgrund = s.add.graphics();
     bakgrund.fillStyle(farg[fargNamn], 1).fillRoundedRect(-w / 2, -h / 2, w, h, radie.m);
-    if (data.kant) bakgrund.lineStyle(3, farg[data.kant], 1).strokeRoundedRect(-w / 2 + 2.5, -h / 2 + 2.5, w - 5, h - 5, radie.m - 2);
+    if (data.kant) {
+      const kb = data.kantBredd ?? 3;
+      bakgrund.lineStyle(kb, farg[data.kant], 1).strokeRoundedRect(-w / 2 + 1 + kb / 2, -h / 2 + 1 + kb / 2, w - 2 - kb, h - 2 - kb, radie.m - 2);
+    }
     else if (!mork) bakgrund.lineStyle(1, farg.beige, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, radie.m);
     // Symbolen (om den finns) i övre delen, etiketten under; utan symbol står etiketten mitt på kortet.
     const formG = s.add.graphics({ y: -h * 0.17 });
     const harForm = ritaForm(formG, data.form, Math.min(28, h * 0.3), farg[textFarg]);
     const etikettY = harForm ? h * 0.2 : 0;
-    const etikett = skapaText(s, 0, etikettY, data.etikett, 'knapp', textFarg, {
+    // Citatkort i Newsreader kursiv, övriga i den vanliga etikettstilen.
+    const storlek = data.citat ? 14 : 12;
+    const etikett = skapaText(s, 0, etikettY, data.etikett, data.citat ? 'ingress' : 'knapp', textFarg, {
       origo: [0.5, 0.5],
       bredd: w - 10,
       justering: 'center',
-      storlek: 12,
+      storlek,
     });
     // Ett långt ord (t.ex. "Väggpanelen") ska inte brytas mitt i: krymp texten tills det längsta ordet ryms.
     etikett.setWordWrapWidth(null);
     const langstaOrd = Math.max(...data.etikett.split(' ').map((ord) => etikett.setText(ord).width));
     etikett.setText(data.etikett).setWordWrapWidth(w - 10);
-    if (langstaOrd > w - 10) etikett.setFontSize(Math.max(9, Math.floor((12 * (w - 10)) / langstaOrd)));
+    if (langstaOrd > w - 10) etikett.setFontSize(Math.max(9, Math.floor((storlek * (w - 10)) / langstaOrd)));
     return s.add.container(0, 0, [bakgrund, formG, etikett]);
   }
 
@@ -308,6 +313,7 @@ export class Memory implements Mekanik {
     const effekt = k.data.effekt ? EFFEKTER[k.data.effekt.typ] : undefined;
     if (k.data.effekt && !effekt) console.warn(`Memory: okänd effekt "${k.data.effekt.typ}"`);
     if (effekt && k.data.effekt) effekt(this, k, k.data.effekt);
+    if (k.data.effekt?.text) this.visaText(k.data.effekt.text, 0);
     if (this.uppe.length < 2) return;
 
     this.drag += 1;
@@ -347,7 +353,13 @@ export class Memory implements Mekanik {
     this.hud.visaPar(this.par, this.totaltPar);
     spela('par');
     this.draget();
-    if (this.inst.bevis) this.andraBevis(Math.max(a.data.bevisvarde ?? 0, b.data.bevisvarde ?? 0) || this.inst.bevis.perPar);
+    if (this.inst.nyckelpar?.par.includes(a.data.par)) this.markeraNyckel(a, b);
+    if (this.inst.bevis) {
+      // Bevisvärdet: det högsta av parets kort (0 = flyttar inte mätaren), annars perPar.
+      const varden = [a.data.bevisvarde, b.data.bevisvarde].filter((v): v is number => v !== undefined);
+      this.andraBevis(varden.length ? Math.max(...varden) : this.inst.bevis.perPar);
+      this.kollaBevisvinst();
+    }
     if (this.inst.vinst === 'alla-par' && this.par >= this.totaltPar) this.avsluta();
   }
 
@@ -391,11 +403,49 @@ export class Memory implements Mekanik {
     this.hud.markeraBevis(andring > 0);
     if (andring > 0) spela('tick');
     const passerade = b.trosklar.map((t, i) => ({ t, i })).filter(({ t }) => fore < t.varde && this.bevis >= t.varde);
-    const texter = passerade.map(({ t }) => t.text).filter((t): t is string => !!t);
+    const vinst = this.inst.vinst === 'bevis' && passerade.some(({ i }) => i === b.vinsttroskel);
+    // Vinsttröskeln passerad men ett nyckelpar saknas: nyckelparens text i stället för tröskelns, och spelet fortsätter.
+    const saknasNyckel = vinst && !this.nyckelparKlara();
+    const texter = passerade
+      .map(({ t, i }) => (saknasNyckel && i === b.vinsttroskel ? this.inst.nyckelpar?.text : t.text))
+      .filter((t): t is string => !!t);
     texter.forEach((t, i) => this.visaText(t, i));
-    if (this.inst.vinst === 'bevis' && passerade.some(({ i }) => i === b.vinsttroskel)) {
-      this.vinnerSnart = true;
-      this.scene.time.delayedCall(1500 + texter.length * 400, () => this.avsluta());
+    if (vinst && !saknasNyckel) this.vinnSnart(texter.length);
+  }
+
+  /** Nyckelpar: alla par i nyckelpar.par är hittade (sant om nivån inte har några). */
+  private nyckelparKlara(): boolean {
+    const n = this.inst.nyckelpar?.par ?? [];
+    return n.every((par) => this.kort.some((k) => k.hittad && k.data.par === par));
+  }
+
+  /**
+   * Efter ett hittat par: ligger mätaren redan över vinsttröskeln och har det sista nyckelparet nu hittats, vinner
+   * man (med tröskelns text). andraBevis sköter fallet där tröskeln passeras i samma drag.
+   */
+  private kollaBevisvinst(): void {
+    const b = this.inst.bevis;
+    if (!b || this.inst.vinst !== 'bevis' || this.vinnerSnart || this.klar) return;
+    const troskel = b.trosklar[b.vinsttroskel];
+    if (!troskel || this.bevis < troskel.varde || !this.nyckelparKlara()) return;
+    if (troskel.text) this.visaText(troskel.text, 0);
+    this.vinnSnart(troskel.text ? 1 : 0);
+  }
+
+  /** Nivån avslutas med vinst strax efter, så att texterna hinner synas. */
+  private vinnSnart(antalTexter: number): void {
+    this.vinnerSnart = true;
+    this.scene.time.delayedCall(1500 + antalTexter * 400, () => this.avsluta());
+  }
+
+  /** Ett hittat nyckelpar: en liten guldnyckel i hörnet på båda korten och ett klingande ljud. */
+  private markeraNyckel(a: Kort, b: Kort): void {
+    spela('nyckel');
+    for (const k of [a, b]) {
+      const g = this.scene.add.graphics({ x: -this.kortB / 2 + 13, y: -this.kortH / 2 + 12 }).setAlpha(0);
+      ritaNyckel(g, farg.guld);
+      k.obj.add(g);
+      this.scene.tweens.add({ targets: g, alpha: 1, delay: 200, duration: 250 });
     }
   }
 
@@ -546,4 +596,11 @@ function rivTander(nyckel: string): number[] {
     const slump = (fro % 1000) / 1000;
     return (i % 2 === 0 ? -1 : 1) * RIV_DJUP * (0.4 + 0.6 * slump);
   });
+}
+
+/** Liten nyckel (cirka 16 × 10 punkter) kring (0, 0): ögla till vänster, skaft och två tänder. */
+function ritaNyckel(g: Phaser.GameObjects.Graphics, f: number): void {
+  g.lineStyle(2, f, 1).strokeCircle(-4, 0, 3.5);
+  g.fillStyle(f, 1).fillRect(-0.5, -1, 10, 2);
+  g.fillRect(6, 1, 2, 3).fillRect(9, 1, 1.5, 2.5);
 }

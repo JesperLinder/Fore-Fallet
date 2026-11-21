@@ -165,7 +165,9 @@ function byggBevis(scene: Phaser.Scene, bevis: BevisInstallningar, x0: number, y
   // Tröskellinjerna ovanpå stapeln, etiketterna centrerade under (inom panelen).
   const linjer = scene.add.graphics().setDepth(DJUP + 2);
   let etikettNed = stapelY + SH;
-  bevis.trosklar.forEach((t, i) => {
+  // Etiketterna centreras under sina linjer. Överlappar två (linjerna ligger nära varandra) ställs den vänstra
+  // med högerkanten vid sin linje och den högra med vänsterkanten vid sin.
+  const etiketter = bevis.trosklar.map((t, i) => {
     const x = sx + (sb * t.varde) / 100;
     const vinst = i === bevis.vinsttroskel;
     if (t.streckad) {
@@ -178,8 +180,25 @@ function byggBevis(scene: Phaser.Scene, bevis: BevisInstallningar, x0: number, y
     if (t.streckad) e.setAlpha(0.65);
     const halv = e.width / 2;
     e.setX(Phaser.Math.Clamp(x, sx + halv, sx + sb - halv));
-    etikettNed = Math.max(etikettNed, e.y + e.height / 2);
+    return { t, x, e };
   });
+  for (let i = 1; i < etiketter.length; i++) {
+    const v = etiketter[i - 1];
+    const h = etiketter[i];
+    if (v.e.x + v.e.width / 2 <= h.e.x - h.e.width / 2) continue;
+    v.e.setX(Math.max(sx + v.e.width / 2, v.x - 4 - v.e.width / 2));
+    h.e.setX(Math.min(sx + sb - h.e.width / 2, h.x + 4 + h.e.width / 2));
+  }
+  for (const { t, e } of etiketter) {
+    etikettNed = Math.max(etikettNed, e.y + e.height / 2);
+    if (t.notis) {
+      // Liten rad under etiketten, t.ex. "Räcker inte den här gången."
+      const n = skapaText(scene, e.x, e.y + e.height / 2 + 2, t.notis, 'ingress', 'beige', { origo: [0.5, 0], storlek: 12 }).setDepth(DJUP + 1);
+      if (t.streckad) n.setAlpha(0.8);
+      n.setX(Phaser.Math.Clamp(e.x + e.width / 2 - n.width / 2, sx + n.width / 2, sx + sb - n.width / 2));
+      etikettNed = Math.max(etikettNed, n.y + n.height);
+    }
+  }
 
   let h = etikettNed - y0 + 10;
   if (bevis.text) {
