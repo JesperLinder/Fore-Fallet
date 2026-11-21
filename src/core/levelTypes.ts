@@ -138,6 +138,8 @@ export interface Domslut {
   fylgiaruta?: string;
   /** Kursiv rad som beror på hur det gick, nyckel = antal stjärnor ("0"–"3"). */
   utfall?: Partial<Record<'0' | '1' | '2' | '3', string>>;
+  /** Valfri rad i mindre text sist i domskälsrutan, t.ex. vad som hände med målet sedan. */
+  fotnot?: string;
   /** Bara för halvvägsvinst. */
   vunnet?: string;
   inteVunnet?: string;
@@ -1019,6 +1021,26 @@ export interface HybridProjektil {
 
 // ---------- Memory ----------
 
+/** Bevismätaren i memory: en horisontell stapel i procent med tröskellinjer. */
+export interface BevisInstallningar {
+  /** Etiketten över stapeln, t.ex. "Bevisbörda: din". */
+  namn: string;
+  /** Startvärde i procent (standard 0). */
+  start?: number;
+  /** Procent per hittat par (om korten inte har eget bevisvarde) och procent minus per felvändning. */
+  perPar: number;
+  perMiss: number;
+  /**
+   * Tröskellinjerna: värde i procent, etikett under linjen och valfri text (pratbubbla) när mätaren passerar den.
+   * streckad: svagare, streckad linje (t.ex. "Styrkt").
+   */
+  trosklar: { varde: number; etikett: string; text?: string; streckad?: boolean }[];
+  /** Index i trosklar för tröskeln som ger vinst (med vinst "bevis"). */
+  vinsttroskel: number;
+  /** Valfri rad under stapeln, t.ex. "Varje par flyttar stapeln. Förbi första strecket räcker." */
+  text?: string;
+}
+
 /** Ett kort (eller flera likadana, med "antal") i memoryt. */
 export interface MemoryKort {
   /** Text på framsidan. */
@@ -1038,6 +1060,13 @@ export interface MemoryKort {
   kant?: FargNamn;
   /** Valfri effekt när kortet vänds upp (se MemoryEffekt). */
   effekt?: MemoryEffekt;
+  /**
+   * Halva av ett sönderrivet papper: "vanster" eller "hoger". Kortet får en ojämn rivkant på den sida där
+   * halvorna möts, texten i serif och en liten etikett (VÄNSTER/HÖGER). När paret hittas glider halvorna ihop.
+   */
+  del?: 'vanster' | 'hoger';
+  /** Bevisvärde: hur många procent paret flyttar bevismätaren (standard bevis.perPar). Gäller det högsta av parets två kort. */
+  bevisvarde?: number;
 }
 
 /**
@@ -1055,8 +1084,11 @@ export interface MemoryInstallningar {
   kolumner: number;
   rader: number;
   kort: MemoryKort[];
-  /** Rubrikerna i HUD:en, t.ex. { "par": "Par", "drag": "Drag" }. */
-  hud: { par: string; drag: string };
+  /**
+   * Rubrikerna i HUD:en, t.ex. { "par": "Par", "drag": "Drag" }. Varje kort som anges visas: "par", "drag" och
+   * "missar" (antal felvändningar). placering "under" ställer korten under rutnätet (standard: över).
+   */
+  hud: { par: string; drag?: string; missar?: string; placering?: 'over' | 'under' };
   /** Valfri tidsgräns: { "sekunder": 75, "etikett": "Tid kvar" }. */
   tid?: { sekunder: number; etikett: string };
   /** Valfri mätare som fylls ett steg per miss, t.ex. { "namn": "Misstanke", "steg": 5 }. Full mätare kan ge förlust. */
@@ -1065,12 +1097,22 @@ export interface MemoryInstallningar {
   infotext?: string;
   /** Rader under rutnätet. "typ": "hittat" (hittat par), "kort" (ett kort i "farg") eller "dimma". */
   teckenforklaring?: { typ: 'hittat' | 'kort' | 'dimma'; text: string; farg?: FargNamn }[];
-  /** Vinstvillkor. Finns: "alla-par". */
-  vinst: 'alla-par';
+  /**
+   * Bevismätare (valfri): en stapel som stiger vid hittade par (bevisvarde, annars perPar) och sjunker vid
+   * felvändningar (perMiss), med tröskellinjer. Med vinst "bevis" vinner man när mätaren passerar vinsttroskel
+   * (index i trosklar), även om par återstår. Se BevisInstallningar.
+   */
+  bevis?: BevisInstallningar;
+  /** Vinstvillkor: "alla-par" (alla par hittade) eller "bevis" (bevismätaren passerade vinsttröskeln). */
+  vinst: 'alla-par' | 'bevis';
   /** Förlustvillkor: "tid-slut" (tiden tog slut) och/eller "matare-full" (mätaren full). */
   forlust: ('tid-slut' | 'matare-full')[];
   /** Hur länge två kort som inte matchar ligger uppe (ms, standard 800). */
   vandTillbakaMs?: number;
   /** Visa fylgians tips längst ner under spelet (efter "Starta"). */
   tipsUnderSpel?: boolean;
+  /** Baksidans färger (standard: mörkgrön med grön kant och lila stjärna), t.ex. grön med guldstjärna på mörk bakgrund. */
+  baksida?: { farg: FargNamn; kant?: FargNamn; stjarna: FargNamn };
+  /** Ljudet när ett kort vänds (standard "flipp"), t.ex. "prassel" för papper. */
+  vandLjud?: Ljud;
 }

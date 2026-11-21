@@ -9,7 +9,7 @@
 import { framsteg } from './progress';
 import { vibrera } from '../platform/haptics';
 
-export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare';
+export type Ljud = 'skott' | 'traff' | 'fanga' | 'misstag' | 'vinst' | 'stampel' | 'muu' | 'pssst' | 'prassel' | 'klonk' | 'duns' | 'jubel' | 'flipp' | 'par' | 'miss' | 'pling' | 'mynt' | 'snip' | 'krasch' | 'hammare' | 'tick';
 type Tonljud = Exclude<Ljud, 'pssst' | 'prassel' | 'krasch'>;
 
 interface Ton {
@@ -90,6 +90,11 @@ const LJUD: Record<Tonljud, Ton[]> = {
     { fran: 3200, till: 1800, start: 0, langd: 0.018, form: 'square', volym: 0.05 },
     { fran: 2600, till: 1400, start: 0.045, langd: 0.022, form: 'square', volym: 0.06 },
   ],
+  // Lågt "tick" när bevismätaren stiger: en kort, mjuk ton med ett litet klick.
+  tick: [
+    { fran: 1500, till: 1200, start: 0, langd: 0.012, form: 'square', volym: 0.03 },
+    { fran: 330, till: 300, start: 0, langd: 0.07, form: 'sine', volym: 0.2 },
+  ],
   // Hammarslag: ett torrt klick och en kort, dov smäll.
   hammare: [
     { fran: 1100, till: 600, start: 0, langd: 0.02, form: 'square', volym: 0.06 },
@@ -136,6 +141,7 @@ const UTJAMNING: Record<Ljud | 'musik', number> = {
   snip: 2.09,
   krasch: 0.46,
   hammare: 0.75,
+  tick: 0.92,
   // Musiken ligger runt −36, under effekterna.
   musik: 1,
 };

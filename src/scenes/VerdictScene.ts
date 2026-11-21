@@ -172,6 +172,12 @@ export class VerdictScene extends BasScen {
       const t = skapaText(this, X0 + 42, ty, skal, 'brod', ph(skal, textFarg), { bredd: INNER_B - 66 }).setDepth(1);
       ty += t.height + avstand.m;
     });
+    // Valfri fotnot i mindre text sist i rutan.
+    const fotnot = niva.domslut.fotnot;
+    if (fotnot) {
+      const t = skapaText(this, X0 + 20, ty, fotnot, 'liten', ph(fotnot, textFarg), { bredd: INNER_B - 40, storlek: 12 }).setDepth(1).setAlpha(0.8);
+      ty += t.height + avstand.m;
+    }
     const h = ty - y + avstand.s;
     g.fillStyle(halvvags ? farg.beige : farg.morkgron, 1).fillRoundedRect(X0, y, INNER_B, h, radie.l);
     return y + h;

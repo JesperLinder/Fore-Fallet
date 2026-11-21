@@ -258,8 +258,8 @@ src/
   mechanics/slingshot/    kastaren (launcher.ts: slangbella, sikte, flygning), flygmodell, bana, resultatrad
   mechanics/invaders/     brickornas rutnät, fallande objekt, ström av fångstobjekt, växande mål, kulisser och händelser, HUD
   mechanics/hybrid/       hybridens HUD: borgenärsrutan, valknappar, hur fiender ritas
-  mechanics/Memory.ts     memorymekaniken (rutnät, vändning, par, effekterna "dimma" och "blanda")
-  mechanics/memory/       memoryts HUD (par, drag, tid, mätare, inforuta) och symbolerna på korten (forms.ts)
+  mechanics/Memory.ts     memorymekaniken (rutnät, vändning, par, effekterna "dimma" och "blanda", bevismätaren, rivna halvor)
+  mechanics/memory/       memoryts HUD (par, drag, felvändningar, tid, mätare, bevismätare, inforuta) och symbolerna (forms.ts)
   mechanics/common/       delat: formation.ts (marscherande rutnät), startPanel.ts (Starta-rutan)
   scenes/ChapterSelect…   kapitelvalet; ChapterDoneScene är "Kapitel klart"
   levels/kapitel-N/       ett kapitel: kapitel.json och en JSON-fil per nivå
@@ -390,7 +390,7 @@ src/levels/
   kapitel-1/              "Klassikerna", de tio första nivåerna
     kapitel.json          kapitelfilen
     niva-01.json … niva-10.json
-  kapitel-2/              "Civilrätten": nivå 1–5 är spelbara, nivå 6–10 är "kommer snart"
+  kapitel-2/              "Civilrätten": nivå 1–6 är spelbara, nivå 7–10 är "kommer snart"
   _mall-*.json            mallar för nya nivåer (läses inte in)
 ```
 
@@ -437,7 +437,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
 | 3 | `husbilen` | Husbilen | NJA 1996 s. 598 | Köprätt | memory | **spelbar** |
 | 4 | `oxelhacken` | Oxelhäcken | NJA 1990 s. 71 | Grannerätt | invaders | **spelbar** |
 | 5 | `trahuset` | Trähuset | NJA 1985 s. 717 | Avtalsrätt | invaders | **spelbar** |
-| 6 | `testamentet` | Det sönderrivna testamentet | NJA 2017 s. 362 | Arvsrätt | memory | kommer snart |
+| 6 | `testamentet` | Det sönderrivna testamentet | NJA 2017 s. 362 | Arvsrätt | memory | **spelbar** |
 | 7 | `salmonellan` | Salmonellan i skolköket | NJA 1989 s. 389 | Produktansvar | invaders | kommer snart |
 | 8 | `friskvardskursen` | Friskvårdskursen | NJA 2002 s. 644 | Avtalsrätt | hybrid | kommer snart |
 | 9 | `tva-testamenten` | De två testamentena | NJA 2022 s. 509 | Arvsrätt | memory | kommer snart |
@@ -447,7 +447,7 @@ Båda kan nås igen från kapitlets karta, via knappen under listan.
   (och fyll på nivån) när den byggs.
 - Kartan visar `kartmarke` efter titeln: "Memory" (lila) på nivå 3, 6 och 9 och "Boss" (guld) på nivå 10.
 - Från kapitel 2 står kapitlet först i nivåns rubrik: "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 ser ut som förut.
-- Efter Trähuset leder domslutets knapp till kartan (nästa nivå "kommer snart").
+- Efter Det sönderrivna testamentet leder domslutets knapp till kartan (nästa nivå "kommer snart").
 
 ### Lägga till ett kapitel
 
@@ -772,7 +772,7 @@ ha en liten pratbubbla (`bubbla`) och textens höjd (`etikettY`).
 Rörelsen är relativ, så tummen skymmer inte figuren. Släpp-för-att-skjuta är valt för att varje skott ska vara ett
 medvetet val när fel skott kostar. Med `"lage": "auto"` skjuter spelaren i stället hela tiden medan fingret är nere.
 
-**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch" och "hammare" som nivåerna kan välja i reglerna. Ljudet slås av och på med högtalarknappen på kartan.
+**Ljud:** skott, träff, fångst, misstag och vinst spelas med Web Audio, plus kassans "pling", "mynt", häcksaxens "snip", "krasch" och "hammare" som nivåerna kan välja i reglerna. Memory har "flipp" (eller nivåns `vandLjud`, t.ex. "prassel"), "par", "miss" och "tick" när bevismätaren stiger. Ljudet slås av och på med högtalarknappen på kartan.
 
 ### Slangbella med fysikblock (sidovy)
 
@@ -931,6 +931,31 @@ inforutan, teckenförklaringen och vinst- och förlustvillkoren. Stjärnorna rä
 - Korten är minst 72 punkter höga, och ett tredje kort går inte att vända medan två är uppe.
 - Vändningen är en 3D-vändning på cirka 250 ms. Med reducerad rörelse i telefonens inställningar blir den en toning.
 - Ljud: "flipp" när ett kort vänds, ett ljust ackord vid par och ett dovt ljud vid miss.
+
+**Bevismätare med trösklar (kapitel 2, nivå 6 Det sönderrivna testamentet):** `bevis` ger en stapel i procent
+överst som stiger vid hittade par (kortens `bevisvarde`, annars `perPar`) och sjunker vid felvändningar (`perMiss`).
+Tröskellinjerna har etiketter och en valfri text när de passeras. Med `"vinst": "bevis"` avslutas nivån med vinst
+när mätaren passerar `vinsttroskel`, även om par återstår. Kort med `del` (`"vanster"`/`"hoger"`) är halvor av ett
+sönderrivet papper med ojämn rivkant; när paret hittas glider halvorna ihop. `hud.missar` visar felvändningarna och
+`hud.placering: "under"` ställer HUD-korten under rutnätet. `baksida` och `vandLjud` ändrar baksidans färger och
+vändljudet. Domslutet kan ha en `fotnot` i mindre text. En lång titel bryts på två rader. I förkortad form:
+
+```json
+"memory": {
+  "kolumner": 4, "rader": 4,
+  "kort": [{ "etikett": "Jag, Ingrid,", "par": "rad1", "del": "vanster", "bevisvarde": 8 },
+           { "etikett": "förordnar att", "par": "rad1", "del": "hoger", "bevisvarde": 8 }, …,
+           { "etikett": "Förvaringen", "par": "forvaring", "farg": "beige", "kant": "guld", "bevisvarde": 15 }, …],
+  "hud": { "par": "Bitar ihop", "missar": "Felvändningar", "placering": "under" },
+  "tid": { "sekunder": 80, "etikett": "Tid kvar" },
+  "bevis": { "namn": "Bevisbörda: din", "perPar": 8, "perMiss": 3, "vinsttroskel": 0,
+             "trosklar": [{ "varde": 55, "etikett": "Övervägande sannolikt", "text": "Övervägande sannolikt! Det räcker." },
+                          { "varde": 90, "etikett": "Styrkt", "text": "Styrkt – mer än du behövde", "streckad": true }],
+             "text": "Varje par flyttar stapeln. Förbi första strecket räcker." },
+  "vinst": "bevis", "forlust": ["tid-slut"], "tipsUnderSpel": true,
+  "baksida": { "farg": "gron", "kant": "morkgron", "stjarna": "guld" }, "vandLjud": "prassel"
+}
+```
 
 ### Hybridnivåer
 

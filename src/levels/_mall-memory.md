@@ -22,20 +22,23 @@ Ta bort det som inte behövs.
 | `tema`, `bana.lager` | `"ljus"` och en ljusbeige bakgrund: `[{ "farg": "ljusbeige", "topp": 0 }]`. |
 | `objekt` | Används inte av memory. Lämna `[]`. |
 | `forlust` | `rubrik` och en text per orsak (`tid-slut`, `matare-full`). Knappen "Försök igen" finns alltid. |
-| `domslut` | `rubrik`, `domskal` (exakt 3), `lankTillFallet`, valfritt `text` och `utfall`. |
+| `domslut` | `rubrik`, `domskal` (exakt 3), `lankTillFallet`, valfritt `text`, `utfall` och `fotnot` (en rad i mindre text sist i domskälsrutan). |
 
 ## `memory`
 
 | Fält | Vad det gör |
 |---|---|
 | `kolumner`, `rader` | Rutnätets storlek, t.ex. 4 × 4. Korten får minst 72 och högst 100 punkters höjd. Fler än 4 kolumner gör korten smala. |
-| `hud` | Rubrikerna i HUD:en: `{ "par": "Par", "drag": "Drag" }`. Visas som "Par 3 / 8" och "Drag 5". |
+| `hud` | Rubrikerna i HUD:en: `{ "par": "Par", "drag": "Drag" }`. Visas som "Par 3 / 8" och "Drag 5". Med `"missar": "Felvändningar"` visas antalet felvändningar (ange `drag`, `missar` eller båda). `"placering": "under"` ställer korten under rutnätet (standard: över). |
 | `tid` | Valfritt: `{ "sekunder": 75, "etikett": "Tid kvar" }`. Klockan startar när spelaren trycker Starta och blir lila de sista tio sekunderna. |
 | `matare` | Valfritt: `{ "namn": "Misstanke", "steg": 6 }`. En stapel under HUD:en som fylls ett steg per miss. |
 | `infotext` | Text i den mörkgröna rutan under HUD:en. |
 | `kort` | Korten, se nedan. Antalet kort ska vara `kolumner × rader`. Korten blandas om varje gång nivån startar. |
 | `teckenforklaring` | Rader under rutnätet. `typ`: `"hittat"` (hittat par), `"kort"` (en ruta i `farg`) eller `"dimma"`. |
-| `vinst` | `"alla-par"`: alla par hittade. |
+| `vinst` | `"alla-par"`: alla par hittade. `"bevis"`: bevismätaren passerade vinsttröskeln (se nedan). |
+| `bevis` | Valfritt: bevismätaren, se nedan. |
+| `baksida` | Valfritt: baksidans färger, t.ex. `{ "farg": "gron", "kant": "morkgron", "stjarna": "guld" }` på mörk bakgrund. Standard: mörkgrön med lila stjärna. |
+| `vandLjud` | Valfritt: ljudet när ett kort vänds, t.ex. `"prassel"` för papper. Standard `"flipp"`. |
 | `forlust` | Lista med förlustvillkor: `"tid-slut"` och/eller `"matare-full"`. |
 | `vandTillbakaMs` | Hur länge två kort som inte matchar ligger uppe innan de vänds tillbaka (standard 800). |
 | `tipsUnderSpel` | `true`: fylgians tips står kvar längst ner under spelet. |
@@ -51,6 +54,24 @@ Ta bort det som inte behövs.
 | `form` | Valfri symbol ovanför texten: `tak`, `golv`, `dorr`, `fonster`, `vagg`, `horn`, `lukt`, `droppe`, `pratbubbla`, `stjarna`, `cirkel`. Nya symboler läggs till i `src/mechanics/memory/forms.ts`. |
 | `kant` | Valfri färgad kant när kortet är vänt, t.ex. `"guld"`. |
 | `effekt` | Valfri specialeffekt när kortet vänds upp, se nedan. |
+| `del` | Valfritt: `"vanster"` eller `"hoger"` gör kortet till en halva av ett sönderrivet papper, med ojämn rivkant på den sida där halvorna möts, texten i serif och etiketten VÄNSTER/HÖGER. Båda halvorna i ett par får samma rivkant. När paret hittas glider halvorna ihop till en hel remsa och tillbaka, och ligger sedan nedtonade. |
+| `bevisvarde` | Valfritt: hur många procent paret flyttar bevismätaren (det högsta av parets två kort gäller). Standard: `bevis.perPar`. |
+
+### Bevismätare med trösklar (valfritt)
+
+En stapel i procent överst, under rubriken. Den stiger vid varje hittat par och sjunker vid varje felvändning.
+Se kapitel 2, nivå 6 (`testamentet`). I `_mall-memory.json` ligger ett exempel under `_bevis_exempel`.
+
+| Fält | Vad det gör |
+|---|---|
+| `namn` | Etiketten över stapeln, t.ex. `"Bevisbörda: din"`. |
+| `start` | Startvärde i procent (standard 0). |
+| `perPar`, `perMiss` | Procent upp per hittat par (om korten inte har `bevisvarde`) och procent ner per felvändning. Mätaren går inte under 0 eller över 100. |
+| `trosklar` | Tröskellinjerna: `{ "varde": 55, "etikett": "Övervägande sannolikt", "text": "…", "streckad": false }`. Etiketten står under linjen. `text` visas som en guldbubbla när mätaren passerar tröskeln uppåt. `streckad: true` ger en svagare streckad linje. |
+| `vinsttroskel` | Index i `trosklar` för tröskeln som avgör vinsten (med `"vinst": "bevis"`). När den passeras avslutas nivån med vinst strax efter texten, även om par återstår. Passeras flera trösklar i samma drag visas alla texter. |
+| `text` | Valfri rad under stapeln, t.ex. `"Varje par flyttar stapeln. Förbi första strecket räcker."` |
+
+Stjärnorna kan räknas på felvändningar med `maxMisstag`. Ett "tick" hörs när mätaren stiger.
 
 ### Effekter
 

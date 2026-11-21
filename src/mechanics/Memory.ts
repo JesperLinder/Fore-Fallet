@@ -5,6 +5,9 @@
  * Matchningen sker på parnyckeln, inte etiketten, så ett par kan vara två olika kort.
  *
  * Specialkort har en "effekt" som körs när kortet vänds upp (se EFFEKTER nedan; ny effekt = ny rad där).
+ * Valfritt: en bevismätare (bevis) som stiger vid hittade par och sjunker vid felvändningar, med tröskellinjer;
+ * med vinst "bevis" vinner man när mätaren passerar vinsttröskeln. Kort med "del" är halvor av ett sönderrivet
+ * papper (ojämn rivkant) som glider ihop när paret hittas.
  * HUD: par hittade, drag, valfri tid och valfri mätare (ett steg per miss). Vinst och förlust kommer ur nivåfilen;
  * stjärnorna räknas på antal drag (stjarnkrav.maxDrag).
  *
@@ -15,8 +18,11 @@ import Phaser from 'phaser';
 import { arMork, avstand, farg, radie, type FargNamn } from '../config/theme';
 import { BREDD, HOJD } from '../config/display';
 import type { MemoryEffekt, MemoryInstallningar, MemoryKort, Niva } from '../core/levelTypes';
+import { pratbubbla } from '../ui/Badge';
+import { RUBRIK_NEDERKANT } from '../ui/HeaderCard';
 import type { Mekanik, MekanikKontext } from './Mechanic';
 import { skapaText } from '../ui/text';
+import { text } from '../config/strings';
 import { fyllStjarna } from '../ui/shapes';
 import { spelTips } from '../ui/TipPanel';
 import { spela } from '../core/sound';
@@ -33,6 +39,9 @@ const MAX_KORT_H = 100;
 /** Plats längst ner för teckenförklaringen och fylgians tips. */
 const NEDRE_MARGINAL = 150;
 const DJUP_KORT = 10;
+/** Rivkanten: antal tänder och hur djupt de går (punkter). */
+const RIV_TANDER = 7;
+const RIV_DJUP = 5;
 
 interface Kort {
   data: MemoryKort;
@@ -83,6 +92,10 @@ export class Memory implements Mekanik {
   private startad = false;
   private pausad = false;
   private klar = false;
+  /** Vinsttröskeln är passerad: nivån avslutas strax (texten hinner synas). */
+  private vinnerSnart = false;
+  private bevis = 0;
+  private tips?: Phaser.GameObjects.Container;
   private reduceradRorelse: boolean;
 
   constructor(private kontext: MekanikKontext) {
@@ -93,7 +106,13 @@ export class Memory implements Mekanik {
     this.reduceradRorelse = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     this.tidKvar = this.inst.tid?.sekunder ?? 0;
 
-    this.hud = byggMemoryHud(this.scene, this.inst);
+    const toppY = (this.scene.data.get(RUBRIK_NEDERKANT) as number | undefined) ?? 0;
+    this.hud = byggMemoryHud(this.scene, this.inst, toppY, this.niva.tema === 'mork');
+    this.bevis = this.inst.bevis?.start ?? 0;
+    // Med HUD-korten under rutnätet behövs tipsrutans höjd innan rutnätet byggs: den skapas direkt men visas vid start.
+    if (this.inst.tipsUnderSpel && this.inst.hud.placering === 'under') {
+      this.tips = spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'ljus').setAlpha(0);
+    }
     const kortData = this.inst.kort.flatMap((k) => Array.from({ length: k.antal ?? 1 }, () => k));
     this.totaltPar = new Set(kortData.map((k) => k.par)).size;
     this.byggRutnat(kortData);
@@ -103,10 +122,14 @@ export class Memory implements Mekanik {
     this.hud.visaDrag(0);
     this.hud.visaTid(this.tidKvar);
     this.hud.visaMatare(0);
+    this.hud.visaMissar(0);
+    this.hud.visaBevis(this.bevis);
 
     visaStart(this.scene, kontext.tips, () => {
       this.startad = true;
-      if (this.inst.tipsUnderSpel) {
+      if (this.tips) {
+        this.scene.tweens.add({ targets: this.tips, alpha: 1, duration: 300 });
+      } else if (this.inst.tipsUnderSpel) {
         const t = spelTips(this.scene, this.niva.fylgiaTips, this.niva.tema ?? 'ljus').setAlpha(0);
         this.scene.tweens.add({ targets: t, alpha: 1, duration: 300 });
       }
@@ -129,7 +152,9 @@ export class Memory implements Mekanik {
     const x0 = avstand.l;
     const y0 = this.hud.nederkant + 14;
     this.kortB = (BREDD - x0 * 2 - MELLANRUM * (kolumner - 1)) / kolumner;
-    const tillganglig = HOJD - NEDRE_MARGINAL - y0 - MELLANRUM * (rader - 1);
+    // Med HUD-korten under rutnätet: plats för korten och tipsrutan i stället för den fasta marginalen.
+    const nedre = this.hud.hojdUnder ? HOJD - (this.tips ? this.tips.y : HOJD - avstand.l) + this.hud.hojdUnder + 24 : NEDRE_MARGINAL;
+    const tillganglig = HOJD - nedre - y0 - MELLANRUM * (rader - 1);
     this.kortH = Phaser.Math.Clamp(Math.floor(tillganglig / rader), MIN_KORT_H, MAX_KORT_H);
     for (let r = 0; r < rader; r++) {
       for (let k = 0; k < kolumner; k++) {
@@ -142,6 +167,8 @@ export class Memory implements Mekanik {
     // Ny blandning varje gång nivån startar.
     const blandade = Phaser.Utils.Array.Shuffle([...kortData]).slice(0, this.platser.length);
     this.kort = blandade.map((data, i) => this.byggKort(data, i));
+    const sista = this.platser[this.platser.length - 1];
+    this.hud.placeraKort(sista.y + this.kortH / 2 + 12);
   }
 
   private byggKort(data: MemoryKort, plats: number): Kort {
@@ -149,13 +176,36 @@ export class Memory implements Mekanik {
     const w = this.kortB;
     const h = this.kortH;
 
-    // Baksidan: mörkgrön med den lila fyruddiga stjärnan.
+    // Baksidan: mörkgrön med den lila fyruddiga stjärnan (eller nivåns egna färger, "baksida").
     const bak = s.add.graphics();
-    bak.fillStyle(farg.morkgron, 1).fillRoundedRect(-w / 2, -h / 2, w, h, radie.m);
-    bak.lineStyle(1, farg.gron, 1).strokeRoundedRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8, radie.m - 2);
-    fyllStjarna(bak, 0, 0, Math.min(w, h) * 0.42, farg.lila);
+    const baksida = this.inst.baksida;
+    bak.fillStyle(farg[baksida?.farg ?? 'morkgron'], 1).fillRoundedRect(-w / 2, -h / 2, w, h, radie.m);
+    bak.lineStyle(1, farg[baksida?.kant ?? 'gron'], 1).strokeRoundedRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8, radie.m - 2);
+    fyllStjarna(bak, 0, 0, Math.min(w, h) * 0.42, farg[baksida?.stjarna ?? 'lila']);
 
-    // Framsidan: färg, valfri kant, valfri symbol och etiketten.
+    const fram = data.del ? this.byggBit(data, w, h) : this.byggFramsida(data, w, h);
+    fram.setVisible(false);
+
+    // Hittat par: lila kant och en liten lila stjärna i hörnet.
+    const hittadMarkering = s.add.graphics().setVisible(false);
+    hittadMarkering.lineStyle(3, farg.lila, 1).strokeRoundedRect(-w / 2 - 1.5, -h / 2 - 1.5, w + 3, h + 3, radie.m + 1);
+    hittadMarkering.fillStyle(farg.lila, 1).fillCircle(w / 2 - 12, -h / 2 + 12, 9);
+    fyllStjarna(hittadMarkering, w / 2 - 12, -h / 2 + 12, 12, farg.ljusbeige);
+
+    const dimma = s.add.graphics().setAlpha(0);
+    ritaDimma(dimma, w, h);
+
+    const p = this.platser[plats];
+    const obj = s.add.container(p.x, p.y, [bak, fram, hittadMarkering, dimma]).setDepth(DJUP_KORT).setSize(w, h);
+    obj.setInteractive({ useHandCursor: true });
+    const kort: Kort = { data, plats, obj, bak, fram, hittadMarkering, dimma, uppe: false, hittad: false, dimmaTill: 0 };
+    obj.on('pointerup', () => this.tryck(kort));
+    return kort;
+  }
+
+  /** Framsidan: färg, valfri kant, valfri symbol och etiketten. */
+  private byggFramsida(data: MemoryKort, w: number, h: number): Phaser.GameObjects.Container {
+    const s = this.scene;
     const fargNamn = data.farg ?? 'ljusbeige';
     const mork = arMork(fargNamn);
     const textFarg: FargNamn = mork ? 'ljusbeige' : 'morkgron';
@@ -178,23 +228,34 @@ export class Memory implements Mekanik {
     const langstaOrd = Math.max(...data.etikett.split(' ').map((ord) => etikett.setText(ord).width));
     etikett.setText(data.etikett).setWordWrapWidth(w - 10);
     if (langstaOrd > w - 10) etikett.setFontSize(Math.max(9, Math.floor((12 * (w - 10)) / langstaOrd)));
-    const fram = s.add.container(0, 0, [bakgrund, formG, etikett]).setVisible(false);
+    return s.add.container(0, 0, [bakgrund, formG, etikett]);
+  }
 
-    // Hittat par: lila kant och en liten lila stjärna i hörnet.
-    const hittadMarkering = s.add.graphics().setVisible(false);
-    hittadMarkering.lineStyle(3, farg.lila, 1).strokeRoundedRect(-w / 2 - 1.5, -h / 2 - 1.5, w + 3, h + 3, radie.m + 1);
-    hittadMarkering.fillStyle(farg.lila, 1).fillCircle(w / 2 - 12, -h / 2 + 12, 9);
-    fyllStjarna(hittadMarkering, w / 2 - 12, -h / 2 + 12, 12, farg.ljusbeige);
-
-    const dimma = s.add.graphics().setAlpha(0);
-    ritaDimma(dimma, w, h);
-
-    const p = this.platser[plats];
-    const obj = s.add.container(p.x, p.y, [bak, fram, hittadMarkering, dimma]).setDepth(DJUP_KORT).setSize(w, h);
-    obj.setInteractive({ useHandCursor: true });
-    const kort: Kort = { data, plats, obj, bak, fram, hittadMarkering, dimma, uppe: false, hittad: false, dimmaTill: 0 };
-    obj.on('pointerup', () => this.tryck(kort));
-    return kort;
+  /**
+   * En halva av ett sönderrivet papper: ljust papper med en ojämn rivkant på den sida där halvorna möts
+   * (höger kant för vänster halva, vänster kant för höger), texten i serif och en liten etikett VÄNSTER/HÖGER.
+   * Båda halvorna i ett par får samma tänder, så att kanterna passar ihop när de glider ihop.
+   */
+  private byggBit(data: MemoryKort, w: number, h: number): Phaser.GameObjects.Container {
+    const s = this.scene;
+    const vanster = data.del === 'vanster';
+    const tander = rivTander(data.par);
+    const kant = (vanster ? w / 2 : -w / 2) - (vanster ? 1 : -1) * RIV_DJUP;
+    const tandPunkter = tander.map((d, i) => new Phaser.Math.Vector2(kant + d, -h / 2 + (h * i) / (tander.length - 1)));
+    const yttre = vanster ? -w / 2 : w / 2;
+    const punkter = vanster
+      ? [new Phaser.Math.Vector2(yttre, -h / 2), ...tandPunkter, new Phaser.Math.Vector2(yttre, h / 2)]
+      : [new Phaser.Math.Vector2(yttre, -h / 2), new Phaser.Math.Vector2(yttre, h / 2), ...tandPunkter.reverse()];
+    const g = s.add.graphics();
+    g.fillStyle(farg.ljusbeige, 1).fillPoints(punkter, true);
+    g.lineStyle(1, farg.beige, 1).strokePoints(punkter, true);
+    // Texten börjar vid den raka kanten (vänster halva) eller strax efter rivkanten (höger halva).
+    const tx = vanster ? -w / 2 + 8 : -w / 2 + RIV_DJUP * 2 + 6;
+    const tb = w - 8 - RIV_DJUP * 2 - 8;
+    const t = skapaText(s, tx, -6, data.etikett, 'rubrik', 'morkgron', { origo: [0, 0.5], storlek: 15 });
+    if (t.width > tb) t.setFontSize(Math.max(10, Math.floor((15 * tb) / t.width)));
+    const del = skapaText(s, tx, 14, vanster ? text.memory.vanster : text.memory.hoger, 'overrubrik', 'morkockra', { origo: [0, 0.5], storlek: 9 });
+    return s.add.container(0, 0, [g, t, del]);
   }
 
   /** Raderna under rutnätet: hittat par, specialkort, dimma. */
@@ -231,7 +292,7 @@ export class Memory implements Mekanik {
   // ---------- Spelet ----------
 
   private aktiv(): boolean {
-    return this.startad && !this.pausad && !this.klar;
+    return this.startad && !this.pausad && !this.klar && !this.vinnerSnart;
   }
 
   private arDimmad(k: Kort): boolean {
@@ -242,7 +303,7 @@ export class Memory implements Mekanik {
     if (!this.aktiv() || k.hittad || k.uppe || this.arDimmad(k) || this.uppe.length >= 2) return;
     k.uppe = true;
     this.uppe.push(k);
-    spela('flipp');
+    spela(this.inst.vandLjud ?? 'flipp');
     this.vand(k, true);
     const effekt = k.data.effekt ? EFFEKTER[k.data.effekt.typ] : undefined;
     if (k.data.effekt && !effekt) console.warn(`Memory: okänd effekt "${k.data.effekt.typ}"`);
@@ -270,26 +331,90 @@ export class Memory implements Mekanik {
 
   private parHittat(a: Kort, b: Kort): void {
     if (this.klar) return;
+    const bitar = !!a.data.del && !!b.data.del;
     for (const k of [a, b]) {
       k.hittad = true;
       k.uppe = false;
       k.obj.disableInteractive();
+      if (bitar) continue;
       k.hittadMarkering.setVisible(true).setAlpha(0);
       this.scene.tweens.add({ targets: k.hittadMarkering, alpha: 1, duration: 200 });
       if (!this.reduceradRorelse) this.scene.tweens.add({ targets: k.obj, scale: 1.06, duration: 110, yoyo: true });
     }
+    if (bitar) this.foga(a.data.del === 'vanster' ? a : b, a.data.del === 'vanster' ? b : a);
     this.uppe = [];
     this.par += 1;
     this.hud.visaPar(this.par, this.totaltPar);
     spela('par');
     this.draget();
+    if (this.inst.bevis) this.andraBevis(Math.max(a.data.bevisvarde ?? 0, b.data.bevisvarde ?? 0) || this.inst.bevis.perPar);
     if (this.inst.vinst === 'alla-par' && this.par >= this.totaltPar) this.avsluta();
+  }
+
+  /**
+   * Två halvor hittade: de glider ihop till en hel remsa (rivkanterna passar i varandra), stannar en stund och
+   * glider sedan tillbaka till sina platser, där de ligger kvar nedtonade som hittade.
+   */
+  private foga(v: Kort, h: Kort): void {
+    const dimma = (): void => {
+      for (const k of [v, h]) this.scene.tweens.add({ targets: k.fram, alpha: 0.55, duration: 250 });
+    };
+    if (this.reduceradRorelse) return dimma();
+    const mx = (v.obj.x + h.obj.x) / 2;
+    const my = (v.obj.y + h.obj.y) / 2;
+    const d = this.kortB / 2 - RIV_DJUP;
+    for (const [k, x] of [[v, mx - d], [h, mx + d]] as const) {
+      const hem = this.platser[k.plats];
+      k.obj.setDepth(DJUP_KORT + 5);
+      this.scene.tweens.chain({
+        targets: k.obj,
+        tweens: [
+          { x, y: my, duration: 280, ease: 'Sine.easeInOut' },
+          { x: hem.x, y: hem.y, delay: 650, duration: 280, ease: 'Sine.easeInOut' },
+        ],
+        onComplete: () => k.obj.setDepth(DJUP_KORT),
+      });
+    }
+    this.scene.time.delayedCall(280 + 650 + 280, dimma);
+  }
+
+  /**
+   * Flyttar bevismätaren. Varje tröskel som passeras uppåt visar sin text; passeras vinsttröskeln (med vinst
+   * "bevis") avslutas nivån med vinst strax efter, även om par återstår.
+   */
+  private andraBevis(andring: number): void {
+    const b = this.inst.bevis;
+    if (!b || andring === 0) return;
+    const fore = this.bevis;
+    this.bevis = Phaser.Math.Clamp(fore + andring, 0, 100);
+    this.hud.visaBevis(this.bevis);
+    this.hud.markeraBevis(andring > 0);
+    if (andring > 0) spela('tick');
+    const passerade = b.trosklar.map((t, i) => ({ t, i })).filter(({ t }) => fore < t.varde && this.bevis >= t.varde);
+    const texter = passerade.map(({ t }) => t.text).filter((t): t is string => !!t);
+    texter.forEach((t, i) => this.visaText(t, i));
+    if (this.inst.vinst === 'bevis' && passerade.some(({ i }) => i === b.vinsttroskel)) {
+      this.vinnerSnart = true;
+      this.scene.time.delayedCall(1500 + texter.length * 400, () => this.avsluta());
+    }
+  }
+
+  /** En kort text mitt över rutnätet, t.ex. "Övervägande sannolikt! Det räcker." (rad = staplade texter). */
+  private visaText(innehall: string, rad: number): void {
+    const forsta = this.platser[0];
+    const sista = this.platser[this.platser.length - 1];
+    const y = (forsta.y + sista.y) / 2 + rad * 40;
+    const p = pratbubbla(this.scene, BREDD / 2, y, innehall, 'guld', 'morkgron').setDepth(40).setScale(0.6);
+    this.scene.tweens.add({ targets: p, scale: 1.15, duration: 220, ease: 'Back.easeOut' });
+    this.scene.tweens.add({ targets: p, alpha: 0, delay: 1500, duration: 350, onComplete: () => p.destroy() });
   }
 
   private miss(): void {
     if (this.klar) return;
     spela('miss');
     this.missar += 1;
+    this.hud.visaMissar(this.missar);
+    if (this.inst.bevis) this.andraBevis(-this.inst.bevis.perMiss);
     if (!this.inst.matare) return;
     this.hud.visaMatare(this.missar);
     this.hud.markeraMatare();
@@ -410,4 +535,15 @@ function ritaDimma(g: Phaser.GameObjects.Graphics, w: number, h: number): void {
     g.fillCircle(x * w, y * h, r * Math.min(w, h));
   }
   g.lineStyle(1, farg.beige, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, radie.m);
+}
+
+/** Rivkantens tänder (förskjutning i sidled per punkt), samma för båda halvorna i ett par: beror bara på parnyckeln. */
+function rivTander(nyckel: string): number[] {
+  let fro = 0;
+  for (const c of nyckel) fro = (fro * 31 + c.charCodeAt(0)) >>> 0;
+  return Array.from({ length: RIV_TANDER * 2 + 1 }, (_, i) => {
+    fro = (fro * 1103515245 + 12345) >>> 0;
+    const slump = (fro % 1000) / 1000;
+    return (i % 2 === 0 ? -1 : 1) * RIV_DJUP * (0.4 + 0.6 * slump);
+  });
 }

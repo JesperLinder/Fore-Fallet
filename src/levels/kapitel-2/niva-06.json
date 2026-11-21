@@ -4,9 +4,199 @@
   "referens": "NJA 2017 s. 362",
   "rattsomrade": "Arvsrätt",
   "mekanik": "memory",
-  "kommerSnart": true,
   "kartmarke": {
     "text": "Memory",
     "farg": "lila"
+  },
+  "rubrikmarke": "Memory",
+  "rubrikmarkeFarg": "lila",
+  "fylgiaMal": false,
+  "tema": "mork",
+  "uppdragstext": "Testamentet hittades sönderrivet. Var det en återkallelse? Det är du som testamentstagare som måste visa att det inte var det.",
+  "fylgiaTips": "Ett sönderrivet testamente ser ut som en återkallelse. Vill du ärva är det du som ska visa att det inte var det. Men du behöver bara komma upp till övervägande sannolikt.",
+  "resultat": "vinst",
+  "stjarnkrav": {
+    "tre": {
+      "maxMisstag": 3
+    },
+    "tva": {
+      "maxMisstag": 6
+    },
+    "en": {}
+  },
+  "bana": {
+    "lager": [
+      {
+        "farg": "morkgron",
+        "topp": 0
+      }
+    ]
+  },
+  "objekt": [],
+  "memory": {
+    "kolumner": 4,
+    "rader": 4,
+    "kort": [
+      {
+        "etikett": "Jag, Ingrid,",
+        "par": "rad1",
+        "del": "vanster",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "förordnar att",
+        "par": "rad1",
+        "del": "hoger",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "hela min",
+        "par": "rad2",
+        "del": "vanster",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "kvarlåtenskap",
+        "par": "rad2",
+        "del": "hoger",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "ska tillfalla",
+        "par": "rad3",
+        "del": "vanster",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "min systerdotter",
+        "par": "rad3",
+        "del": "hoger",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "Ort och",
+        "par": "rad4",
+        "del": "vanster",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "datum",
+        "par": "rad4",
+        "del": "hoger",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "Bevittnas",
+        "par": "rad5",
+        "del": "vanster",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "av oss",
+        "par": "rad5",
+        "del": "hoger",
+        "bevisvarde": 8
+      },
+      {
+        "etikett": "Förvaringen",
+        "par": "forvaring",
+        "farg": "beige",
+        "kant": "guld",
+        "bevisvarde": 15
+      },
+      {
+        "etikett": "Någon annan hade nyckeln",
+        "par": "forvaring",
+        "farg": "beige",
+        "kant": "guld",
+        "bevisvarde": 15
+      },
+      {
+        "etikett": "Testatorns sista ord",
+        "par": "sista-ord",
+        "farg": "beige",
+        "kant": "guld",
+        "bevisvarde": 15
+      },
+      {
+        "etikett": "Nöjd med testamentet",
+        "par": "sista-ord",
+        "farg": "beige",
+        "kant": "guld",
+        "bevisvarde": 15
+      },
+      {
+        "etikett": "Pappershögen",
+        "par": "pappershogen",
+        "farg": "beige",
+        "kant": "guld",
+        "bevisvarde": 15
+      },
+      {
+        "etikett": "Rivet av misstag?",
+        "par": "pappershogen",
+        "farg": "beige",
+        "kant": "guld",
+        "bevisvarde": 15
+      }
+    ],
+    "hud": {
+      "par": "Bitar ihop",
+      "missar": "Felvändningar",
+      "placering": "under"
+    },
+    "tid": {
+      "sekunder": 80,
+      "etikett": "Tid kvar"
+    },
+    "bevis": {
+      "namn": "Bevisbörda: din",
+      "start": 0,
+      "perPar": 8,
+      "perMiss": 3,
+      "trosklar": [
+        {
+          "varde": 55,
+          "etikett": "Övervägande sannolikt",
+          "text": "Övervägande sannolikt! Det räcker."
+        },
+        {
+          "varde": 90,
+          "etikett": "Styrkt",
+          "text": "Styrkt – mer än du behövde",
+          "streckad": true
+        }
+      ],
+      "vinsttroskel": 0,
+      "text": "Varje par flyttar stapeln. Förbi första strecket räcker."
+    },
+    "vinst": "bevis",
+    "forlust": [
+      "tid-slut"
+    ],
+    "vandTillbakaMs": 800,
+    "tipsUnderSpel": true,
+    "baksida": {
+      "farg": "gron",
+      "kant": "morkgron",
+      "stjarna": "guld"
+    },
+    "vandLjud": "prassel"
+  },
+  "forlust": {
+    "rubrik": "Ansågs återkallat.",
+    "orsaker": {
+      "tid-slut": "Bevisbördan var din, och du nådde inte ens upp till övervägande sannolikt."
+    }
+  },
+  "domslut": {
+    "rubrik": "Övervägande sannolikt",
+    "domskal": [
+      "Utgångspunkten är att den som påstår att ett testamente har återkallats har bevisbördan för det.",
+      "Men när det är klarlagt att testamentet har rivits sönder är det testamentstagaren som måste visa att det inte var en återkallelse.",
+      "Eftersom det gäller att bevisa något som inte har hänt räcker det att göra det övervägande sannolikt – ett lägre krav än \"styrkt\"."
+    ],
+    "fotnot": "HD avgjorde frågan om bevisbörda och beviskrav. Själva tvisten prövades sedan av tingsrätten.",
+    "lankTillFallet": "https://lagen.nu/dom/nja/2017s362"
   }
 }

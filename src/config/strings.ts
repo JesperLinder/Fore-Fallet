@@ -77,6 +77,12 @@ export const text = {
     boss: 'Boss',
   } as Record<string, string>,
 
+  /** Memory: etiketterna på halvorna av ett sönderrivet papper. */
+  memory: {
+    vanster: 'Vänster',
+    hoger: 'Höger',
+  },
+
   niva: {
     overrubrik: (nummer: number, referens: string) => `Nivå ${nummer} · ${referens}`,
     /** Före nivåetiketten från kapitel 2, t.ex. "K2 · Nivå 3 · NJA 1996 s. 598". Kapitel 1 visas utan. */

@@ -17,7 +17,7 @@ import { skapaText } from '../ui/text';
 import { tipsPanel } from '../ui/TipPanel';
 import { Knapp, ikonKnapp, ritaPaus } from '../ui/Button';
 import { marke } from '../ui/Badge';
-import { ETIKETT_HOGER } from '../ui/HeaderCard';
+import { ETIKETT_HOGER, RUBRIK_NEDERKANT } from '../ui/HeaderCard';
 import { skarmdumpslage, testlage } from '../debug/flaggor';
 import { skarmdumpRegi } from '../debug/Skarmdump';
 import { testknapparNiva } from '../debug/Testpanel';
@@ -119,7 +119,12 @@ export class LevelScene extends BasScen {
       hoger = x + marke(this, x, over.y + over.height / 2, text.karta.fylgiaMal, lilaBakgrund ? 'morkgron' : 'lila', lilaBakgrund ? 'lila' : 'morkgron').width;
     }
     this.data.set(ETIKETT_HOGER, hoger);
-    skapaText(this, avstand.l - 1, 38, n.titel, 'titel', mork ? 'ljusbeige' : 'morkgron', { storlek: 30 });
+    const titel = skapaText(this, avstand.l - 1, 38, n.titel, 'titel', mork ? 'ljusbeige' : 'morkgron', { storlek: 30 });
+    // En lång titel (t.ex. "Det sönderrivna testamentet") bryts på två rader före pausknappen. Underkanten sparas
+    // så att mekaniken kan börja under den; kortare titlar ser ut exakt som förut.
+    const maxB = BREDD - avstand.l - 48 - 12 - titel.x;
+    if (titel.width > maxB) titel.setWordWrapWidth(maxB).setLineSpacing(-6);
+    this.data.set(RUBRIK_NEDERKANT, titel.y + titel.height);
     ikonKnapp(this, BREDD - avstand.l - 24, 44, mork ? 'konturMork' : 'mork', ritaPaus, () => this.pausa(true)).setDepth(40);
   }
 

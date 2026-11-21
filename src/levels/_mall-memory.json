@@ -4,7 +4,10 @@
   "referens": "NJA ÅÅÅÅ s. NN",
   "rattsomrade": "Köprätt",
   "mekanik": "memory",
-  "kartmarke": { "text": "Memory", "farg": "lila" },
+  "kartmarke": {
+    "text": "Memory",
+    "farg": "lila"
+  },
   "rubrikmarke": "Memory",
   "rubrikmarkeFarg": "lila",
   "fylgiaMal": false,
@@ -12,40 +15,168 @@
   "fylgiaTips": "Fylgians tips: vad som avgör målet.",
   "resultat": "vinst",
   "stjarnkrav": {
-    "tre": { "maxDrag": 14 },
-    "tva": { "maxDrag": 20 },
+    "tre": {
+      "maxDrag": 14
+    },
+    "tva": {
+      "maxDrag": 20
+    },
     "en": {}
   },
   "tema": "ljus",
-  "bana": { "lager": [{ "farg": "ljusbeige", "topp": 0 }] },
+  "bana": {
+    "lager": [
+      {
+        "farg": "ljusbeige",
+        "topp": 0
+      }
+    ]
+  },
   "objekt": [],
   "memory": {
     "kolumner": 4,
     "rader": 4,
-    "hud": { "par": "Par", "drag": "Drag" },
-    "tid": { "sekunder": 75, "etikett": "Tid kvar" },
-    "matare": { "namn": "Misstanke", "steg": 6 },
+    "hud": {
+      "par": "Par",
+      "drag": "Drag"
+    },
+    "tid": {
+      "sekunder": 75,
+      "etikett": "Tid kvar"
+    },
+    "matare": {
+      "namn": "Misstanke",
+      "steg": 6
+    },
     "infotext": "Förklaringen i den mörkgröna rutan under HUD:en.",
     "kort": [
-      { "etikett": "Kort A", "par": "a", "antal": 2, "form": "stjarna" },
-      { "etikett": "Kort B", "par": "b", "antal": 2, "form": "cirkel" },
-      { "etikett": "Kort C", "par": "c", "antal": 2 },
-      { "etikett": "Kort D", "par": "d", "antal": 2 },
-      { "etikett": "Kort E", "par": "e", "antal": 2 },
-      { "etikett": "Vänster halva", "par": "papper", "kant": "guld" },
-      { "etikett": "Höger halva", "par": "papper", "kant": "guld" },
-      { "etikett": "Blandaren", "par": "blanda", "antal": 2, "farg": "gron", "effekt": { "typ": "blanda" } },
-      { "etikett": "Dimman", "par": "dimma", "antal": 2, "farg": "vinrod", "effekt": { "typ": "dimma", "sekunder": 3, "avstand": 1 } }
+      {
+        "etikett": "Kort A",
+        "par": "a",
+        "antal": 2,
+        "form": "stjarna"
+      },
+      {
+        "etikett": "Kort B",
+        "par": "b",
+        "antal": 2,
+        "form": "cirkel"
+      },
+      {
+        "etikett": "Kort C",
+        "par": "c",
+        "antal": 2
+      },
+      {
+        "etikett": "Kort D",
+        "par": "d",
+        "antal": 2
+      },
+      {
+        "etikett": "Kort E",
+        "par": "e",
+        "antal": 2
+      },
+      {
+        "etikett": "Vänster halva",
+        "par": "papper",
+        "kant": "guld",
+        "del": "vanster"
+      },
+      {
+        "etikett": "Höger halva",
+        "par": "papper",
+        "kant": "guld",
+        "del": "hoger"
+      },
+      {
+        "etikett": "Blandaren",
+        "par": "blanda",
+        "antal": 2,
+        "farg": "gron",
+        "effekt": {
+          "typ": "blanda"
+        }
+      },
+      {
+        "etikett": "Dimman",
+        "par": "dimma",
+        "antal": 2,
+        "farg": "vinrod",
+        "effekt": {
+          "typ": "dimma",
+          "sekunder": 3,
+          "avstand": 1
+        }
+      }
     ],
     "teckenforklaring": [
-      { "typ": "hittat", "text": "Hittat par" },
-      { "typ": "kort", "farg": "vinrod", "text": "Dimkort" },
-      { "typ": "dimma", "text": "Dimma" }
+      {
+        "typ": "hittat",
+        "text": "Hittat par"
+      },
+      {
+        "typ": "kort",
+        "farg": "vinrod",
+        "text": "Dimkort"
+      },
+      {
+        "typ": "dimma",
+        "text": "Dimma"
+      }
     ],
     "vinst": "alla-par",
-    "forlust": ["tid-slut", "matare-full"],
+    "forlust": [
+      "tid-slut",
+      "matare-full"
+    ],
     "vandTillbakaMs": 800,
-    "tipsUnderSpel": true
+    "tipsUnderSpel": true,
+    "_bevis_exempel": {
+      "_forklaring": "Bevismätare med trösklar (se _mall-memory.md). Flytta upp fälten direkt i memory och ta bort nyckeln. Med vinst \"bevis\" vinner man när mätaren passerar vinsttröskeln, även om par återstår.",
+      "bevis": {
+        "namn": "[MÄTARENS NAMN]",
+        "start": 0,
+        "perPar": 8,
+        "perMiss": 3,
+        "trosklar": [
+          {
+            "varde": 55,
+            "etikett": "[VINSTTRÖSKEL]",
+            "text": "[TEXT VID PASSAGEN]"
+          },
+          {
+            "varde": 90,
+            "etikett": "[HÖGRE TRÖSKEL]",
+            "text": "[TEXT]",
+            "streckad": true
+          }
+        ],
+        "vinsttroskel": 0,
+        "text": "[RAD UNDER STAPELN]"
+      },
+      "vinst": "bevis",
+      "hud": {
+        "par": "[PAR]",
+        "missar": "[FELVÄNDNINGAR]",
+        "placering": "under"
+      },
+      "baksida": {
+        "farg": "gron",
+        "kant": "morkgron",
+        "stjarna": "guld"
+      },
+      "vandLjud": "prassel",
+      "_kort_med_bevisvarde": [
+        {
+          "etikett": "[BEVIS]",
+          "par": "bevis1",
+          "farg": "beige",
+          "kant": "guld",
+          "bevisvarde": 15
+        }
+      ]
+    }
   },
   "forlust": {
     "rubrik": "Rubrik på förlustskärmen.",
@@ -56,7 +187,11 @@
   },
   "domslut": {
     "rubrik": "Domslutets rubrik",
-    "domskal": ["Första domskälet.", "Andra domskälet.", "Tredje domskälet."],
+    "domskal": [
+      "Första domskälet.",
+      "Andra domskälet.",
+      "Tredje domskälet."
+    ],
     "lankTillFallet": "https://lagen.nu/dom/nja/AAAAsNN"
   }
 }

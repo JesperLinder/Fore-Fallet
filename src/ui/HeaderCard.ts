@@ -16,6 +16,8 @@ const HORNKORT_Y_NERE = 40;
 const H = 54;
 /** Nyckel i scene.data: nivåetikettens högerkant (sätts av LevelScene innan mekaniken byggs). */
 export const ETIKETT_HOGER = 'etikettHoger';
+/** Nyckel i scenens data: titelns underkant (en lång titel kan ta två rader). Sätts av LevelScene. */
+export const RUBRIK_NEDERKANT = 'rubrikNederkant';
 const H_KOMPAKT = 46;
 
 export interface Hornkort {
